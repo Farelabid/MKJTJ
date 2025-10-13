@@ -129,6 +129,12 @@ Dashboard statistik real-time untuk TJ Radio Jakarta yang menampilkan data strea
      * Shift Malam (20:00-23:00) - Denny CH & Eko Kuntadhi
      * Yesterday Hits (23:00-00:00) - Rio
 
+6. **Footer dengan Disclaimer Internal**
+   - Footer text: "Hanya untuk keperluan Internal, tidak untuk disebarkan. Hak Cipta dilindungi Undang-Undang. | Media Kawal Jakarta"
+   - Menekankan penggunaan internal only
+   - Perlindungan hak cipta
+   - Atribusi ke Media Kawal Jakarta
+
 ## Arsitektur Proyek
 
 ### Frontend
