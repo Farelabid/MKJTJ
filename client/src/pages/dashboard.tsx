@@ -470,7 +470,7 @@ export default function Dashboard() {
       <footer className="border-t mt-12">
         <div className="max-w-7xl mx-auto px-4 py-6">
           <p className="text-sm text-center text-muted-foreground">
-            Data sumber: stream-eu-nc.arenastreaming.com • Dashboard Statistik TJ Radio Jakarta
+            Hanya untuk keperluan Internal, tidak untuk disebarkan. Hak Cipta dilindungi Undang-Undang. | Media Kawal Jakarta
           </p>
         </div>
       </footer>
