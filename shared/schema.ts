@@ -94,16 +94,31 @@ export const insertAlertHistorySchema = createInsertSchema(alertHistory).omit({
 export type InsertAlertHistory = z.infer<typeof insertAlertHistorySchema>;
 export type AlertHistory = typeof alertHistory.$inferSelect;
 
-// Program Stats Table - stores latest delta per program per day
+// Program Stats Table - stores EMA and listener-minutes per program per day
 export const programStats = pgTable("program_stats", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   programName: text("program_name").notNull(),
   date: text("date").notNull(), // Format: YYYY-MM-DD (WIB timezone)
-  latestDelta: integer("latest_delta").notNull().default(0),
-  rawListeners: integer("raw_listeners").notNull().default(0), // z = raw listeners from Icecast
+  LM: integer("lm").notNull().default(0), // Listener-Minutes mentah
+  LMhat: integer("lm_hat").notNull().default(0), // Listener-Minutes tersmooth (EMA)
+  Nhat: integer("n_hat").notNull().default(0), // EMA dari raw listeners
+  baseline: integer("baseline"), // Rata-rata Nhat dari 5 menit pertama
+  targetLM: integer("target_lm"), // Target LM = durasi × baseline
+  progress: integer("progress").notNull().default(0), // Progress 0-100
+  jumlahPendengar: integer("jumlah_pendengar").notNull().default(0), // Output: 10 × (LMhat / 12)
   startTime: text("start_time").notNull(), // HH:mm format
   endTime: text("end_time").notNull(), // HH:mm format
   lastUpdated: timestamp("last_updated").notNull().defaultNow(),
+});
+
+// Minute Snapshots Table - stores minute-by-minute data for baseline calculation
+export const minuteSnapshots = pgTable("minute_snapshots", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  timestamp: timestamp("timestamp").notNull().defaultNow(),
+  rawListeners: integer("raw_listeners").notNull(), // N dari Icecast
+  Nhat: integer("n_hat").notNull(), // EMA-smoothed N
+  programName: text("program_name").notNull(),
+  date: text("date").notNull(), // YYYY-MM-DD (WIB timezone)
 });
 
 export const insertProgramStatsSchema = createInsertSchema(programStats).omit({
@@ -113,6 +128,14 @@ export const insertProgramStatsSchema = createInsertSchema(programStats).omit({
 
 export type InsertProgramStats = z.infer<typeof insertProgramStatsSchema>;
 export type ProgramStats = typeof programStats.$inferSelect;
+
+export const insertMinuteSnapshotSchema = createInsertSchema(minuteSnapshots).omit({
+  id: true,
+  timestamp: true,
+});
+
+export type InsertMinuteSnapshot = z.infer<typeof insertMinuteSnapshotSchema>;
+export type MinuteSnapshot = typeof minuteSnapshots.$inferSelect;
 
 // API Response Schema for Program Listeners
 export const programListenersSchema = z.object({

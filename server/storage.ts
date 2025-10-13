@@ -4,6 +4,7 @@ import {
   alertThresholds,
   alertHistory,
   programStats,
+  minuteSnapshots,
   type StatsHistory, 
   type InsertStatsHistory,
   type Configuration,
@@ -13,7 +14,9 @@ import {
   type AlertHistory,
   type InsertAlertHistory,
   type ProgramStats,
-  type InsertProgramStats
+  type InsertProgramStats,
+  type MinuteSnapshot,
+  type InsertMinuteSnapshot
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, gte, lte, and } from "drizzle-orm";
@@ -39,10 +42,25 @@ export interface IStorage {
   saveAlertHistory(alert: InsertAlertHistory): Promise<AlertHistory>;
   getAlertHistory(limit?: number): Promise<AlertHistory[]>;
   
-  // Program Stats
+  // Program Stats (EMA-based)
   getProgramStats(programName: string, date: string): Promise<ProgramStats | undefined>;
-  updateProgramStats(programName: string, date: string, cumulativeDelta: number, lastListeners: number): Promise<ProgramStats>;
+  updateProgramStats(programName: string, date: string, data: {
+    LM: number;
+    LMhat: number;
+    Nhat: number;
+    baseline?: number;
+    targetLM?: number;
+    progress: number;
+    jumlahPendengar: number;
+    startTime: string;
+    endTime: string;
+  }): Promise<ProgramStats>;
   getAllProgramStatsForDate(date: string): Promise<ProgramStats[]>;
+  
+  // Minute Snapshots
+  saveMinuteSnapshot(snapshot: InsertMinuteSnapshot): Promise<MinuteSnapshot>;
+  getRecentSnapshots(programName: string, date: string, minutes: number): Promise<MinuteSnapshot[]>;
+  cleanupOldSnapshots(cutoffDate: Date): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -186,8 +204,17 @@ export class DatabaseStorage implements IStorage {
   async updateProgramStats(
     programName: string, 
     date: string, 
-    latestDelta: number, 
-    rawListeners: number
+    data: {
+      LM: number;
+      LMhat: number;
+      Nhat: number;
+      baseline?: number;
+      targetLM?: number;
+      progress: number;
+      jumlahPendengar: number;
+      startTime: string;
+      endTime: string;
+    }
   ): Promise<ProgramStats> {
     const existing = await this.getProgramStats(programName, date);
     
@@ -195,25 +222,33 @@ export class DatabaseStorage implements IStorage {
       const [updated] = await db
         .update(programStats)
         .set({ 
-          latestDelta, 
-          rawListeners, 
+          LM: data.LM,
+          LMhat: data.LMhat,
+          Nhat: data.Nhat,
+          baseline: data.baseline,
+          targetLM: data.targetLM,
+          progress: data.progress,
+          jumlahPendengar: data.jumlahPendengar,
           lastUpdated: new Date() 
         })
         .where(eq(programStats.id, existing.id))
         .returning();
       return updated;
     } else {
-      // Need to get program schedule to set start/end times
-      const programSchedule = this.getProgramSchedule(programName);
       const [created] = await db
         .insert(programStats)
         .values({
           programName,
           date,
-          latestDelta,
-          rawListeners,
-          startTime: programSchedule.startTime,
-          endTime: programSchedule.endTime,
+          LM: data.LM,
+          LMhat: data.LMhat,
+          Nhat: data.Nhat,
+          baseline: data.baseline,
+          targetLM: data.targetLM,
+          progress: data.progress,
+          jumlahPendengar: data.jumlahPendengar,
+          startTime: data.startTime,
+          endTime: data.endTime,
         })
         .returning();
       return created;
@@ -226,6 +261,40 @@ export class DatabaseStorage implements IStorage {
       .from(programStats)
       .where(eq(programStats.date, date));
     return stats;
+  }
+
+  // Minute Snapshots
+  async saveMinuteSnapshot(snapshot: InsertMinuteSnapshot): Promise<MinuteSnapshot> {
+    const [saved] = await db
+      .insert(minuteSnapshots)
+      .values(snapshot)
+      .returning();
+    return saved;
+  }
+
+  async getRecentSnapshots(programName: string, date: string, minutes: number): Promise<MinuteSnapshot[]> {
+    const cutoff = new Date();
+    cutoff.setMinutes(cutoff.getMinutes() - minutes);
+    
+    const snapshots = await db
+      .select()
+      .from(minuteSnapshots)
+      .where(
+        and(
+          eq(minuteSnapshots.programName, programName),
+          eq(minuteSnapshots.date, date),
+          gte(minuteSnapshots.timestamp, cutoff)
+        )
+      )
+      .orderBy(desc(minuteSnapshots.timestamp));
+    
+    return snapshots;
+  }
+
+  async cleanupOldSnapshots(cutoffDate: Date): Promise<void> {
+    await db
+      .delete(minuteSnapshots)
+      .where(lte(minuteSnapshots.timestamp, cutoffDate));
   }
 
   // Helper method to get program schedule
