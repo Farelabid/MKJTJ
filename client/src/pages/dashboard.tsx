@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { HistoricalChart } from "@/components/historical-chart";
 import { ExportPanel } from "@/components/export-panel";
+import { ProgramListeners } from "@/components/program-listeners";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Dashboard() {
@@ -379,6 +380,11 @@ export default function Dashboard() {
 
           {/* Export Panel */}
           <ExportPanel />
+        </section>
+
+        {/* Program Listeners */}
+        <section>
+          <ProgramListeners />
         </section>
 
         {/* Historical Chart */}
