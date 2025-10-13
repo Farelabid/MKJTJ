@@ -14,7 +14,7 @@ import { ProgramListeners } from "@/components/program-listeners";
 import { OnAirProgram } from "@/components/on-air-program";
 import { useToast } from "@/hooks/use-toast";
 import tjRadioLogo from "@assets/logo_official_tj_1760323825293.png";
-import onAirImage from "@assets/air-neon-frame_23-2148770153_1760326539971.jpg";
+import onAirImage from "@assets/onair_1760326793890.png";
 
 export default function Dashboard() {
   const [autoRefreshCountdown, setAutoRefreshCountdown] = useState(30);
