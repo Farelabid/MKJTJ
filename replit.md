@@ -25,10 +25,11 @@ The dashboard's design is inspired by Spotify Analytics and SoundCloud Stats, fe
 - **Metrics Calculation**:
     - **Radio Stats**: Listeners (current/peak) = Raw Icecast data × Configurable Multiplier (default 4).
     - **Program Analytics (Updated Oct 2025 - Final)**: 
-      * "Total Pendengar Saat ini" = Raw listeners (N) × **6.5** (direct real-time calculation)
-      * "TOTAL PENDENGAR" = Cumulative absolute changes × **6.5** (sum of |ΔN| × 6.5 every minute since program start)
+      * "Total Pendengar Saat ini" = Raw listeners (N) × **11** (direct real-time calculation)
+      * "TOTAL PENDENGAR" = Cumulative absolute changes × **11** (sum of |ΔN| × 11 every **30 seconds** since program start)
       * EMA smoothing (α=0.25) used for spike detection (>50% threshold, 5-min capping at ±25%)
       * State resets automatically at midnight or program change to prevent spurious spikes
+      * Calculation interval: **30 seconds** (previously 1 minute)
 
 ### Feature Specifications
 - **Real-time Statistics**: Display of current listeners, peak listeners, and currently playing song with auto-refresh every 30 seconds.
