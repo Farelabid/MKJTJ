@@ -148,7 +148,7 @@ export function ProgramListeners() {
                         data-testid={`text-program-${program.displayName.toLowerCase().replace(/\s+/g, '-')}`}
                       >
                         <span className="text-yellow-400">{first}</span>
-                        <span className="text-white">{rest}</span>
+                        <span className="text-white"> {rest}</span>
                       </h3>
                     </div>
                   </div>
