@@ -83,16 +83,19 @@ Dashboard statistik real-time untuk TJ Radio Jakarta yang menampilkan data strea
 ### UI Improvements (Completed)
 1. **Program Listeners Analytics**
    - Jumlah pendengar per program berdasarkan time slot
-   - 6 program dengan jadwal tetap:
+   - 7 program dengan jadwal tetap (WIB):
+     * Night Flow (00:00-06:00)
      * Good Morning Jakarta (06:00-10:00)
-     * Office Hour (10:01-13:00)
-     * Coffee Break (13:01-16:00)
-     * Drive Time (16:01-20:00)
-     * Shift Malam (20:01-22:00)
-     * Yesterday Hits (22:01-05:59)
-   - Perhitungan otomatis dari data historis 24 jam
-   - Semua angka dikalikan 4 (multiplier)
+     * Office Hour (10:00-13:00)
+     * Coffee Break (13:00-16:00)
+     * Drive Time (16:00-20:00)
+     * Shift Malam (20:00-23:00)
+     * Yesterday Hits (23:00-00:00)
+   - **Perhitungan real-time**: Ambil current listeners dari Icecast, sesuaikan dengan jadwal program, kalikan 4
+   - Hanya program yang sedang on-air menampilkan listeners (program lain: 0)
+   - Badge LIVE untuk program yang sedang on-air
    - Visualisasi bar chart dengan color coding
+   - Auto-refresh setiap 30 detik
 
 2. **TJ Radio Branding**
    - Logo oficial TJ Radio di header dashboard
