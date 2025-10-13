@@ -42,6 +42,9 @@ export interface IStorage {
   saveAlertHistory(alert: InsertAlertHistory): Promise<AlertHistory>;
   getAlertHistory(limit?: number): Promise<AlertHistory[]>;
   
+  // Configuration Helper
+  getConfigValue(key: string): Promise<string | undefined>;
+  
   // Program Stats (EMA-based)
   getProgramStats(programName: string, date: string): Promise<ProgramStats | undefined>;
   updateProgramStats(programName: string, date: string, data: {
@@ -51,7 +54,9 @@ export interface IStorage {
     baseline?: number;
     targetLM?: number;
     progress: number;
-    jumlahPendengar: number;
+    elapsedMinutes: number;
+    avgConcurrentListeners: number;
+    estimatedUniqueListeners: number;
     startTime: string;
     endTime: string;
   }): Promise<ProgramStats>;
@@ -137,6 +142,11 @@ export class DatabaseStorage implements IStorage {
     return configs;
   }
 
+  async getConfigValue(key: string): Promise<string | undefined> {
+    const config = await this.getConfig(key);
+    return config?.value;
+  }
+
   // Alert Thresholds
   async getAlertThresholds(): Promise<AlertThreshold[]> {
     const thresholds = await db
@@ -211,7 +221,9 @@ export class DatabaseStorage implements IStorage {
       baseline?: number;
       targetLM?: number;
       progress: number;
-      jumlahPendengar: number;
+      elapsedMinutes: number;
+      avgConcurrentListeners: number;
+      estimatedUniqueListeners: number;
       startTime: string;
       endTime: string;
     }
@@ -228,7 +240,9 @@ export class DatabaseStorage implements IStorage {
           baseline: data.baseline,
           targetLM: data.targetLM,
           progress: data.progress,
-          jumlahPendengar: data.jumlahPendengar,
+          elapsedMinutes: data.elapsedMinutes,
+          avgConcurrentListeners: data.avgConcurrentListeners,
+          estimatedUniqueListeners: data.estimatedUniqueListeners,
           lastUpdated: new Date() 
         })
         .where(eq(programStats.id, existing.id))
@@ -246,7 +260,9 @@ export class DatabaseStorage implements IStorage {
           baseline: data.baseline,
           targetLM: data.targetLM,
           progress: data.progress,
-          jumlahPendengar: data.jumlahPendengar,
+          elapsedMinutes: data.elapsedMinutes,
+          avgConcurrentListeners: data.avgConcurrentListeners,
+          estimatedUniqueListeners: data.estimatedUniqueListeners,
           startTime: data.startTime,
           endTime: data.endTime,
         })

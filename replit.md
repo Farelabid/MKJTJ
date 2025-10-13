@@ -82,25 +82,21 @@ Dashboard statistik real-time untuk TJ Radio Jakarta yang menampilkan data strea
 
 ### UI Improvements (Completed)
 1. **Program Listeners Analytics**
-   - Jumlah pendengar per program berdasarkan time slot
-   - 7 program dengan jadwal dan durasi (WIB):
-     * Night Flow (00:00-06:00) - 360 menit
-     * Good Morning Jakarta (06:00-10:00) - 240 menit
-     * Office Hour (10:00-13:00) - 180 menit
-     * Coffee Break (13:00-16:00) - 180 menit
-     * Drive Time (16:00-20:00) - 240 menit
-     * Shift Malam (20:00-22:00) - 120 menit
-     * Yesterday Hits (22:00-24:00) - 120 menit
-   - **Formula Perhitungan**: Jumlah Pendengar = (x × durasi) + z × (jumlah jam siaran + 6)
-     * x = Delta listeners (listeners sekarang - 1 menit lalu)
-     * durasi = Durasi program dalam menit
-     * z = Raw listeners dari Icecast (tanpa multiplier)
-     * jumlah jam siaran = Durasi program dalam jam
-   - **Interval**: Delta calculation setiap 4 menit
-   - Hanya program yang sedang on-air menampilkan listeners (program lain: 0)
+   - Menampilkan 2 metrics per program:
+     * **Average Concurrent Listeners**: LMhat ÷ Elapsed Minutes
+     * **Estimated Unique Listeners**: LMhat ÷ ALT_session (45 menit)
+   - 7 program dengan jadwal (WIB):
+     * Night Flow (00:00-06:00)
+     * Good Morning Jakarta (06:00-10:00)
+     * Office Hour (10:00-13:00)
+     * Coffee Break (13:00-16:00)
+     * Drive Time (16:00-20:00)
+     * Shift Malam (20:00-23:00)
+     * Yesterday Hits (23:00-00:00)
    - Badge LIVE untuk program yang sedang on-air
    - Visualisasi bar chart dengan color coding
    - Auto-refresh setiap 30 detik
+   - Menggunakan EMA smoothing untuk mengurangi fluktuasi data
 
 2. **TJ Radio Branding**
    - Logo oficial TJ Radio di header dashboard
@@ -209,11 +205,38 @@ Dashboard statistik real-time untuk TJ Radio Jakarta yang menampilkan data strea
 - `tailwind.config.ts` - Design tokens dan theme configuration
 - `design_guidelines.md` - Design system guidelines
 
-## Perhitungan Khusus
+## Perhitungan Metrics
+### Radio Stats (Hero Display)
 - **Listeners (current)** = Data dari Icecast × Multiplier (configurable, default 4)
 - **Listeners (peak)** = Data dari Icecast × Multiplier (configurable, default 4)
 
 Multiplier dapat diubah melalui admin panel dan disimpan di database.
+
+### Program Analytics (Per-Program Metrics)
+Menggunakan EMA (Exponential Moving Average) dengan formula yang realistis:
+
+1. **Average Concurrent Listeners** = LMhat ÷ Elapsed Minutes
+   - Menunjukkan rata-rata jumlah pendengar concurrent sejak program dimulai
+   - Baseline: Rata-rata dari 5 snapshot pertama program
+   - Contoh: 3639 LMhat ÷ 8 menit elapsed = 455 avg concurrent listeners
+
+2. **Estimated Unique Listeners** = LMhat ÷ ALT_session
+   - Estimasi jumlah unique listeners berbeda yang mendengarkan
+   - ALT_session (Average Listen Time per session) = 45 menit (configurable via admin)
+   - Contoh: 3639 LMhat ÷ 45 menit = 81 estimated unique listeners
+
+**Implementation Details:**
+- Elapsed Minutes: Calculated from program start time (schedule-based) using WIB timezone
+- WIB Conversion: Uses `(wibOffset + localOffset)` to avoid double-offset bugs
+- All values rounded to integers for database storage
+- Both metrics displayed in frontend with clear labels
+- Active program highlighted with colored background on Est. Unique metric
+
+**EMA Constants:**
+- Alpha (smoothing factor) = 0.25
+- ALT_session (average session length) = 45 minutes (default, configurable via admin config)
+- Spike detection threshold = 50% deviation from baseline
+- Spike capping window = 5 minutes at ±25%
 
 ## Design System
 Dashboard menggunakan design system terinspirasi dari Spotify Analytics dan SoundCloud Stats:

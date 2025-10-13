@@ -105,7 +105,9 @@ export const programStats = pgTable("program_stats", {
   baseline: integer("baseline"), // Rata-rata Nhat dari 5 menit pertama
   targetLM: integer("target_lm"), // Target LM = durasi × baseline
   progress: integer("progress").notNull().default(0), // Progress 0-100
-  jumlahPendengar: integer("jumlah_pendengar").notNull().default(0), // Output: 10 × (LMhat / 12)
+  elapsedMinutes: integer("elapsed_minutes").notNull().default(0), // Waktu berjalan sejak start
+  avgConcurrentListeners: integer("avg_concurrent_listeners").notNull().default(0), // LMhat ÷ elapsedMinutes
+  estimatedUniqueListeners: integer("estimated_unique_listeners").notNull().default(0), // LMhat ÷ ALT_session
   startTime: text("start_time").notNull(), // HH:mm format
   endTime: text("end_time").notNull(), // HH:mm format
   lastUpdated: timestamp("last_updated").notNull().defaultNow(),

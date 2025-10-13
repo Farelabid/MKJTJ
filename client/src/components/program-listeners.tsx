@@ -10,7 +10,8 @@ interface ProgramListenersData {
   timeRange: string;
   startTime: string;
   endTime: string;
-  cumulativeListeners: number;
+  cumulativeListeners: number; // Estimated Unique Listeners
+  avgConcurrent: number; // Average Concurrent Listeners
   progressPercent: number;
   isActive: boolean;
   color: string;
@@ -82,17 +83,31 @@ export function ProgramListeners() {
                     <p className="text-xs text-muted-foreground">{program.timeRange}</p>
                   </div>
                 </div>
-                {/* Bold + colored background for cumulative listeners */}
-                <span 
-                  className="font-mono font-bold px-3 py-1.5 rounded-md min-w-[80px] text-center inline-block" 
-                  style={{
-                    backgroundColor: program.isActive ? program.color : 'transparent',
-                    color: program.isActive ? 'white' : 'inherit',
-                  }}
-                  data-testid={`text-program-listeners-${program.displayName.toLowerCase().replace(/\s+/g, '-')}`}
-                >
-                  {program.cumulativeListeners.toLocaleString()}
-                </span>
+                {/* Display both metrics with clear labels */}
+                <div className="flex gap-3 items-center">
+                  <div className="text-right">
+                    <p className="text-xs text-muted-foreground">Avg Concurrent</p>
+                    <span 
+                      className="font-mono font-bold text-sm" 
+                      data-testid={`text-program-avg-${program.displayName.toLowerCase().replace(/\s+/g, '-')}`}
+                    >
+                      {program.avgConcurrent.toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-muted-foreground">Est. Unique</p>
+                    <span 
+                      className="font-mono font-bold px-3 py-1.5 rounded-md min-w-[80px] text-center inline-block" 
+                      style={{
+                        backgroundColor: program.isActive ? program.color : 'transparent',
+                        color: program.isActive ? 'white' : 'inherit',
+                      }}
+                      data-testid={`text-program-listeners-${program.displayName.toLowerCase().replace(/\s+/g, '-')}`}
+                    >
+                      {program.cumulativeListeners.toLocaleString()}
+                    </span>
+                  </div>
+                </div>
               </div>
               {/* Progress bar based on time (0-100%) */}
               <div className="h-6 bg-muted rounded-md overflow-hidden relative">

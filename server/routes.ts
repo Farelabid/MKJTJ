@@ -33,8 +33,8 @@ const PROGRAM_SCHEDULES = [
   { name: "Office Hour", startHour: 10, startMin: 0, endHour: 13, endMin: 0, durationMinutes: 180 },
   { name: "Coffee Break", startHour: 13, startMin: 0, endHour: 16, endMin: 0, durationMinutes: 180 },
   { name: "Drive Time", startHour: 16, startMin: 0, endHour: 20, endMin: 0, durationMinutes: 240 },
-  { name: "Shift Malam", startHour: 20, startMin: 0, endHour: 22, endMin: 0, durationMinutes: 120 },
-  { name: "Yesterday Hits", startHour: 22, startMin: 0, endHour: 24, endMin: 0, durationMinutes: 120 },
+  { name: "Shift Malam", startHour: 20, startMin: 0, endHour: 23, endMin: 0, durationMinutes: 180 },
+  { name: "Yesterday Hits", startHour: 23, startMin: 0, endHour: 24, endMin: 0, durationMinutes: 60 },
 ];
 
 function getCurrentProgramWIB(): string | null {
@@ -296,8 +296,35 @@ async function calculateEMAListenerMinutes() {
     const progressRatio = clamp(LMhat / Math.max(1, targetLM), 0, 1);
     const progress = Math.round(progressRatio * 100); // Convert to 0-100 integer
     
-    // Calculate final output: Jumlah Pendengar = K × (LMhat / ALT)
-    const jumlahPendengar = Math.round(SCALE_K * (LMhat / ALT_MIN));
+    // Calculate elapsed minutes from program start time (based on schedule)
+    // Use same WIB conversion logic as getCurrentProgramWIB() to avoid double-offset
+    const now = new Date();
+    const wibOffset = 7 * 60; // WIB = UTC+7
+    const localOffset = now.getTimezoneOffset();
+    const wibTime = new Date(now.getTime() + (wibOffset + localOffset) * 60 * 1000);
+    const currentHour = wibTime.getHours();
+    const currentMinute = wibTime.getMinutes();
+    const currentMinutesSinceMidnight = currentHour * 60 + currentMinute;
+    const programStartMinutes = programSchedule.startHour * 60 + programSchedule.startMin;
+    
+    let elapsedMinutes: number;
+    if (currentMinutesSinceMidnight >= programStartMinutes) {
+      elapsedMinutes = Math.max(1, currentMinutesSinceMidnight - programStartMinutes);
+    } else {
+      // Handle midnight crossing
+      elapsedMinutes = Math.max(1, (24 * 60) - programStartMinutes + currentMinutesSinceMidnight);
+    }
+    
+    // Get ALT_session from config (default 45 minutes)
+    const altSessionConfig = await storage.getConfigValue('alt_session');
+    const ALT_session = altSessionConfig ? parseInt(altSessionConfig) : 45;
+    
+    // Calculate new metrics
+    // 1. Average Concurrent Listeners = LMhat ÷ elapsed minutes
+    const avgConcurrentListeners = Math.round(LMhat / elapsedMinutes);
+    
+    // 2. Estimated Unique Listeners = LMhat ÷ ALT_session
+    const estimatedUniqueListeners = Math.round(LMhat / ALT_session);
     
     // Update program stats in database (all values rounded to integers)
     await storage.updateProgramStats(currentProgram, wibDate, {
@@ -307,14 +334,16 @@ async function calculateEMAListenerMinutes() {
       baseline: state.baselineN,
       targetLM: Math.round(targetLM),
       progress,
-      jumlahPendengar,
+      elapsedMinutes,
+      avgConcurrentListeners,
+      estimatedUniqueListeners,
       startTime: `${String(programSchedule.startHour).padStart(2, '0')}:${String(programSchedule.startMin).padStart(2, '0')}`,
       endTime: `${String(programSchedule.endHour).padStart(2, '0')}:${String(programSchedule.endMin).padStart(2, '0')}`,
     });
     
     state.lastN = N;
     
-    console.log(`[EMA] ${currentProgram}: N=${N}, Nhat=${state.Nhat.toFixed(1)}, LMhat=${LMhat.toFixed(0)}, Progress=${progress}%, Jumlah=${jumlahPendengar}`);
+    console.log(`[EMA] ${currentProgram}: N=${N}, Nhat=${state.Nhat.toFixed(1)}, LMhat=${LMhat}, Avg=${avgConcurrentListeners}, Unique≈${estimatedUniqueListeners}`);
     
   } catch (error) {
     console.error(`[EMA] Error calculating EMA:`, error);
@@ -569,8 +598,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         PROGRAM_SCHEDULES.map(async (program) => {
           const stats = await storage.getProgramStats(program.name, wibDate);
           
-          // Use jumlahPendengar from database (calculated via EMA: K × (LMhat / ALT))
-          const cumulativeListeners = stats?.jumlahPendengar || 0;
+          // Use new metrics: avgConcurrentListeners and estimatedUniqueListeners
+          const cumulativeListeners = stats?.estimatedUniqueListeners || 0;
+          const avgConcurrent = stats?.avgConcurrentListeners || 0;
           
           // Use progress from database (already 0-100)
           const progressPercent = stats?.progress || 0;
@@ -582,6 +612,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             startTime: `${String(program.startHour).padStart(2, '0')}:${String(program.startMin).padStart(2, '0')}`,
             endTime: `${String(program.endHour).padStart(2, '0')}:${String(program.endMin).padStart(2, '0')}`,
             cumulativeListeners,
+            avgConcurrent,
             progressPercent,
             isActive: program.name === currentProgramName,
             color: getColorForProgram(program.name),
