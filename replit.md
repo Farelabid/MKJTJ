@@ -102,6 +102,23 @@ Dashboard statistik real-time untuk TJ Radio Jakarta yang menampilkan data strea
    - Menghapus "Statistik Cepat" (raw data)
    - Fokus pada metrics yang relevan untuk user
 
+4. **Real-Time DateTime Display**
+   - Keterangan waktu di header dashboard
+   - Format: Hari, Jam, Tanggal, Bulan, Tahun (Indonesia)
+   - Update setiap detik
+   - Contoh: "Senin, 14:30, 13 Oktober 2025"
+
+5. **Program On Air Integration**
+   - Mengganti "Export Laporan" dengan "Program sedang On Air"
+   - Fetch data real-time dari https://www.tjradiojakarta.com/live
+   - Menampilkan:
+     * Foto program yang sedang on air
+     * Nama program dan penyiar
+     * Jam siaran
+     * Deskripsi program
+     * Badge LIVE status
+   - Auto-refresh setiap 30 detik
+
 ## Arsitektur Proyek
 
 ### Frontend
@@ -203,7 +220,8 @@ npm run db:push --force # Force push if needed
 ### Public Endpoints
 - `GET /api/radio-stats` - Current radio statistics
 - `GET /api/stats-history?hours=24` - Historical stats (query param: hours)
-- `GET /api/export/csv?hours=24` - Export CSV (query param: hours)
+- `GET /api/on-air-program` - Current on-air program info from tjradiojakarta.com/live
+- `GET /api/export/csv?hours=24` - Export CSV (query param: hours) - Admin only
 
 ### Configuration Endpoints
 - `GET /api/config` - Get all configuration
