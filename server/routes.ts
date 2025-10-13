@@ -225,25 +225,15 @@ async function calculateProgramDelta() {
       return;
     }
     
-    // Calculate delta: (current - 1 minute ago)
-    const rawDelta = currentListenersRaw - oneMinuteAgoListenersRaw;
+    // Calculate delta: x = (current - 1 minute ago)
+    const latestDelta = currentListenersRaw - oneMinuteAgoListenersRaw;
     
-    // Get multiplier from config
-    const multiplierConfig = await storage.getConfig('listener_multiplier');
-    const multiplier = multiplierConfig ? parseInt(multiplierConfig.value) : 4;
-    
-    // Apply multiplier to delta: delta × 4
-    const adjustedDelta = rawDelta * multiplier;
-    
-    // Get existing cumulative stats
-    const existingStats = await storage.getProgramStats(currentProgram, wibDate);
-    const newCumulativeDelta = (existingStats?.cumulativeDelta || 0) + adjustedDelta;
-    
-    // Update program stats
+    // Update program stats with latest delta and raw listeners
+    // Formula will be applied in API: (latestDelta × duration) + rawListeners
     await storage.updateProgramStats(
       currentProgram,
       wibDate,
-      newCumulativeDelta,
+      latestDelta,
       currentListenersRaw
     );
     
@@ -253,7 +243,7 @@ async function calculateProgramDelta() {
       timestamp: new Date(),
     });
     
-    console.log(`[Delta] ${currentProgram}: (${currentListenersRaw} - ${oneMinuteAgoListenersRaw}) × ${multiplier} = ${adjustedDelta}, cumulative=${newCumulativeDelta}`);
+    console.log(`[Delta] ${currentProgram}: x = ${currentListenersRaw} - ${oneMinuteAgoListenersRaw} = ${latestDelta}, z = ${currentListenersRaw}`);
   } catch (error) {
     console.error(`[Delta] Error calculating delta:`, error);
   }
