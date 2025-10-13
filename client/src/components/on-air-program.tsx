@@ -3,6 +3,8 @@ import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Radio } from "lucide-react";
+import { useState, useEffect } from "react";
+import fallbackImage from "@assets/stock_images/radio_dj_broadcastin_492e4d9b.jpg";
 
 interface OnAirProgram {
   programTitle: string;
@@ -18,6 +20,13 @@ export function OnAirProgram() {
     queryKey: ["/api/on-air-program"],
     refetchInterval: 30000,
   });
+
+  const [imgError, setImgError] = useState(false);
+
+  // Reset error state when program imageUrl changes
+  useEffect(() => {
+    setImgError(false);
+  }, [program?.imageUrl]);
 
   return (
     <Card className="p-6 space-y-4">
@@ -35,23 +44,22 @@ export function OnAirProgram() {
         </div>
       ) : program ? (
         <div className="space-y-4">
-          {/* Program Image */}
-          {program.imageUrl && (
-            <div className="relative aspect-video w-full overflow-hidden rounded-md">
-              <img 
-                src={program.imageUrl} 
-                alt={program.programTitle}
-                className="object-cover w-full h-full"
-                data-testid="img-on-air-program"
-              />
-              <div className="absolute top-3 right-3">
-                <Badge variant="destructive" className="bg-red-600 text-white" data-testid="badge-live-status">
-                  <div className="h-2 w-2 rounded-full bg-white animate-pulse-slow mr-1" />
-                  {program.status}
-                </Badge>
-              </div>
+          {/* Program Image - Always show with fallback */}
+          <div className="relative aspect-video w-full overflow-hidden rounded-md bg-muted">
+            <img 
+              src={imgError || !program.imageUrl ? fallbackImage : program.imageUrl}
+              alt={program.programTitle}
+              className="object-cover w-full h-full rounded-md"
+              data-testid="img-on-air-program"
+              onError={() => setImgError(true)}
+            />
+            <div className="absolute top-3 right-3">
+              <Badge variant="destructive" className="bg-red-600 text-white" data-testid="badge-live-status">
+                <div className="h-2 w-2 rounded-full bg-white animate-pulse-slow mr-1" />
+                {program.status}
+              </Badge>
             </div>
-          )}
+          </div>
 
           {/* Program Info */}
           <div className="space-y-2">
@@ -63,7 +71,7 @@ export function OnAirProgram() {
               {program.presenter && (
                 <>
                   <span>•</span>
-                  <span data-testid="text-presenter">dengan {program.presenter}</span>
+                  <span data-testid="text-presenter">{program.presenter}</span>
                 </>
               )}
             </div>

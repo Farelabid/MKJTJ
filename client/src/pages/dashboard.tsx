@@ -237,7 +237,7 @@ export default function Dashboard() {
               <>
                 <Badge variant="secondary" className="px-4 py-2 text-sm">
                   <Users className="h-4 w-4 mr-1" />
-                  Peak: {stats?.listenersPeak.toLocaleString()}
+                  Peak (rekor lonjakan pendengar tertinggi dalam 10 menit): {stats?.listenersPeak.toLocaleString()}
                 </Badge>
                 <Badge 
                   variant="outline" 

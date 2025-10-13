@@ -1,0 +1,193 @@
+// tracker.js
+// Rumus perhitungan jumlah pendengar per program (minute-by-minute) untuk Replit (Node.js)
+
+// ========================
+// KONFIGURASI
+// ========================
+const ICECAST_URL = process.env.ICECAST_URL || "https://stream-eu-nc.arenastreaming.com:5450/status-json.xsl";
+const POLL_MS = 60_000;        // tarik data tiap 1 menit
+const ALPHA = 0.25;            // EMA smoothing untuk N_t (0..1), makin besar makin responsif
+const ALT_MIN = 12;            // Average Listen Time (menit) → pembagi LM ke "Jumlah"
+const SCALE_K = 10;            // faktor skala (target 10×)
+const TZ = "Asia/Jakarta";     // zona waktu lokal
+
+// Jadwal program (24h, lokal Asia/Jakarta)
+const PROGRAMS = [
+  { key: "night_flow",       name: "Night Flow",        start: "00:00", end: "06:00", durationMin: 360 },
+  { key: "gmj",              name: "Good Morning JKT",  start: "06:00", end: "10:00", durationMin: 240 },
+  { key: "office_hour",      name: "Office Hour",       start: "10:00", end: "13:00", durationMin: 180 },
+  { key: "coffee_break",     name: "Coffee Break",      start: "13:00", end: "16:00", durationMin: 180 },
+  { key: "drive_time",       name: "Drive Time",        start: "16:00", end: "20:00", durationMin: 240 },
+  { key: "shift_malam",      name: "Shift Malam",       start: "20:00", end: "22:00", durationMin: 120 },
+  { key: "yesterday_hits",   name: "Yesterday Hits",    start: "22:00", end: "24:00", durationMin: 120 },
+];
+
+// ========================
+// STATE (in-memory)
+// ========================
+/** Snapshot minute-by-minute (maksimal simpan 1 hari agar ringan) */
+const minuteSnapshots = []; // [{ts, N, Nhat}]
+/** Rollup per program per hari (reset harian) */
+const programRollups = new Map(); // key -> { dayKey, LM, LMhat, jumlah, progress, startedAt, targetLM, baselineN }
+
+/** Cache EMA & anti-spike */
+let Nhat = null;            // EMA dari N_t
+let lastN = null;           // N_{t-1}
+let spikeWindowMin = 0;     // menit sisa untuk membatasi spike
+
+// ========================
+// UTIL
+// ========================
+function nowDate() {
+  return new Date(new Date().toLocaleString("en-US", { timeZone: TZ }));
+}
+function dayKey(d = nowDate()) {
+  const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,"0"), dd = String(d.getDate()).padStart(2,"0");
+  return `${y}-${m}-${dd}`;
+}
+function parseHM(str) { const [h,m] = str.split(":").map(Number); return {h, m}; }
+function inRangeLocal(startHM, endHM, d = nowDate()) {
+  const {h:sh, m:sm} = parseHM(startHM); const {h:eh, m:em} = parseHM(endHM);
+  const t = d.getHours()*60 + d.getMinutes();
+  const s = sh*60 + sm, e = eh*60 + em;
+  if (e >= s) return t >= s && t < e;           // rentang normal (mis. 06-10)
+  return t >= s || t < e;                       // rentang melintasi tengah malam (mis. 22-02)
+}
+function activeProgram(d = nowDate()) {
+  for (const p of PROGRAMS) if (inRangeLocal(p.start, p.end, d)) return p;
+  return null;
+}
+function ema(prev, value, alpha) {
+  if (prev == null) return value;
+  return alpha * value + (1 - alpha) * prev;
+}
+function isSpike(curr, prev) {
+  if (prev == null) return false;
+  const diff = Math.abs(curr - prev);
+  return diff > 0.5 * Math.max(50, prev); // aturan spike konservatif
+}
+function clamp(val, min, max) {
+  return Math.max(min, Math.min(max, val));
+}
+
+// ========================
+// INTI: TARIK DATA & HITUNG
+// ========================
+async function getIcecastListeners() {
+  // Ambil status-json.xsl, lalu pilih source yang sesuai (jika banyak source, ambil pertama)
+  const res = await fetch(ICECAST_URL, { headers: { "Cache-Control": "no-cache" }});
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const data = await res.json();
+
+  // Struktur umum Icecast: { icestats: { source: {...} atau [ {...}, {...} ] } }
+  const src = Array.isArray(data?.icestats?.source) ? data.icestats.source[0] : data?.icestats?.source;
+  const listeners = Number(src?.listeners ?? 0);
+  return listeners;
+}
+
+function ensureRollupKey(p) {
+  const key = `${p.key}::${dayKey()}`;
+  if (!programRollups.has(key)) {
+    programRollups.set(key, {
+      dayKey: dayKey(),
+      LM: 0,         // akumulasi listener-minutes mentah
+      LMhat: 0,      // akumulasi listener-minutes tersmooth
+      jumlah: 0,     // output akhir
+      progress: 0,   // 0..1
+      startedAt: nowDate(),
+      targetLM: null,
+      baselineN: null
+    });
+  }
+  return key;
+}
+
+function computeTargetLM(p, roll) {
+  // Baseline awal = EMA Nhat 5 menit pertama; fallback ke Nhat saat start.
+  if (roll.baselineN == null) {
+    // ambil rata-rata Nhat dari snapshot 5 menit pertama program
+    const startTs = roll.startedAt.getTime();
+    const windowMs = 5 * 60_000;
+    const within = minuteSnapshots.filter(s => (s.ts >= startTs && s.ts <= startTs + windowMs && s.Nhat != null));
+    const avg = within.length ? (within.reduce((a,b)=>a+b.Nhat,0) / within.length) : (Nhat ?? lastN ?? 0);
+    roll.baselineN = Math.max(0, avg || 0);
+  }
+  // Target LM = durasi * baseline
+  if (roll.targetLM == null) {
+    roll.targetLM = p.durationMin * roll.baselineN;
+  }
+}
+
+function updateRollups(N, NhatCurr) {
+  const ts = nowDate();
+  minuteSnapshots.push({ ts: ts.getTime(), N, Nhat: NhatCurr });
+  // jaga memory: hapus snapshot lebih tua dari 36 jam
+  const cutoff = ts.getTime() - 36*60*60*1000;
+  while (minuteSnapshots.length && minuteSnapshots[0].ts < cutoff) minuteSnapshots.shift();
+
+  const p = activeProgram(ts);
+  // freeze semua selain yang aktif (UI boleh tampil 0 utk non-aktif)
+  if (!p) return;
+
+  const key = ensureRollupKey(p);
+  const roll = programRollups.get(key);
+
+  // Akumulasi LM (bertambah tiap menit)
+  roll.LM += N;           // LM mentah
+  roll.LMhat += NhatCurr; // LM tersmooth
+
+  // Tentukan target & progress
+  computeTargetLM(p, roll);
+  const targetLM = Math.max(1, roll.targetLM); // hindari /0
+  roll.progress = clamp(roll.LMhat / targetLM, 0, 1);
+
+  // Konversi ke "Jumlah Pendengar" (skala 10×)
+  // Rumus: Jumlah = K * ( LMhat / ALT )
+  roll.jumlah = Math.round(SCALE_K * (roll.LMhat / ALT_MIN));
+
+  // Log ringkas (boleh kamu kirim ke DB/UI)
+  console.clear();
+  console.table([{
+    program: p.name,
+    time: ts.toLocaleTimeString("id-ID", { timeZone: TZ }),
+    N_raw: N,
+    N_hat: Math.round(NhatCurr),
+    LMhat: Math.round(roll.LMhat),
+    targetLM: Math.round(targetLM),
+    progress_pct: Math.round(roll.progress * 100) + "%",
+    jumlah_output: roll.jumlah
+  }]);
+}
+
+// ========================
+// LOOP UTAMA (tiap menit)
+// ========================
+async function tick() {
+  try {
+    const N = await getIcecastListeners();
+
+    // Spike handling → batasi N saat spike window aktif
+    if (isSpike(N, lastN)) {
+      spikeWindowMin = 5; // 5 menit
+    }
+    if (spikeWindowMin > 0 && lastN != null) {
+      const capUp = Math.round(lastN * 1.25); // naik maksimal 25%/menit saat spike window
+      const capDown = Math.round(lastN * 0.75); // turun maksimal 25%/menit
+      const Nc = clamp(N, capDown, capUp);
+      Nhat = ema(Nhat, Nc, ALPHA);
+      spikeWindowMin -= 1;
+    } else {
+      Nhat = ema(Nhat, N, ALPHA);
+    }
+
+    updateRollups(N, Nhat);
+    lastN = N;
+  } catch (e) {
+    console.error("tick error:", e?.message || e);
+  }
+}
+
+// Mulai
+console.log("Tracker started. Polling each minute...");
+tick(); // segera jalan sekali
+setInterval(tick, POLL_MS);

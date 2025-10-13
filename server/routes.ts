@@ -499,8 +499,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           let cumulativeListeners = 0;
           
-          // Only calculate if this is the active program AND we have fresh delta data
-          if (program.name === currentProgramName && stats && stats.rawListeners > 0) {
+          // Calculate formula for all programs that have delta data
+          if (stats && stats.rawListeners > 0) {
             // Formula: Listeners = (x × durasi) + z × (jumlah jam siaran + 6)
             // x = latestDelta (dari delta calculation)
             // durasi = durasi program dalam menit
@@ -513,10 +513,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const z = stats.rawListeners;
             const jumlahJamSiaran = durasi / 60; // Convert minutes to hours
             
-            // Calculate listeners using new formula
+            // Calculate listeners using formula for all programs
             cumulativeListeners = (x * durasi) + (z * (jumlahJamSiaran + 6));
           }
-          // For inactive programs or programs without fresh data: show 0
+          // Programs without data: show 0
           
           // Calculate progress based on time (0-100%)
           const now = new Date();

@@ -122,12 +122,13 @@ Dashboard statistik real-time untuk TJ Radio Jakarta yang menampilkan data strea
    - **Implementation**: Schedule-based determination (WIB timezone)
    - Data source: Hardcoded program schedules yang reliable
    - Menampilkan:
-     * Foto program yang sedang on air
-     * Nama program dan penyiar
+     * Foto program yang sedang on air (dengan fallback image jika URL eksternal gagal)
+     * Nama program dan penyiar (tanpa duplikasi teks)
      * Jam siaran
      * Deskripsi program
      * Badge LIVE status
    - Auto-refresh setiap 30 detik
+   - Fallback image: Stock photo radio DJ dari attached_assets
    - 7 Program dengan jadwal tetap:
      * Night Flow (00:00-06:00) - Denny CH & Eko Kuntadhi
      * Good Morning Jakarta (06:00-10:00) - Indy & Irwan
