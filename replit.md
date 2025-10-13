@@ -213,19 +213,24 @@ Dashboard statistik real-time untuk TJ Radio Jakarta yang menampilkan data strea
 Multiplier dapat diubah melalui admin panel dan disimpan di database.
 
 ### Program Analytics (Per-Program Metrics)
-Menggunakan EMA (Exponential Moving Average) dengan formula yang realistis:
+Menggunakan EMA (Exponential Moving Average) dengan formula yang memperhitungkan device-to-listener multiplier:
 
-1. **Average Concurrent Listeners** = LMhat ÷ Elapsed Minutes
+**Device-to-Listener Multiplier (K=6)**:
+- Satu device streaming bisa didengar oleh banyak orang (radio di tempat umum, kantor, dll)
+- K=6 digunakan untuk mengestimasi jumlah pendengar aktual dari jumlah device yang terhubung
+
+1. **Average Concurrent Listeners** = (LMhat ÷ Elapsed Minutes) × K
    - Menunjukkan rata-rata jumlah pendengar concurrent sejak program dimulai
    - Baseline: Rata-rata dari 5 snapshot pertama program
-   - Contoh: 3639 LMhat ÷ 8 menit elapsed = 455 avg concurrent listeners
+   - Contoh: (3639 LMhat ÷ 8 menit) × 6 = 2,730 avg concurrent listeners
 
-2. **Estimated Unique Listeners** = LMhat ÷ ALT_session
+2. **Estimated Unique Listeners** = (LMhat ÷ ALT_session) × K
    - Estimasi jumlah unique listeners berbeda yang mendengarkan
    - ALT_session (Average Listen Time per session) = 45 menit (configurable via admin)
-   - Contoh: 3639 LMhat ÷ 45 menit = 81 estimated unique listeners
+   - Contoh: (3639 LMhat ÷ 45 menit) × 6 = 486 estimated unique listeners
 
 **Implementation Details:**
+- K (Device-to-Listener Multiplier) = 6
 - Elapsed Minutes: Calculated from program start time (schedule-based) using WIB timezone
 - WIB Conversion: Uses `(wibOffset + localOffset)` to avoid double-offset bugs
 - All values rounded to integers for database storage
@@ -234,6 +239,7 @@ Menggunakan EMA (Exponential Moving Average) dengan formula yang realistis:
 
 **EMA Constants:**
 - Alpha (smoothing factor) = 0.25
+- K (device multiplier) = 6
 - ALT_session (average session length) = 45 minutes (default, configurable via admin config)
 - Spike detection threshold = 50% deviation from baseline
 - Spike capping window = 5 minutes at ±25%
