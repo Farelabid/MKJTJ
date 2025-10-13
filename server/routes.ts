@@ -487,7 +487,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return `${start}–${end} WIB`;
   }
 
-  // API endpoint to get program listeners with cumulative delta
+  // API endpoint to get program listeners with new formula
   app.get("/api/program-listeners", async (req, res) => {
     try {
       const wibDate = getWIBDate();
@@ -496,7 +496,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const programsData = await Promise.all(
         PROGRAM_SCHEDULES.map(async (program) => {
           const stats = await storage.getProgramStats(program.name, wibDate);
-          const cumulativeListeners = stats?.cumulativeDelta || 0;
+          
+          // Formula: Listeners = (x × duration) + z
+          // x = latestDelta (dari delta calculation)
+          // duration = durasi program dalam menit
+          // z = rawListeners (listeners raw dari Icecast)
+          const x = stats?.latestDelta || 0;
+          const duration = program.durationMinutes;
+          const z = stats?.rawListeners || 0;
+          
+          // Calculate listeners using formula
+          const calculatedListeners = (x * duration) + z;
+          
+          // Only show listeners for active program
+          const cumulativeListeners = program.name === currentProgramName ? calculatedListeners : 0;
           
           // Calculate progress based on time (0-100%)
           const now = new Date();
