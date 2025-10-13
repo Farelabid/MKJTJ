@@ -12,8 +12,7 @@ let emaInterval: NodeJS.Timeout | null = null;
 
 // EMA Constants
 const ALPHA = 0.25; // EMA smoothing factor
-const ALT_MIN = 12; // Average Listen Time (minutes)
-const SCALE_K = 10; // Scale factor for output
+const DEVICE_TO_LISTENER_MULTIPLIER = 6; // K=6: One device can be heard by multiple people (public radios)
 
 // EMA State tracking per program
 interface EMAState {
@@ -319,12 +318,12 @@ async function calculateEMAListenerMinutes() {
     const altSessionConfig = await storage.getConfigValue('alt_session');
     const ALT_session = altSessionConfig ? parseInt(altSessionConfig) : 45;
     
-    // Calculate new metrics
-    // 1. Average Concurrent Listeners = LMhat ÷ elapsed minutes
-    const avgConcurrentListeners = Math.round(LMhat / elapsedMinutes);
+    // Calculate new metrics with K=6 device-to-listener multiplier
+    // 1. Average Concurrent Listeners = (LMhat ÷ elapsed minutes) × K
+    const avgConcurrentListeners = Math.round((LMhat / elapsedMinutes) * DEVICE_TO_LISTENER_MULTIPLIER);
     
-    // 2. Estimated Unique Listeners = LMhat ÷ ALT_session
-    const estimatedUniqueListeners = Math.round(LMhat / ALT_session);
+    // 2. Estimated Unique Listeners = (LMhat ÷ ALT_session) × K
+    const estimatedUniqueListeners = Math.round((LMhat / ALT_session) * DEVICE_TO_LISTENER_MULTIPLIER);
     
     // Update program stats in database (all values rounded to integers)
     await storage.updateProgramStats(currentProgram, wibDate, {
