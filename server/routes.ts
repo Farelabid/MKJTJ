@@ -281,8 +281,10 @@ async function calculateEMAListenerMinutes() {
     
     // Get existing program stats
     const existingStats = await storage.getProgramStats(currentProgram, wibDate);
-    const LM = (existingStats?.LM || 0) + N; // Accumulate raw listener-minutes
-    const LMhat = Math.round((existingStats?.LMhat || 0) + state.Nhat); // Accumulate smoothed listener-minutes (rounded to integer)
+    // Scale by actual interval in minutes (30s = 0.5 minutes)
+    const INTERVAL_MINUTES = EMA_INTERVAL / (60 * 1000);
+    const LM = (existingStats?.LM || 0) + (N * INTERVAL_MINUTES); // Accumulate raw listener-minutes
+    const LMhat = Math.round((existingStats?.LMhat || 0) + (state.Nhat * INTERVAL_MINUTES)); // Accumulate smoothed listener-minutes (rounded to integer)
     
     // Calculate baseline from first 5 minutes if not set (10 snapshots × 30s = 5 minutes)
     if (state.baselineN === null) {
@@ -332,22 +334,22 @@ async function calculateEMAListenerMinutes() {
     const ALT_session = altSessionConfig ? parseInt(altSessionConfig) : 45;
     
     // Calculate new metrics based on user requirements (Oct 2025):
-    // 1. "Total Pendengar Saat ini" = raw listeners (N) × 6.5
+    // 1. "Total Pendengar Saat ini" = raw listeners (N) × 11
     const avgConcurrentListeners = Math.round(N * DEVICE_TO_LISTENER_MULTIPLIER);
     
-    // 2. "TOTAL PENDENGAR" = (cumulative absolute changes) × 6.5
+    // 2. "TOTAL PENDENGAR" = (cumulative absolute changes) × 11 (every 30 seconds)
     // Calculate absolute difference from previous value
     const previousN = state.lastN !== null ? state.lastN : N; // First time, no change
     const absoluteChange = Math.abs(N - previousN);
     
-    // Get previous cumulative total (already multiplied) and add this change × 6.5
+    // Get previous cumulative total (already multiplied) and add this change × 11
     const previousCumulative = existingStats?.estimatedUniqueListeners || 0;
     const estimatedUniqueListeners = previousCumulative + Math.round(absoluteChange * DEVICE_TO_LISTENER_MULTIPLIER);
     
     // Update program stats in database (all values rounded to integers)
     await storage.updateProgramStats(currentProgram, wibDate, {
-      LM,
-      LMhat,
+      LM: Math.round(LM),
+      LMhat: Math.round(LMhat),
       Nhat: Math.round(state.Nhat),
       baseline: state.baselineN,
       targetLM: Math.round(targetLM),
@@ -361,7 +363,7 @@ async function calculateEMAListenerMinutes() {
     
     state.lastN = N;
     
-    console.log(`[EMA] ${currentProgram}: N=${N}, Nhat=${state.Nhat.toFixed(1)}, Current=${avgConcurrentListeners} (N×6.5), Total=${estimatedUniqueListeners} (Σ|Δ|×6.5)`);
+    console.log(`[EMA] ${currentProgram}: N=${N}, Nhat=${state.Nhat.toFixed(1)}, Current=${avgConcurrentListeners} (N×11), Total=${estimatedUniqueListeners} (Σ|Δ|×11)`);
     
   } catch (error) {
     console.error(`[EMA] Error calculating EMA:`, error);
