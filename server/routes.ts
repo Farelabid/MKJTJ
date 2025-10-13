@@ -73,15 +73,15 @@ function getWIBDate(): string {
 
 function getColorForProgram(programName: string): string {
   const colors: Record<string, string> = {
-    "Night Flow": "hsl(var(--chart-6))",
-    "Good Morning Jakarta": "hsl(var(--chart-1))",
-    "Office Hour": "hsl(var(--chart-2))",
-    "Coffee Break": "hsl(var(--chart-3))",
-    "Drive Time": "hsl(var(--chart-4))",
-    "Shift Malam": "hsl(var(--chart-5))",
-    "Yesterday Hits": "hsl(var(--chart-1))",
+    "Night Flow": "#4CAF50", // Green
+    "Good Morning Jakarta": "#FDD835", // Yellow
+    "Office Hour": "#F44336", // Red
+    "Coffee Break": "#2196F3", // Blue
+    "Drive Time": "#00BCD4", // Cyan
+    "Shift Malam": "#FF9800", // Orange
+    "Yesterday Hits": "#9C27B0", // Purple
   };
-  return colors[programName] || "hsl(var(--chart-1))";
+  return colors[programName] || "#FDD835";
 }
 
 async function saveStatsSnapshot() {
