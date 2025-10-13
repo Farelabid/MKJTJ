@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, timestamp, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, timestamp, boolean, real } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -104,7 +104,7 @@ export const programStats = pgTable("program_stats", {
   Nhat: integer("n_hat").notNull().default(0), // EMA dari raw listeners
   baseline: integer("baseline"), // Rata-rata Nhat dari 5 menit pertama
   targetLM: integer("target_lm"), // Target LM = durasi × baseline
-  progress: integer("progress").notNull().default(0), // Progress 0-100
+  progress: real("progress").notNull().default(0), // Progress 0-100 (decimal precision)
   elapsedMinutes: integer("elapsed_minutes").notNull().default(0), // Waktu berjalan sejak start
   avgConcurrentListeners: integer("avg_concurrent_listeners").notNull().default(0), // LMhat ÷ elapsedMinutes
   estimatedUniqueListeners: integer("estimated_unique_listeners").notNull().default(0), // LMhat ÷ ALT_session

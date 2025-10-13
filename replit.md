@@ -15,7 +15,7 @@ The dashboard's design is inspired by Spotify Analytics and SoundCloud Stats, fe
 - **Animations**: Minimal and purposeful, such as counter animations and pulse indicators.
 - **Branding**: Official TJ Radio logo in the header, modern neon "ON AIR" graphic, and program-specific logos.
 - **Layout**: Responsive design for both desktop and mobile, with key metrics prominently displayed.
-- **Information Display**: Real-time WIB clock and Indonesian date display in the header. Program statistics include dual metrics ("Pendengar Saat Ini" = raw listeners × 6.5 and "TOTAL PENDENGAR" = cumulative absolute changes × 6.5), with EMA smoothing for spike detection.
+- **Information Display**: Real-time WIB clock and Indonesian date display in the header. Program statistics include "Pendengar Saat Ini" = raw listeners × 11 and "TOTAL PENDENGAR" = (Pendengar Saat Ini × 8) × percentage progress, with EMA smoothing for spike detection.
 
 ### Technical Implementations
 - **Frontend**: React with TypeScript, Wouter for routing, TanStack Query for state management, Tailwind CSS and Shadcn/ui for styling, Recharts for historical data visualization.
@@ -25,10 +25,11 @@ The dashboard's design is inspired by Spotify Analytics and SoundCloud Stats, fe
   - tjradiojakarta.com/live (current program information via web scraping)
 - **Background Jobs**: Interval-based snapshots (every 5 minutes) to store historical data and check alert thresholds.
 - **Metrics Calculation**:
-    - **Radio Stats**: Listeners (current/peak) = Raw Icecast data × Configurable Multiplier (default 4).
-    - **Program Analytics (Updated Oct 2025 - Final)**: 
+    - **Radio Stats**: Listeners (current/peak) = Raw Icecast data × Configurable Multiplier (default 11).
+    - **Program Analytics (Updated Oct 2025)**: 
       * "Total Pendengar Saat ini" = Raw listeners (N) × **11** (direct real-time calculation)
-      * "TOTAL PENDENGAR" = Cumulative absolute changes × **11** (sum of |ΔN| × 11 every **30 seconds** since program start)
+      * "TOTAL PENDENGAR" = (Total Pendengar Saat ini × 8) × percentage progress
+      * Formula: estimatedUniqueListeners = avgConcurrentListeners × 8 × (progress / 100)
       * EMA smoothing (α=0.25) used for spike detection (>50% threshold, 5-min capping at ±25%)
       * State resets automatically at midnight or program change to prevent spurious spikes
       * Calculation interval: **30 seconds** (previously 1 minute)
