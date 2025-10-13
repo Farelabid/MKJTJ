@@ -5,20 +5,20 @@ import * as cheerio from "cheerio";
 import { radioStatsSchema } from "@shared/schema";
 import { storage } from "./storage";
 
-// Background job interval (1 minute for EMA tracking)
-const EMA_INTERVAL = 1 * 60 * 1000;
+// Background job interval (30 seconds for EMA tracking)
+const EMA_INTERVAL = 30 * 1000;
 
 let emaInterval: NodeJS.Timeout | null = null;
 
 // EMA Constants
 const ALPHA = 0.25; // EMA smoothing factor
-const DEVICE_TO_LISTENER_MULTIPLIER = 6.5; // K=6.5: Device-to-listener multiplier
+const DEVICE_TO_LISTENER_MULTIPLIER = 11; // K=11: Device-to-listener multiplier
 
 // EMA State tracking per program
 interface EMAState {
   Nhat: number | null; // Smoothed listeners
   lastN: number | null; // Previous raw listeners
-  spikeWindowMin: number; // Minutes remaining in spike detection window
+  spikeWindowCount: number; // 30-second intervals remaining in spike detection window (10 = 5 minutes)
   baselineN: number | null; // Baseline from first 5 minutes
   startedAt: Date; // When program started
   programName: string; // Program name for this state
@@ -238,8 +238,8 @@ async function calculateEMAListenerMinutes() {
       
       state = {
         Nhat: null,
-        lastN: null, // Critical: null ensures first minute has zero delta
-        spikeWindowMin: 0,
+        lastN: null, // Critical: null ensures first 30-second interval has zero delta
+        spikeWindowCount: 0,
         baselineN: null,
         startedAt: new Date(),
         programName: currentProgram,
@@ -252,25 +252,26 @@ async function calculateEMAListenerMinutes() {
     // Spike handling: cap N during spike window
     let Nc = N;
     if (isSpike(N, state.baselineN, state.lastN)) {
-      state.spikeWindowMin = 5; // Activate 5-minute spike window
+      state.spikeWindowCount = 10; // Activate 5-minute spike window (10 × 30s intervals)
       const reference = state.baselineN !== null ? `baseline=${state.baselineN}` : `lastN=${state.lastN}`;
       console.log(`[EMA] ${currentProgram}: Spike detected! N=${N}, ${reference}`);
     }
     
-    if (state.spikeWindowMin > 0 && state.lastN !== null) {
+    if (state.spikeWindowCount > 0 && state.lastN !== null) {
       const capUp = Math.round(state.lastN * 1.25); // Max 25% increase
       const capDown = Math.round(state.lastN * 0.75); // Max 25% decrease
       Nc = clamp(N, capDown, capUp);
-      state.spikeWindowMin -= 1;
+      state.spikeWindowCount -= 1;
       if (Nc !== N) {
-        console.log(`[EMA] ${currentProgram}: Spike capped N=${N} → Nc=${Nc} (spike window: ${state.spikeWindowMin}min left)`);
+        const remainingSeconds = state.spikeWindowCount * 30;
+        console.log(`[EMA] ${currentProgram}: Spike capped N=${N} → Nc=${Nc} (spike window: ${remainingSeconds}s left)`);
       }
     }
     
     // Calculate smoothed listeners (Nhat)
     state.Nhat = ema(state.Nhat, Nc, ALPHA);
     
-    // Save minute snapshot to database
+    // Save 30-second snapshot to database
     await storage.saveMinuteSnapshot({
       programName: currentProgram,
       date: wibDate,
@@ -283,9 +284,9 @@ async function calculateEMAListenerMinutes() {
     const LM = (existingStats?.LM || 0) + N; // Accumulate raw listener-minutes
     const LMhat = Math.round((existingStats?.LMhat || 0) + state.Nhat); // Accumulate smoothed listener-minutes (rounded to integer)
     
-    // Calculate baseline from first 5 minutes if not set
+    // Calculate baseline from first 5 minutes if not set (10 snapshots × 30s = 5 minutes)
     if (state.baselineN === null) {
-      const snapshots = await storage.getRecentSnapshots(currentProgram, wibDate, 5);
+      const snapshots = await storage.getRecentSnapshots(currentProgram, wibDate, 10);
       if (snapshots.length > 0) {
         const avgNhat = snapshots.reduce((sum, s) => sum + (s.Nhat || 0), 0) / snapshots.length;
         state.baselineN = Math.round(Math.max(0, avgNhat)); // Round to integer
@@ -813,9 +814,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Calculate EMA after initial delay (to have data)
   setTimeout(calculateEMAListenerMinutes, EMA_INTERVAL);
   
-  // Schedule periodic EMA calculation every 1 minute
+  // Schedule periodic EMA calculation every 30 seconds
   emaInterval = setInterval(calculateEMAListenerMinutes, EMA_INTERVAL);
-  console.log(`[EMA] Background job started - calculating every ${EMA_INTERVAL / 1000 / 60} minute(s)`);
+  console.log(`[EMA] Background job started - calculating every ${EMA_INTERVAL / 1000} second(s)`);
 
   return httpServer;
 }
