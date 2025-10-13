@@ -332,7 +332,7 @@ export default function Dashboard() {
         </section>
 
         {/* Data Visualization & Export */}
-        <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Bar Chart Comparison */}
           <Card className="p-6 space-y-4">
             <h3 className="text-lg font-semibold">Perbandingan Pendengar</h3>
@@ -372,42 +372,6 @@ export default function Dashboard() {
                       <span className="text-xs font-semibold text-primary-foreground">100%</span>
                     </div>
                   </div>
-                </div>
-              </div>
-            )}
-          </Card>
-
-          {/* Quick Stats */}
-          <Card className="p-6 space-y-4">
-            <h3 className="text-lg font-semibold">Statistik Cepat</h3>
-            {isLoading ? (
-              <div className="grid grid-cols-2 gap-4">
-                <Skeleton className="h-24" />
-                <Skeleton className="h-24" />
-                <Skeleton className="h-24" />
-                <Skeleton className="h-24" />
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-muted/50 p-4 rounded-md">
-                  <p className="text-sm text-muted-foreground mb-1">Pendengar Aktual</p>
-                  <p className="text-2xl font-bold font-mono" data-testid="text-listeners-raw">
-                    {stats?.listenersRaw.toLocaleString()}
-                  </p>
-                </div>
-                <div className="bg-muted/50 p-4 rounded-md">
-                  <p className="text-sm text-muted-foreground mb-1">Peak Aktual</p>
-                  <p className="text-2xl font-bold font-mono" data-testid="text-peak-raw">
-                    {stats?.listenersPeakRaw.toLocaleString()}
-                  </p>
-                </div>
-                <div className="bg-muted/50 p-4 rounded-md">
-                  <p className="text-sm text-muted-foreground mb-1">Multiplier</p>
-                  <p className="text-2xl font-bold font-mono">4x</p>
-                </div>
-                <div className="bg-muted/50 p-4 rounded-md">
-                  <p className="text-sm text-muted-foreground mb-1">Kualitas</p>
-                  <p className="text-2xl font-bold">{stats?.bitrate}k</p>
                 </div>
               </div>
             )}
