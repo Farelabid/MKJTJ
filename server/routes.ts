@@ -497,19 +497,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         PROGRAM_SCHEDULES.map(async (program) => {
           const stats = await storage.getProgramStats(program.name, wibDate);
           
-          // Formula: Listeners = (x × duration) + z
-          // x = latestDelta (dari delta calculation)
-          // duration = durasi program dalam menit
-          // z = rawListeners (listeners raw dari Icecast)
-          const x = stats?.latestDelta || 0;
-          const duration = program.durationMinutes;
-          const z = stats?.rawListeners || 0;
+          let cumulativeListeners = 0;
           
-          // Calculate listeners using formula
-          const calculatedListeners = (x * duration) + z;
-          
-          // Only show listeners for active program
-          const cumulativeListeners = program.name === currentProgramName ? calculatedListeners : 0;
+          // Only calculate if this is the active program AND we have fresh delta data
+          if (program.name === currentProgramName && stats && stats.rawListeners > 0) {
+            // Formula: Listeners = (x × duration) + z
+            // x = latestDelta (dari delta calculation)
+            // duration = durasi program dalam menit
+            // z = rawListeners (listeners raw dari Icecast)
+            
+            // Guard against negative deltas - clamp to 0
+            const x = Math.max(0, stats.latestDelta);
+            const duration = program.durationMinutes;
+            const z = stats.rawListeners;
+            
+            // Calculate listeners using formula
+            cumulativeListeners = (x * duration) + z;
+          }
+          // For inactive programs or programs without fresh data: show 0
           
           // Calculate progress based on time (0-100%)
           const now = new Date();
