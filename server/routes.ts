@@ -195,10 +195,14 @@ function ema(prev: number | null, value: number, alpha: number): number {
   return alpha * value + (1 - alpha) * prev;
 }
 
-function isSpike(curr: number, prev: number | null): boolean {
-  if (prev === null) return false;
-  const diff = Math.abs(curr - prev);
-  return diff > 0.5 * Math.max(50, prev);
+function isSpike(curr: number, baseline: number | null, fallbackPrev: number | null): boolean {
+  // Use baseline if available, otherwise fallback to previous value
+  const reference = baseline !== null ? baseline : fallbackPrev;
+  if (reference === null || reference === 0) return false;
+  
+  // Spike = deviation > 50% from baseline/reference
+  const diff = Math.abs(curr - reference);
+  return diff > 0.5 * reference;
 }
 
 async function calculateEMAListenerMinutes() {
@@ -236,9 +240,10 @@ async function calculateEMAListenerMinutes() {
     
     // Spike handling: cap N during spike window
     let Nc = N;
-    if (isSpike(N, state.lastN)) {
+    if (isSpike(N, state.baselineN, state.lastN)) {
       state.spikeWindowMin = 5; // Activate 5-minute spike window
-      console.log(`[EMA] ${currentProgram}: Spike detected! N=${N}, lastN=${state.lastN}`);
+      const reference = state.baselineN !== null ? `baseline=${state.baselineN}` : `lastN=${state.lastN}`;
+      console.log(`[EMA] ${currentProgram}: Spike detected! N=${N}, ${reference}`);
     }
     
     if (state.spikeWindowMin > 0 && state.lastN !== null) {
@@ -259,23 +264,23 @@ async function calculateEMAListenerMinutes() {
       programName: currentProgram,
       date: wibDate,
       rawListeners: N,
-      Nhat: state.Nhat,
+      Nhat: Math.round(state.Nhat), // Round to integer for database
     });
     
     // Get existing program stats
     const existingStats = await storage.getProgramStats(currentProgram, wibDate);
     const LM = (existingStats?.LM || 0) + N; // Accumulate raw listener-minutes
-    const LMhat = (existingStats?.LMhat || 0) + state.Nhat; // Accumulate smoothed listener-minutes
+    const LMhat = Math.round((existingStats?.LMhat || 0) + state.Nhat); // Accumulate smoothed listener-minutes (rounded to integer)
     
     // Calculate baseline from first 5 minutes if not set
     if (state.baselineN === null) {
       const snapshots = await storage.getRecentSnapshots(currentProgram, wibDate, 5);
       if (snapshots.length > 0) {
         const avgNhat = snapshots.reduce((sum, s) => sum + (s.Nhat || 0), 0) / snapshots.length;
-        state.baselineN = Math.max(0, avgNhat);
-        console.log(`[EMA] ${currentProgram}: Baseline calculated from ${snapshots.length} snapshots: ${state.baselineN.toFixed(1)}`);
+        state.baselineN = Math.round(Math.max(0, avgNhat)); // Round to integer
+        console.log(`[EMA] ${currentProgram}: Baseline calculated from ${snapshots.length} snapshots: ${state.baselineN}`);
       } else {
-        state.baselineN = state.Nhat || 0;
+        state.baselineN = Math.round(state.Nhat || 0); // Round to integer
       }
     }
     
@@ -294,13 +299,13 @@ async function calculateEMAListenerMinutes() {
     // Calculate final output: Jumlah Pendengar = K × (LMhat / ALT)
     const jumlahPendengar = Math.round(SCALE_K * (LMhat / ALT_MIN));
     
-    // Update program stats in database
+    // Update program stats in database (all values rounded to integers)
     await storage.updateProgramStats(currentProgram, wibDate, {
       LM,
       LMhat,
-      Nhat: state.Nhat,
+      Nhat: Math.round(state.Nhat),
       baseline: state.baselineN,
-      targetLM,
+      targetLM: Math.round(targetLM),
       progress,
       jumlahPendengar,
       startTime: `${String(programSchedule.startHour).padStart(2, '0')}:${String(programSchedule.startMin).padStart(2, '0')}`,
@@ -309,7 +314,7 @@ async function calculateEMAListenerMinutes() {
     
     state.lastN = N;
     
-    console.log(`[EMA] ${currentProgram}: N=${N}, Nhat=${state.Nhat.toFixed(1)}, LMhat=${LMhat.toFixed(0)}, Progress=${(progress*100).toFixed(1)}%, Jumlah=${jumlahPendengar}`);
+    console.log(`[EMA] ${currentProgram}: N=${N}, Nhat=${state.Nhat.toFixed(1)}, LMhat=${LMhat.toFixed(0)}, Progress=${progress}%, Jumlah=${jumlahPendengar}`);
     
   } catch (error) {
     console.error(`[EMA] Error calculating EMA:`, error);
