@@ -156,15 +156,6 @@ export function ProgramListeners() {
                   {/* Metrics */}
                   <div className="text-right">
                     <p className="text-gray-400 text-xs uppercase tracking-wide mb-1">
-                      Pendengar Saat Ini
-                    </p>
-                    <p 
-                      className="text-white text-lg font-mono font-semibold mb-2"
-                      data-testid={`text-program-avg-${program.displayName.toLowerCase().replace(/\s+/g, '-')}`}
-                    >
-                      {program.avgConcurrent.toLocaleString()}
-                    </p>
-                    <p className="text-gray-400 text-xs uppercase tracking-wide mb-1">
                       Total Pendengar
                     </p>
                     <p 
