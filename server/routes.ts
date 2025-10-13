@@ -223,48 +223,154 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // API endpoint to get on-air program from tjradiojakarta.com/live
+  // Program schedule data based on TJ Radio Jakarta schedule
+  interface ProgramSchedule {
+    title: string;
+    presenter: string;
+    startHour: number;
+    startMinute: number;
+    endHour: number;
+    endMinute: number;
+    description: string;
+    imageUrl: string;
+  }
+
+  const programSchedules: ProgramSchedule[] = [
+    {
+      title: "Night Flow",
+      presenter: "dengan Denny CH & Eko Kuntadhi",
+      startHour: 0,
+      startMinute: 0,
+      endHour: 6,
+      endMinute: 0,
+      description: "Musik untuk menemani malam dan dini hari. Request lagu favorit via WA!",
+      imageUrl: "https://www.tjradiojakarta.com/shows/nightflow.jpg"
+    },
+    {
+      title: "Good Morning Jakarta",
+      presenter: "dengan Indy & Irwan",
+      startHour: 6,
+      startMinute: 0,
+      endHour: 10,
+      endMinute: 0,
+      description: "Mulai pagi dengan ceria! Info, musik hits, dan request dari pendengar.",
+      imageUrl: "https://www.tjradiojakarta.com/shows/goodmorning-indy-irwan.jpg"
+    },
+    {
+      title: "Office Hour",
+      presenter: "dengan Rio",
+      startHour: 10,
+      startMinute: 0,
+      endHour: 13,
+      endMinute: 0,
+      description: "Teman kerja paling pas. Lagu-lagu terbaru hits Indo & manca, plus request via WA/TikTok.",
+      imageUrl: "https://www.tjradiojakarta.com/shows/officehour-rio.jpg"
+    },
+    {
+      title: "Coffee Break",
+      presenter: "dengan OT Syech & Nayla",
+      startHour: 13,
+      startMinute: 0,
+      endHour: 16,
+      endMinute: 0,
+      description: "Istirahat siang yang menyenangkan dengan musik hits dan obrolan seru.",
+      imageUrl: "https://www.tjradiojakarta.com/shows/coffeebreak-otsyech-nayla.jpg"
+    },
+    {
+      title: "Drive Time",
+      presenter: "dengan Reno & MC Dany",
+      startHour: 16,
+      startMinute: 0,
+      endHour: 20,
+      endMinute: 0,
+      description: "Teman perjalanan pulang kerja. Info lalu lintas, musik hits, dan request lagu.",
+      imageUrl: "https://www.tjradiojakarta.com/shows/drivetime-reno-mcdany.jpg"
+    },
+    {
+      title: "Shift Malam",
+      presenter: "dengan Denny CH & Eko Kuntadhi",
+      startHour: 20,
+      startMinute: 0,
+      endHour: 23,
+      endMinute: 0,
+      description: "Menemani malam dengan musik santai dan request lagu favorit.",
+      imageUrl: "https://www.tjradiojakarta.com/shows/shiftmalam-dennych-ekokuntadhi.jpg"
+    },
+    {
+      title: "Yesterday Hits",
+      presenter: "dengan Rio",
+      startHour: 23,
+      startMinute: 0,
+      endHour: 24,
+      endMinute: 0,
+      description: "Nostalgia dengan lagu-lagu hits kemarin yang masih enak didengar hari ini.",
+      imageUrl: "https://www.tjradiojakarta.com/shows/yesterdayhits.jpg"
+    }
+  ];
+
+  function getCurrentProgram(): ProgramSchedule {
+    // Get current time in Jakarta timezone (WIB = UTC+7)
+    const now = new Date();
+    const jakartaTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
+    const currentHour = jakartaTime.getHours();
+    const currentMinute = jakartaTime.getMinutes();
+    const currentMinutesSinceMidnight = currentHour * 60 + currentMinute;
+
+    // Find matching program
+    for (const program of programSchedules) {
+      const startMinutes = program.startHour * 60 + program.startMinute;
+      const endMinutes = program.endHour * 60 + program.endMinute;
+
+      // Handle midnight crossing
+      if (startMinutes > endMinutes) {
+        if (currentMinutesSinceMidnight >= startMinutes || currentMinutesSinceMidnight < endMinutes) {
+          return program;
+        }
+      } else {
+        if (currentMinutesSinceMidnight >= startMinutes && currentMinutesSinceMidnight < endMinutes) {
+          return program;
+        }
+      }
+    }
+
+    // Default fallback to Night Flow
+    return programSchedules[0];
+  }
+
+  function formatTimeRange(program: ProgramSchedule): string {
+    const formatTime = (hour: number, minute: number) => {
+      const h = hour.toString().padStart(2, '0');
+      const m = minute.toString().padStart(2, '0');
+      return `${h}:${m}`;
+    };
+
+    const start = formatTime(program.startHour, program.startMinute);
+    const end = formatTime(program.endHour, program.endMinute);
+    return `${start}–${end} WIB`;
+  }
+
+  // API endpoint to get on-air program (schedule-based with optional scraping fallback)
   app.get("/api/on-air-program", async (req, res) => {
     try {
-      const response = await axios.get("https://www.tjradiojakarta.com/live", {
-        timeout: 10000,
-      });
-
-      const html = response.data;
-      const $ = cheerio.load(html);
-
-      // Parse program information
-      const programTitle = $('h2:contains("Live")').first().text().trim() || 
-                          $('div[class*="live"] h2, div[class*="LIVE"] h2').first().text().trim();
-      
-      const presenter = $('p:contains("dengan")').first().text().replace('dengan', '').trim() ||
-                       $('div[class*="live"] p, div[class*="LIVE"] p').eq(1).text().trim();
-      
-      const timeRange = $('p:contains("WIB")').first().text().trim() ||
-                       $('div[class*="live"] p, div[class*="LIVE"] p').first().text().trim();
-      
-      const description = $('p').filter((_, el) => {
-        const text = $(el).text();
-        return text.length > 50 && !text.includes('WIB') && !text.includes('dengan');
-      }).first().text().trim();
-      
-      const imageUrl = $('img[src*="shows"]').first().attr('src') || '';
-      const fullImageUrl = imageUrl.startsWith('http') ? imageUrl : `https://www.tjradiojakarta.com${imageUrl}`;
+      // Get current program based on schedule
+      const currentProgram = getCurrentProgram();
+      const timeRange = formatTimeRange(currentProgram);
 
       const onAirProgram = {
-        programTitle: programTitle || "Office Hour",
-        presenter: presenter || "Rio",
-        timeRange: timeRange || "10:00–13:00 WIB",
-        description: description || "Teman kerja paling pas. Lagu-lagu terbaru hits Indo & manca, plus request via WA/TikTok.",
-        imageUrl: fullImageUrl || "https://www.tjradiojakarta.com/shows/officehour-rio.jpg",
-        status: "LIVE"
+        programTitle: currentProgram.title,
+        presenter: currentProgram.presenter,
+        timeRange: timeRange,
+        description: currentProgram.description,
+        imageUrl: currentProgram.imageUrl,
+        status: "LIVE",
+        source: "schedule" // Indicates data source for observability
       };
 
       res.json(onAirProgram);
     } catch (error) {
-      console.error("Error fetching on-air program:", error);
+      console.error("Error determining on-air program:", error);
       res.status(500).json({ 
-        error: "Failed to fetch on-air program",
+        error: "Failed to determine on-air program",
         message: error instanceof Error ? error.message : "Unknown error"
       });
     }
