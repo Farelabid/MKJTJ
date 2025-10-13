@@ -1,28 +1,20 @@
 import { useQuery } from "@tanstack/react-query";
-import { RadioStats } from "@shared/schema";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Music } from "lucide-react";
 import { useState, useEffect } from "react";
 
-interface ProgramStats {
-  name: string;
+interface ProgramListenersData {
+  programName: string;
+  displayName: string;
   timeRange: string;
-  listeners: number;
+  startTime: string;
+  endTime: string;
+  cumulativeListeners: number;
+  progressPercent: number;
+  isActive: boolean;
   color: string;
-  isOnAir: boolean;
 }
-
-// Program schedule with time slots
-const PROGRAMS = [
-  { name: "Night Flow", timeRange: "00:00 - 06:00", start: 0, end: 360, color: "hsl(var(--chart-6))" },
-  { name: "Good Morning Jakarta", timeRange: "06:00 - 10:00", start: 360, end: 600, color: "hsl(var(--chart-1))" },
-  { name: "Office Hour", timeRange: "10:00 - 13:00", start: 600, end: 780, color: "hsl(var(--chart-2))" },
-  { name: "Coffee Break", timeRange: "13:00 - 16:00", start: 780, end: 960, color: "hsl(var(--chart-3))" },
-  { name: "Drive Time", timeRange: "16:00 - 20:00", start: 960, end: 1200, color: "hsl(var(--chart-4))" },
-  { name: "Shift Malam", timeRange: "20:00 - 23:00", start: 1200, end: 1380, color: "hsl(var(--chart-5))" },
-  { name: "Yesterday Hits", timeRange: "23:00 - 00:00", start: 1380, end: 1440, color: "hsl(var(--chart-1))" },
-];
 
 export function ProgramListeners() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -47,63 +39,14 @@ export function ProgramListeners() {
     return `${day} ${date} ${month} ${year}`;
   };
 
-  // Fetch current radio stats for real-time listeners
-  const { data: stats, isLoading } = useQuery<RadioStats>({
-    queryKey: ["/api/radio-stats"],
-    refetchInterval: 30000, // Refresh every 30 seconds
+  // Fetch program listeners data from new endpoint (every 4 minutes)
+  const { data: programs, isLoading } = useQuery<ProgramListenersData[]>({
+    queryKey: ["/api/program-listeners"],
+    refetchInterval: 4 * 60 * 1000, // 4 minutes
   });
 
-  const calculateProgramListeners = (): ProgramStats[] => {
-    const dateStr = formatDateString();
-    
-    // Calculate current time in WIB (UTC+7)
-    const now = new Date();
-    const wibOffset = 7 * 60; // WIB is UTC+7
-    const localOffset = now.getTimezoneOffset(); // Local offset in minutes (negative for positive timezone)
-    const wibTime = new Date(now.getTime() + (wibOffset + localOffset) * 60 * 1000);
-    
-    const hour = wibTime.getHours();
-    const minute = wibTime.getMinutes();
-    const minutesSinceMidnight = hour * 60 + minute;
-
-    // Get current listeners (already multiplied by 4 from backend)
-    const currentListenersRaw = stats?.listenersRaw || 0;
-    const currentListeners = currentListenersRaw * 4; // Apply multiplier
-
-    // Find which program is currently on air
-    let onAirProgramName = "";
-    
-    for (const program of PROGRAMS) {
-      // Handle midnight wraparound for Yesterday Hits
-      if (program.name === "Yesterday Hits") {
-        if (minutesSinceMidnight >= program.start || minutesSinceMidnight < PROGRAMS[0].end) {
-          onAirProgramName = program.name;
-          break;
-        }
-      } else if (program.name === "Night Flow") {
-        if (minutesSinceMidnight >= program.start && minutesSinceMidnight < program.end) {
-          onAirProgramName = program.name;
-          break;
-        }
-      } else {
-        if (minutesSinceMidnight >= program.start && minutesSinceMidnight < program.end) {
-          onAirProgramName = program.name;
-          break;
-        }
-      }
-    }
-
-    return PROGRAMS.map((program) => ({
-      name: `${program.name} - ${dateStr}`,
-      timeRange: program.timeRange,
-      listeners: program.name === onAirProgramName ? currentListeners : 0,
-      color: program.color,
-      isOnAir: program.name === onAirProgramName,
-    }));
-  };
-
-  const programs = calculateProgramListeners();
-  const maxListeners = Math.max(...programs.map(p => p.listeners), 1);
+  const dateStr = formatDateString();
+  const maxListeners = Math.max(...(programs?.map(p => p.cumulativeListeners) || [0]), 1);
 
   return (
     <Card className="p-6 space-y-4">
@@ -123,14 +66,14 @@ export function ProgramListeners() {
         </div>
       ) : (
         <div className="space-y-4 pt-2">
-          {programs.map((program) => (
-            <div key={program.name} className="space-y-2">
+          {programs?.map((program) => (
+            <div key={program.programName} className="space-y-2">
               <div className="flex items-center justify-between text-sm">
                 <div className="flex items-center gap-2">
                   <div>
-                    <p className="font-medium flex items-center gap-2" data-testid={`text-program-${program.name.toLowerCase().replace(/\s+/g, '-')}`}>
-                      {program.name}
-                      {program.isOnAir && (
+                    <p className="font-medium flex items-center gap-2" data-testid={`text-program-${program.displayName.toLowerCase().replace(/\s+/g, '-')}`}>
+                      {program.displayName} - {dateStr}
+                      {program.isActive && (
                         <span className="text-xs px-2 py-0.5 bg-red-500 text-white rounded-full animate-pulse">
                           LIVE
                         </span>
@@ -139,24 +82,39 @@ export function ProgramListeners() {
                     <p className="text-xs text-muted-foreground">{program.timeRange}</p>
                   </div>
                 </div>
-                <span className="font-mono font-semibold" data-testid={`text-program-listeners-${program.name.toLowerCase().replace(/\s+/g, '-')}`}>
-                  {program.listeners.toLocaleString()}
+                {/* Bold + colored background for cumulative listeners */}
+                <span 
+                  className="font-mono font-bold px-3 py-1 rounded-md" 
+                  style={{
+                    backgroundColor: program.isActive ? program.color : 'transparent',
+                    color: program.isActive ? 'white' : 'inherit',
+                  }}
+                  data-testid={`text-program-listeners-${program.displayName.toLowerCase().replace(/\s+/g, '-')}`}
+                >
+                  {program.cumulativeListeners.toLocaleString()}
                 </span>
               </div>
-              <div className="h-6 bg-muted rounded-md overflow-hidden">
+              {/* Progress bar based on time (0-100%) */}
+              <div className="h-6 bg-muted rounded-md overflow-hidden relative">
                 <div
                   className="h-full transition-all duration-500 flex items-center justify-end px-2"
                   style={{
-                    width: `${(program.listeners / maxListeners) * 100}%`,
+                    width: program.isActive ? `${program.progressPercent}%` : '0%',
                     backgroundColor: program.color,
                   }}
                 >
-                  {program.listeners > 0 && (
+                  {program.isActive && program.progressPercent > 10 && (
                     <span className="text-xs font-semibold text-white">
-                      {((program.listeners / maxListeners) * 100).toFixed(0)}%
+                      {program.progressPercent}%
                     </span>
                   )}
                 </div>
+                {/* Show percentage outside bar if too small */}
+                {program.isActive && program.progressPercent <= 10 && program.progressPercent > 0 && (
+                  <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs font-semibold text-foreground">
+                    {program.progressPercent}%
+                  </span>
+                )}
               </div>
             </div>
           ))}
