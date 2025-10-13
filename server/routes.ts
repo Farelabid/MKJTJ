@@ -5,15 +5,26 @@ import * as cheerio from "cheerio";
 import { radioStatsSchema } from "@shared/schema";
 import { storage } from "./storage";
 
-// Background job interval (1 minute for snapshot, 4 minutes for delta calculation)
-const SNAPSHOT_INTERVAL = 1 * 60 * 1000;
-const DELTA_INTERVAL = 4 * 60 * 1000;
+// Background job interval (1 minute for EMA tracking)
+const EMA_INTERVAL = 1 * 60 * 1000;
 
-let snapshotInterval: NodeJS.Timeout | null = null;
-let deltaInterval: NodeJS.Timeout | null = null;
+let emaInterval: NodeJS.Timeout | null = null;
 
-// In-memory tracking: store last snapshot per program
-const programLastSnapshots: Map<string, { listeners: number; timestamp: Date }> = new Map();
+// EMA Constants
+const ALPHA = 0.25; // EMA smoothing factor
+const ALT_MIN = 12; // Average Listen Time (minutes)
+const SCALE_K = 10; // Scale factor for output
+
+// EMA State tracking per program
+interface EMAState {
+  Nhat: number | null; // Smoothed listeners
+  lastN: number | null; // Previous raw listeners
+  spikeWindowMin: number; // Minutes remaining in spike detection window
+  baselineN: number | null; // Baseline from first 5 minutes
+  startedAt: Date; // When program started
+}
+
+const programEMAStates: Map<string, EMAState> = new Map();
 
 // Program schedules (WIB timezone) with correct durations
 const PROGRAM_SCHEDULES = [
@@ -175,77 +186,133 @@ async function saveStatsSnapshot() {
   console.error(`[Snapshot] Failed after ${maxRetries} attempts. Last error:`, lastError);
 }
 
-async function calculateProgramDelta() {
+function clamp(val: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, val));
+}
+
+function ema(prev: number | null, value: number, alpha: number): number {
+  if (prev === null) return value;
+  return alpha * value + (1 - alpha) * prev;
+}
+
+function isSpike(curr: number, prev: number | null): boolean {
+  if (prev === null) return false;
+  const diff = Math.abs(curr - prev);
+  return diff > 0.5 * Math.max(50, prev);
+}
+
+async function calculateEMAListenerMinutes() {
   try {
     const currentProgram = getCurrentProgramWIB();
     if (!currentProgram) {
-      console.log(`[Delta] No active program at this time`);
+      console.log(`[EMA] No active program at this time`);
       return;
     }
 
     const wibDate = getWIBDate();
     
-    // Get last 2 snapshots to calculate delta (current vs 1 minute ago)
-    // We need at least 2 snapshots: one from now and one from ~1 min ago
-    const recentStats = await storage.getRecentStats(2/60); // Last 2 minutes to ensure we get 2 snapshots
+    // Get latest snapshot to get raw listeners (N)
+    const recentStats = await storage.getRecentStats(0.05); // Last ~3 minutes
+    if (recentStats.length === 0) {
+      console.log(`[EMA] No snapshots available yet`);
+      return;
+    }
     
-    if (recentStats.length < 2) {
-      // Not enough data yet, store current as baseline for this program
-      if (recentStats.length === 1) {
-        const currentListenersRaw = recentStats[0].listenersRaw;
-        programLastSnapshots.set(currentProgram, {
-          listeners: currentListenersRaw,
-          timestamp: new Date(),
-        });
-        console.log(`[Delta] ${currentProgram}: Baseline set to ${currentListenersRaw} (waiting for next snapshot)`);
-      } else {
-        console.log(`[Delta] No snapshots available yet`);
+    const N = recentStats[0].listenersRaw; // Raw listeners from Icecast
+    
+    // Get or initialize EMA state for this program
+    let state = programEMAStates.get(currentProgram);
+    if (!state) {
+      state = {
+        Nhat: null,
+        lastN: null,
+        spikeWindowMin: 0,
+        baselineN: null,
+        startedAt: new Date(),
+      };
+      programEMAStates.set(currentProgram, state);
+      console.log(`[EMA] ${currentProgram}: New program started, initializing state`);
+    }
+    
+    // Spike handling: cap N during spike window
+    let Nc = N;
+    if (isSpike(N, state.lastN)) {
+      state.spikeWindowMin = 5; // Activate 5-minute spike window
+      console.log(`[EMA] ${currentProgram}: Spike detected! N=${N}, lastN=${state.lastN}`);
+    }
+    
+    if (state.spikeWindowMin > 0 && state.lastN !== null) {
+      const capUp = Math.round(state.lastN * 1.25); // Max 25% increase
+      const capDown = Math.round(state.lastN * 0.75); // Max 25% decrease
+      Nc = clamp(N, capDown, capUp);
+      state.spikeWindowMin -= 1;
+      if (Nc !== N) {
+        console.log(`[EMA] ${currentProgram}: Spike capped N=${N} → Nc=${Nc} (spike window: ${state.spikeWindowMin}min left)`);
       }
-      return;
     }
     
-    // Check if program changed since last run
-    const lastProgramData = programLastSnapshots.get(currentProgram);
-    const isProgramChange = !lastProgramData;
+    // Calculate smoothed listeners (Nhat)
+    state.Nhat = ema(state.Nhat, Nc, ALPHA);
     
-    // snapshots are ordered by timestamp DESC, so [0] is newest, [1] is ~1 min ago
-    const currentSnapshot = recentStats[0];
-    const oneMinuteAgoSnapshot = recentStats[1];
-    
-    const currentListenersRaw = currentSnapshot.listenersRaw;
-    const oneMinuteAgoListenersRaw = oneMinuteAgoSnapshot.listenersRaw;
-    
-    if (isProgramChange) {
-      // First time seeing this program, set baseline but don't calculate delta
-      programLastSnapshots.set(currentProgram, {
-        listeners: currentListenersRaw,
-        timestamp: new Date(),
-      });
-      console.log(`[Delta] ${currentProgram}: Baseline set to ${currentListenersRaw} (program changed)`);
-      return;
-    }
-    
-    // Calculate delta: x = (current - 1 minute ago)
-    const latestDelta = currentListenersRaw - oneMinuteAgoListenersRaw;
-    
-    // Update program stats with latest delta and raw listeners
-    // Formula will be applied in API: (latestDelta × duration) + rawListeners
-    await storage.updateProgramStats(
-      currentProgram,
-      wibDate,
-      latestDelta,
-      currentListenersRaw
-    );
-    
-    // Update last check for this program
-    programLastSnapshots.set(currentProgram, {
-      listeners: currentListenersRaw,
+    // Save minute snapshot to database
+    await storage.saveMinuteSnapshot({
+      programName: currentProgram,
+      date: wibDate,
       timestamp: new Date(),
+      N: N,
+      Nhat: state.Nhat,
     });
     
-    console.log(`[Delta] ${currentProgram}: x = ${currentListenersRaw} - ${oneMinuteAgoListenersRaw} = ${latestDelta}, z = ${currentListenersRaw}`);
+    // Get existing program stats
+    const existingStats = await storage.getProgramStats(currentProgram, wibDate);
+    const LM = (existingStats?.LM || 0) + N; // Accumulate raw listener-minutes
+    const LMhat = (existingStats?.LMhat || 0) + state.Nhat; // Accumulate smoothed listener-minutes
+    
+    // Calculate baseline from first 5 minutes if not set
+    if (state.baselineN === null) {
+      const snapshots = await storage.getRecentSnapshots(currentProgram, wibDate, 5);
+      if (snapshots.length > 0) {
+        const avgNhat = snapshots.reduce((sum, s) => sum + (s.Nhat || 0), 0) / snapshots.length;
+        state.baselineN = Math.max(0, avgNhat);
+        console.log(`[EMA] ${currentProgram}: Baseline calculated from ${snapshots.length} snapshots: ${state.baselineN.toFixed(1)}`);
+      } else {
+        state.baselineN = state.Nhat || 0;
+      }
+    }
+    
+    // Get program schedule
+    const programSchedule = PROGRAM_SCHEDULES.find(p => p.name === currentProgram);
+    if (!programSchedule) {
+      console.error(`[EMA] Program schedule not found for: ${currentProgram}`);
+      return;
+    }
+    
+    // Calculate target LM and progress
+    const targetLM = programSchedule.durationMinutes * (state.baselineN || 0);
+    const progress = clamp(LMhat / Math.max(1, targetLM), 0, 1);
+    
+    // Calculate final output: Jumlah Pendengar = K × (LMhat / ALT)
+    const jumlahPendengar = Math.round(SCALE_K * (LMhat / ALT_MIN));
+    
+    // Update program stats in database
+    await storage.updateProgramStats(currentProgram, wibDate, {
+      LM,
+      LMhat,
+      Nhat: state.Nhat,
+      baseline: state.baselineN,
+      targetLM,
+      progress,
+      jumlahPendengar,
+      startTime: `${String(programSchedule.startHour).padStart(2, '0')}:${String(programSchedule.startMin).padStart(2, '0')}`,
+      endTime: `${String(programSchedule.endHour).padStart(2, '0')}:${String(programSchedule.endMin).padStart(2, '0')}`,
+    });
+    
+    state.lastN = N;
+    
+    console.log(`[EMA] ${currentProgram}: N=${N}, Nhat=${state.Nhat.toFixed(1)}, LMhat=${LMhat.toFixed(0)}, Progress=${(progress*100).toFixed(1)}%, Jumlah=${jumlahPendengar}`);
+    
   } catch (error) {
-    console.error(`[Delta] Error calculating delta:`, error);
+    console.error(`[EMA] Error calculating EMA:`, error);
   }
 }
 
@@ -487,7 +554,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return `${start}–${end} WIB`;
   }
 
-  // API endpoint to get program listeners with new formula
+  // API endpoint to get program listeners with EMA-based calculation
   app.get("/api/program-listeners", async (req, res) => {
     try {
       const wibDate = getWIBDate();
@@ -497,42 +564,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         PROGRAM_SCHEDULES.map(async (program) => {
           const stats = await storage.getProgramStats(program.name, wibDate);
           
-          let cumulativeListeners = 0;
+          // Use jumlahPendengar from database (calculated via EMA: K × (LMhat / ALT))
+          const cumulativeListeners = stats?.jumlahPendengar || 0;
           
-          // Calculate formula for all programs that have delta data
-          if (stats && stats.rawListeners > 0) {
-            // Formula: Listeners = (x × durasi) + z × (jumlah jam siaran + 6)
-            // x = latestDelta (dari delta calculation)
-            // durasi = durasi program dalam menit
-            // z = rawListeners (listeners raw dari Icecast)
-            // jumlah jam siaran = durasi program dalam jam
-            
-            // Guard against negative deltas - clamp to 0
-            const x = Math.max(0, stats.latestDelta);
-            const durasi = program.durationMinutes;
-            const z = stats.rawListeners;
-            const jumlahJamSiaran = durasi / 60; // Convert minutes to hours
-            
-            // Calculate listeners using formula for all programs
-            cumulativeListeners = (x * durasi) + (z * (jumlahJamSiaran + 6));
-          }
-          // Programs without data: show 0
-          
-          // Calculate progress based on time (0-100%)
-          const now = new Date();
-          const wibOffset = 7 * 60;
-          const localOffset = now.getTimezoneOffset();
-          const wibTime = new Date(now.getTime() + (wibOffset + localOffset) * 60 * 1000);
-          const currentMinutes = wibTime.getHours() * 60 + wibTime.getMinutes();
-          const programStartMinutes = program.startHour * 60 + program.startMin;
-          const programEndMinutes = program.endHour * 60 + program.endMin;
-          const programDuration = programEndMinutes - programStartMinutes;
-          
-          let progressPercent = 0;
-          if (program.name === currentProgramName) {
-            const elapsed = currentMinutes - programStartMinutes;
-            progressPercent = Math.min(100, Math.max(0, (elapsed / programDuration) * 100));
-          }
+          // Use progress from database (LMhat / targetLM)
+          const progressPercent = Math.round((stats?.progress || 0) * 100);
           
           return {
             programName: program.name,
@@ -541,7 +577,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             startTime: `${String(program.startHour).padStart(2, '0')}:${String(program.startMin).padStart(2, '0')}`,
             endTime: `${String(program.endHour).padStart(2, '0')}:${String(program.endMin).padStart(2, '0')}`,
             cumulativeListeners,
-            progressPercent: Math.round(progressPercent),
+            progressPercent,
             isActive: program.name === currentProgramName,
             color: getColorForProgram(program.name),
           };
@@ -700,7 +736,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   const httpServer = createServer(app);
 
-  // Start background job for saving snapshots
+  // Start background job for saving stats snapshots (every 5 minutes)
+  // Note: We keep snapshot job separate for historical data tracking
+  const SNAPSHOT_INTERVAL = 5 * 60 * 1000; // 5 minutes
+  let snapshotInterval: NodeJS.Timeout | null = null;
+  
   if (snapshotInterval) {
     clearInterval(snapshotInterval);
   }
@@ -708,21 +748,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Save initial snapshot
   saveStatsSnapshot();
   
-  // Schedule periodic snapshots every 1 minute
+  // Schedule periodic snapshots every 5 minutes
   snapshotInterval = setInterval(saveStatsSnapshot, SNAPSHOT_INTERVAL);
   console.log(`[Snapshot] Background job started - saving every ${SNAPSHOT_INTERVAL / 1000 / 60} minute(s)`);
 
-  // Start background job for delta calculation
-  if (deltaInterval) {
-    clearInterval(deltaInterval);
+  // Start background job for EMA calculation (every 1 minute)
+  if (emaInterval) {
+    clearInterval(emaInterval);
   }
   
-  // Calculate delta after initial delay (to have data)
-  setTimeout(calculateProgramDelta, DELTA_INTERVAL);
+  // Calculate EMA after initial delay (to have data)
+  setTimeout(calculateEMAListenerMinutes, EMA_INTERVAL);
   
-  // Schedule periodic delta calculation every 4 minutes
-  deltaInterval = setInterval(calculateProgramDelta, DELTA_INTERVAL);
-  console.log(`[Delta] Background job started - calculating every ${DELTA_INTERVAL / 1000 / 60} minute(s)`);
+  // Schedule periodic EMA calculation every 1 minute
+  emaInterval = setInterval(calculateEMAListenerMinutes, EMA_INTERVAL);
+  console.log(`[EMA] Background job started - calculating every ${EMA_INTERVAL / 1000 / 60} minute(s)`);
 
   return httpServer;
 }
