@@ -14,6 +14,7 @@ import { ProgramListeners } from "@/components/program-listeners";
 import { OnAirProgram } from "@/components/on-air-program";
 import { useToast } from "@/hooks/use-toast";
 import tjRadioLogo from "@assets/logo_official_tj_1760323825293.png";
+import onAirImage from "@assets/air-neon-frame_23-2148770153_1760326539971.jpg";
 
 export default function Dashboard() {
   const [autoRefreshCountdown, setAutoRefreshCountdown] = useState(30);
@@ -145,7 +146,7 @@ export default function Dashboard() {
       {/* Header */}
       <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="h-12 w-12 flex items-center justify-center">
                 <img 
@@ -177,6 +178,17 @@ export default function Dashboard() {
                 )}
               </div>
             </div>
+            
+            {/* ON AIR Badge with Neon Image */}
+            <div className="hidden md:flex items-center justify-center flex-shrink-0">
+              <img 
+                src={onAirImage} 
+                alt="ON AIR" 
+                className="h-10 w-auto object-contain"
+                data-testid="img-on-air-badge"
+              />
+            </div>
+
             <div className="flex items-center gap-2">
               <div className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground">
                 <div className="flex items-center gap-2">
