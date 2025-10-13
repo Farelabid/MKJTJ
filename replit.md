@@ -91,10 +91,11 @@ Dashboard statistik real-time untuk TJ Radio Jakarta yang menampilkan data strea
      * Drive Time (16:00-20:00) - 240 menit
      * Shift Malam (20:00-22:00) - 120 menit
      * Yesterday Hits (22:00-24:00) - 120 menit
-   - **Formula Perhitungan**: Jumlah Pendengar = (x × durasi) + z
+   - **Formula Perhitungan**: Jumlah Pendengar = (x × durasi) + z × (jumlah jam siaran + 6)
      * x = Delta listeners (listeners sekarang - 1 menit lalu)
      * durasi = Durasi program dalam menit
      * z = Raw listeners dari Icecast (tanpa multiplier)
+     * jumlah jam siaran = Durasi program dalam jam
    - **Interval**: Delta calculation setiap 4 menit
    - Hanya program yang sedang on-air menampilkan listeners (program lain: 0)
    - Badge LIVE untuk program yang sedang on-air

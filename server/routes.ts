@@ -501,18 +501,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // Only calculate if this is the active program AND we have fresh delta data
           if (program.name === currentProgramName && stats && stats.rawListeners > 0) {
-            // Formula: Listeners = (x × duration) + z
+            // Formula: Listeners = (x × durasi) + z × (jumlah jam siaran + 6)
             // x = latestDelta (dari delta calculation)
-            // duration = durasi program dalam menit
+            // durasi = durasi program dalam menit
             // z = rawListeners (listeners raw dari Icecast)
+            // jumlah jam siaran = durasi program dalam jam
             
             // Guard against negative deltas - clamp to 0
             const x = Math.max(0, stats.latestDelta);
-            const duration = program.durationMinutes;
+            const durasi = program.durationMinutes;
             const z = stats.rawListeners;
+            const jumlahJamSiaran = durasi / 60; // Convert minutes to hours
             
-            // Calculate listeners using formula
-            cumulativeListeners = (x * duration) + z;
+            // Calculate listeners using new formula
+            cumulativeListeners = (x * durasi) + (z * (jumlahJamSiaran + 6));
           }
           // For inactive programs or programs without fresh data: show 0
           
