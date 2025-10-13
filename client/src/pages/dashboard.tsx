@@ -13,6 +13,7 @@ import { HistoricalChart } from "@/components/historical-chart";
 import { ExportPanel } from "@/components/export-panel";
 import { ProgramListeners } from "@/components/program-listeners";
 import { useToast } from "@/hooks/use-toast";
+import tjRadioLogo from "@assets/logo_official_tj_1760323825293.png";
 
 export default function Dashboard() {
   const [autoRefreshCountdown, setAutoRefreshCountdown] = useState(30);
@@ -124,8 +125,13 @@ export default function Dashboard() {
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-md bg-primary/10 flex items-center justify-center">
-                <Radio className="h-6 w-6 text-primary" />
+              <div className="h-12 w-12 flex items-center justify-center">
+                <img 
+                  src={tjRadioLogo} 
+                  alt="TJ Radio Jakarta Logo" 
+                  className="h-12 w-12 object-contain"
+                  data-testid="img-tj-radio-logo"
+                />
               </div>
               <div>
                 {isLoading ? (

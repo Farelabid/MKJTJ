@@ -46,23 +46,36 @@ export function ProgramListeners() {
     history.forEach((stat) => {
       const date = new Date(stat.timestamp);
       const hour = date.getHours();
+      const minute = date.getMinutes();
+      const minutesSinceMidnight = hour * 60 + minute;
 
-      if (hour >= 6 && hour < 10) {
+      // Good Morning Jakarta: 06:00 - 10:00 (360 - 600 minutes)
+      if (minutesSinceMidnight >= 360 && minutesSinceMidnight <= 600) {
         programData.goodMorning.sum += stat.listenersRaw;
         programData.goodMorning.count++;
-      } else if (hour >= 10 && hour < 13) {
+      } 
+      // Office Hour: 10:01 - 13:00 (601 - 780 minutes)
+      else if (minutesSinceMidnight >= 601 && minutesSinceMidnight <= 780) {
         programData.officeHour.sum += stat.listenersRaw;
         programData.officeHour.count++;
-      } else if (hour >= 13 && hour < 16) {
+      } 
+      // Coffee Break: 13:01 - 16:00 (781 - 960 minutes)
+      else if (minutesSinceMidnight >= 781 && minutesSinceMidnight <= 960) {
         programData.coffeeBreak.sum += stat.listenersRaw;
         programData.coffeeBreak.count++;
-      } else if (hour >= 16 && hour < 20) {
+      } 
+      // Drive Time: 16:01 - 20:00 (961 - 1200 minutes)
+      else if (minutesSinceMidnight >= 961 && minutesSinceMidnight <= 1200) {
         programData.driveTime.sum += stat.listenersRaw;
         programData.driveTime.count++;
-      } else if (hour >= 20 && hour < 22) {
+      } 
+      // Shift Malam: 20:01 - 22:00 (1201 - 1320 minutes)
+      else if (minutesSinceMidnight >= 1201 && minutesSinceMidnight <= 1320) {
         programData.shiftMalam.sum += stat.listenersRaw;
         programData.shiftMalam.count++;
-      } else {
+      } 
+      // Yesterday Hits: 22:01 - 05:59 (1321+ or 0-359 minutes)
+      else {
         programData.yesterdayHits.sum += stat.listenersRaw;
         programData.yesterdayHits.count++;
       }
