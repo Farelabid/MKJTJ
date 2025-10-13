@@ -84,7 +84,7 @@ export function ProgramListeners() {
                 </div>
                 {/* Bold + colored background for cumulative listeners */}
                 <span 
-                  className="font-mono font-bold px-3 py-1 rounded-md" 
+                  className="font-mono font-bold px-3 py-1.5 rounded-md min-w-[80px] text-center inline-block" 
                   style={{
                     backgroundColor: program.isActive ? program.color : 'transparent',
                     color: program.isActive ? 'white' : 'inherit',

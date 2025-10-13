@@ -5,13 +5,15 @@ import * as cheerio from "cheerio";
 import { radioStatsSchema } from "@shared/schema";
 import { storage } from "./storage";
 
-// Background job interval (1 minute for delta tracking)
+// Background job interval (1 minute for snapshot, 4 minutes for delta calculation)
 const SNAPSHOT_INTERVAL = 1 * 60 * 1000;
+const DELTA_INTERVAL = 4 * 60 * 1000;
 
 let snapshotInterval: NodeJS.Timeout | null = null;
+let deltaInterval: NodeJS.Timeout | null = null;
 
-// In-memory tracking for delta calculation
-let lastListenersRaw: number | null = null;
+// In-memory tracking: store last snapshot per program
+const programLastSnapshots: Map<string, { listeners: number; timestamp: Date }> = new Map();
 
 // Program schedules (WIB timezone)
 const PROGRAM_SCHEDULES = [
@@ -134,31 +136,6 @@ async function saveStatsSnapshot() {
         currentlyPlaying: currentlyPlaying || undefined,
       });
 
-      // Calculate delta and update program stats
-      const currentProgram = getCurrentProgramWIB();
-      if (currentProgram && lastListenersRaw !== null) {
-        // Calculate delta: current - previous (clamp to >= 0)
-        const delta = Math.max(0, listenersRaw - lastListenersRaw);
-        const wibDate = getWIBDate();
-        
-        // Get existing program stats for today
-        const existingStats = await storage.getProgramStats(currentProgram, wibDate);
-        const newCumulativeDelta = (existingStats?.cumulativeDelta || 0) + delta;
-        
-        // Update program stats
-        await storage.updateProgramStats(
-          currentProgram,
-          wibDate,
-          newCumulativeDelta,
-          listenersRaw
-        );
-        
-        console.log(`[Program] ${currentProgram}: delta +${delta}, cumulative ${newCumulativeDelta}`);
-      }
-      
-      // Store current listeners for next delta calculation
-      lastListenersRaw = listenersRaw;
-
       // Check alert thresholds
       const thresholds = await storage.getAlertThresholds();
       for (const threshold of thresholds) {
@@ -196,6 +173,90 @@ async function saveStatsSnapshot() {
   }
 
   console.error(`[Snapshot] Failed after ${maxRetries} attempts. Last error:`, lastError);
+}
+
+async function calculateProgramDelta() {
+  try {
+    const currentProgram = getCurrentProgramWIB();
+    if (!currentProgram) {
+      console.log(`[Delta] No active program at this time`);
+      return;
+    }
+
+    const wibDate = getWIBDate();
+    
+    // Get last 2 snapshots to calculate delta (current vs 1 minute ago)
+    // We need at least 2 snapshots: one from now and one from ~1 min ago
+    const recentStats = await storage.getRecentStats(2/60); // Last 2 minutes to ensure we get 2 snapshots
+    
+    if (recentStats.length < 2) {
+      // Not enough data yet, store current as baseline for this program
+      if (recentStats.length === 1) {
+        const currentListenersRaw = recentStats[0].listenersRaw;
+        programLastSnapshots.set(currentProgram, {
+          listeners: currentListenersRaw,
+          timestamp: new Date(),
+        });
+        console.log(`[Delta] ${currentProgram}: Baseline set to ${currentListenersRaw} (waiting for next snapshot)`);
+      } else {
+        console.log(`[Delta] No snapshots available yet`);
+      }
+      return;
+    }
+    
+    // Check if program changed since last run
+    const lastProgramData = programLastSnapshots.get(currentProgram);
+    const isProgramChange = !lastProgramData;
+    
+    // snapshots are ordered by timestamp DESC, so [0] is newest, [1] is ~1 min ago
+    const currentSnapshot = recentStats[0];
+    const oneMinuteAgoSnapshot = recentStats[1];
+    
+    const currentListenersRaw = currentSnapshot.listenersRaw;
+    const oneMinuteAgoListenersRaw = oneMinuteAgoSnapshot.listenersRaw;
+    
+    if (isProgramChange) {
+      // First time seeing this program, set baseline but don't calculate delta
+      programLastSnapshots.set(currentProgram, {
+        listeners: currentListenersRaw,
+        timestamp: new Date(),
+      });
+      console.log(`[Delta] ${currentProgram}: Baseline set to ${currentListenersRaw} (program changed)`);
+      return;
+    }
+    
+    // Calculate delta: (current - 1 minute ago)
+    const rawDelta = currentListenersRaw - oneMinuteAgoListenersRaw;
+    
+    // Get multiplier from config
+    const multiplierConfig = await storage.getConfig('listener_multiplier');
+    const multiplier = multiplierConfig ? parseInt(multiplierConfig.value) : 4;
+    
+    // Apply multiplier to delta: delta × 4
+    const adjustedDelta = rawDelta * multiplier;
+    
+    // Get existing cumulative stats
+    const existingStats = await storage.getProgramStats(currentProgram, wibDate);
+    const newCumulativeDelta = (existingStats?.cumulativeDelta || 0) + adjustedDelta;
+    
+    // Update program stats
+    await storage.updateProgramStats(
+      currentProgram,
+      wibDate,
+      newCumulativeDelta,
+      currentListenersRaw
+    );
+    
+    // Update last check for this program
+    programLastSnapshots.set(currentProgram, {
+      listeners: currentListenersRaw,
+      timestamp: new Date(),
+    });
+    
+    console.log(`[Delta] ${currentProgram}: (${currentListenersRaw} - ${oneMinuteAgoListenersRaw}) × ${multiplier} = ${adjustedDelta}, cumulative=${newCumulativeDelta}`);
+  } catch (error) {
+    console.error(`[Delta] Error calculating delta:`, error);
+  }
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -640,6 +701,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Schedule periodic snapshots every 1 minute
   snapshotInterval = setInterval(saveStatsSnapshot, SNAPSHOT_INTERVAL);
   console.log(`[Snapshot] Background job started - saving every ${SNAPSHOT_INTERVAL / 1000 / 60} minute(s)`);
+
+  // Start background job for delta calculation
+  if (deltaInterval) {
+    clearInterval(deltaInterval);
+  }
+  
+  // Calculate delta after initial delay (to have data)
+  setTimeout(calculateProgramDelta, DELTA_INTERVAL);
+  
+  // Schedule periodic delta calculation every 4 minutes
+  deltaInterval = setInterval(calculateProgramDelta, DELTA_INTERVAL);
+  console.log(`[Delta] Background job started - calculating every ${DELTA_INTERVAL / 1000 / 60} minute(s)`);
 
   return httpServer;
 }
