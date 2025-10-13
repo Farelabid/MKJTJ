@@ -3,6 +3,7 @@ import {
   configuration, 
   alertThresholds,
   alertHistory,
+  programStats,
   type StatsHistory, 
   type InsertStatsHistory,
   type Configuration,
@@ -10,7 +11,9 @@ import {
   type AlertThreshold,
   type InsertAlertThreshold,
   type AlertHistory,
-  type InsertAlertHistory
+  type InsertAlertHistory,
+  type ProgramStats,
+  type InsertProgramStats
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, gte, lte, and } from "drizzle-orm";
@@ -35,6 +38,11 @@ export interface IStorage {
   // Alert History
   saveAlertHistory(alert: InsertAlertHistory): Promise<AlertHistory>;
   getAlertHistory(limit?: number): Promise<AlertHistory[]>;
+  
+  // Program Stats
+  getProgramStats(programName: string, date: string): Promise<ProgramStats | undefined>;
+  updateProgramStats(programName: string, date: string, cumulativeDelta: number, lastListeners: number): Promise<ProgramStats>;
+  getAllProgramStatsForDate(date: string): Promise<ProgramStats[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -159,6 +167,79 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(alertHistory.triggeredAt))
       .limit(limit);
     return history;
+  }
+
+  // Program Stats
+  async getProgramStats(programName: string, date: string): Promise<ProgramStats | undefined> {
+    const [stats] = await db
+      .select()
+      .from(programStats)
+      .where(
+        and(
+          eq(programStats.programName, programName),
+          eq(programStats.date, date)
+        )
+      );
+    return stats || undefined;
+  }
+
+  async updateProgramStats(
+    programName: string, 
+    date: string, 
+    cumulativeDelta: number, 
+    lastListeners: number
+  ): Promise<ProgramStats> {
+    const existing = await this.getProgramStats(programName, date);
+    
+    if (existing) {
+      const [updated] = await db
+        .update(programStats)
+        .set({ 
+          cumulativeDelta, 
+          lastListeners, 
+          lastUpdated: new Date() 
+        })
+        .where(eq(programStats.id, existing.id))
+        .returning();
+      return updated;
+    } else {
+      // Need to get program schedule to set start/end times
+      const programSchedule = this.getProgramSchedule(programName);
+      const [created] = await db
+        .insert(programStats)
+        .values({
+          programName,
+          date,
+          cumulativeDelta,
+          lastListeners,
+          startTime: programSchedule.startTime,
+          endTime: programSchedule.endTime,
+        })
+        .returning();
+      return created;
+    }
+  }
+
+  async getAllProgramStatsForDate(date: string): Promise<ProgramStats[]> {
+    const stats = await db
+      .select()
+      .from(programStats)
+      .where(eq(programStats.date, date));
+    return stats;
+  }
+
+  // Helper method to get program schedule
+  private getProgramSchedule(programName: string): { startTime: string; endTime: string } {
+    const schedules: Record<string, { startTime: string; endTime: string }> = {
+      "Night Flow": { startTime: "00:00", endTime: "05:59" },
+      "Good Morning Jakarta": { startTime: "06:00", endTime: "09:59" },
+      "Office Hour": { startTime: "10:00", endTime: "12:59" },
+      "Coffee Break": { startTime: "13:00", endTime: "15:59" },
+      "Drive Time": { startTime: "16:00", endTime: "19:59" },
+      "Shift Malam": { startTime: "20:00", endTime: "21:59" },
+      "Yesterday Hits": { startTime: "22:00", endTime: "23:59" },
+    };
+    return schedules[programName] || { startTime: "00:00", endTime: "23:59" };
   }
 }
 

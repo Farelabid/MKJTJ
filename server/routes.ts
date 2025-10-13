@@ -5,10 +5,72 @@ import * as cheerio from "cheerio";
 import { radioStatsSchema } from "@shared/schema";
 import { storage } from "./storage";
 
-// Background job interval (5 minutes)
-const SNAPSHOT_INTERVAL = 5 * 60 * 1000;
+// Background job interval (1 minute for delta tracking)
+const SNAPSHOT_INTERVAL = 1 * 60 * 1000;
 
 let snapshotInterval: NodeJS.Timeout | null = null;
+
+// In-memory tracking for delta calculation
+let lastListenersRaw: number | null = null;
+
+// Program schedules (WIB timezone)
+const PROGRAM_SCHEDULES = [
+  { name: "Night Flow", startHour: 0, startMin: 0, endHour: 5, endMin: 59 },
+  { name: "Good Morning Jakarta", startHour: 6, startMin: 0, endHour: 9, endMin: 59 },
+  { name: "Office Hour", startHour: 10, startMin: 0, endHour: 12, endMin: 59 },
+  { name: "Coffee Break", startHour: 13, startMin: 0, endHour: 15, endMin: 59 },
+  { name: "Drive Time", startHour: 16, startMin: 0, endHour: 19, endMin: 59 },
+  { name: "Shift Malam", startHour: 20, startMin: 0, endHour: 21, endMin: 59 },
+  { name: "Yesterday Hits", startHour: 22, startMin: 0, endHour: 23, endMin: 59 },
+];
+
+function getCurrentProgramWIB(): string | null {
+  const now = new Date();
+  const wibOffset = 7 * 60; // WIB is UTC+7
+  const localOffset = now.getTimezoneOffset();
+  const wibTime = new Date(now.getTime() + (wibOffset + localOffset) * 60 * 1000);
+  
+  const hour = wibTime.getHours();
+  const minute = wibTime.getMinutes();
+  const minutesSinceMidnight = hour * 60 + minute;
+
+  for (const program of PROGRAM_SCHEDULES) {
+    const startMinutes = program.startHour * 60 + program.startMin;
+    const endMinutes = program.endHour * 60 + program.endMin;
+    
+    if (minutesSinceMidnight >= startMinutes && minutesSinceMidnight <= endMinutes) {
+      return program.name;
+    }
+  }
+  
+  return null;
+}
+
+function getWIBDate(): string {
+  const now = new Date();
+  const wibOffset = 7 * 60;
+  const localOffset = now.getTimezoneOffset();
+  const wibTime = new Date(now.getTime() + (wibOffset + localOffset) * 60 * 1000);
+  
+  const year = wibTime.getFullYear();
+  const month = String(wibTime.getMonth() + 1).padStart(2, '0');
+  const day = String(wibTime.getDate()).padStart(2, '0');
+  
+  return `${year}-${month}-${day}`;
+}
+
+function getColorForProgram(programName: string): string {
+  const colors: Record<string, string> = {
+    "Night Flow": "hsl(var(--chart-6))",
+    "Good Morning Jakarta": "hsl(var(--chart-1))",
+    "Office Hour": "hsl(var(--chart-2))",
+    "Coffee Break": "hsl(var(--chart-3))",
+    "Drive Time": "hsl(var(--chart-4))",
+    "Shift Malam": "hsl(var(--chart-5))",
+    "Yesterday Hits": "hsl(var(--chart-1))",
+  };
+  return colors[programName] || "hsl(var(--chart-1))";
+}
 
 async function saveStatsSnapshot() {
   const maxRetries = 3;
@@ -71,6 +133,31 @@ async function saveStatsSnapshot() {
         bitrate,
         currentlyPlaying: currentlyPlaying || undefined,
       });
+
+      // Calculate delta and update program stats
+      const currentProgram = getCurrentProgramWIB();
+      if (currentProgram && lastListenersRaw !== null) {
+        // Calculate delta: current - previous (clamp to >= 0)
+        const delta = Math.max(0, listenersRaw - lastListenersRaw);
+        const wibDate = getWIBDate();
+        
+        // Get existing program stats for today
+        const existingStats = await storage.getProgramStats(currentProgram, wibDate);
+        const newCumulativeDelta = (existingStats?.cumulativeDelta || 0) + delta;
+        
+        // Update program stats
+        await storage.updateProgramStats(
+          currentProgram,
+          wibDate,
+          newCumulativeDelta,
+          listenersRaw
+        );
+        
+        console.log(`[Program] ${currentProgram}: delta +${delta}, cumulative ${newCumulativeDelta}`);
+      }
+      
+      // Store current listeners for next delta calculation
+      lastListenersRaw = listenersRaw;
 
       // Check alert thresholds
       const thresholds = await storage.getAlertThresholds();
@@ -349,6 +436,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return `${start}–${end} WIB`;
   }
 
+  // API endpoint to get program listeners with cumulative delta
+  app.get("/api/program-listeners", async (req, res) => {
+    try {
+      const wibDate = getWIBDate();
+      const currentProgramName = getCurrentProgramWIB();
+      
+      const programsData = await Promise.all(
+        PROGRAM_SCHEDULES.map(async (program) => {
+          const stats = await storage.getProgramStats(program.name, wibDate);
+          const cumulativeListeners = stats?.cumulativeDelta || 0;
+          
+          // Calculate progress based on time (0-100%)
+          const now = new Date();
+          const wibOffset = 7 * 60;
+          const localOffset = now.getTimezoneOffset();
+          const wibTime = new Date(now.getTime() + (wibOffset + localOffset) * 60 * 1000);
+          const currentMinutes = wibTime.getHours() * 60 + wibTime.getMinutes();
+          const programStartMinutes = program.startHour * 60 + program.startMin;
+          const programEndMinutes = program.endHour * 60 + program.endMin;
+          const programDuration = programEndMinutes - programStartMinutes;
+          
+          let progressPercent = 0;
+          if (program.name === currentProgramName) {
+            const elapsed = currentMinutes - programStartMinutes;
+            progressPercent = Math.min(100, Math.max(0, (elapsed / programDuration) * 100));
+          }
+          
+          return {
+            programName: program.name,
+            displayName: program.name,
+            timeRange: `${String(program.startHour).padStart(2, '0')}:${String(program.startMin).padStart(2, '0')} - ${String(program.endHour).padStart(2, '0')}:${String(program.endMin).padStart(2, '0')}`,
+            startTime: `${String(program.startHour).padStart(2, '0')}:${String(program.startMin).padStart(2, '0')}`,
+            endTime: `${String(program.endHour).padStart(2, '0')}:${String(program.endMin).padStart(2, '0')}`,
+            cumulativeListeners,
+            progressPercent: Math.round(progressPercent),
+            isActive: program.name === currentProgramName,
+            color: getColorForProgram(program.name),
+          };
+        })
+      );
+      
+      res.json(programsData);
+    } catch (error) {
+      console.error("Error fetching program listeners:", error);
+      res.status(500).json({ error: "Failed to fetch program listeners" });
+    }
+  });
+
   // API endpoint to get on-air program (schedule-based with optional scraping fallback)
   app.get("/api/on-air-program", async (req, res) => {
     try {
@@ -502,9 +637,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Save initial snapshot
   saveStatsSnapshot();
   
-  // Schedule periodic snapshots every 5 minutes
+  // Schedule periodic snapshots every 1 minute
   snapshotInterval = setInterval(saveStatsSnapshot, SNAPSHOT_INTERVAL);
-  console.log(`[Snapshot] Background job started - saving every ${SNAPSHOT_INTERVAL / 1000 / 60} minutes`);
+  console.log(`[Snapshot] Background job started - saving every ${SNAPSHOT_INTERVAL / 1000 / 60} minute(s)`);
 
   return httpServer;
 }
