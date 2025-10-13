@@ -133,17 +133,24 @@ export function ProgramListeners() {
               <div key={program.programName} className="space-y-2">
                 {/* Time Range & Program Name */}
                 <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-gray-400 text-sm font-medium mb-1">
-                      {program.timeRange}
-                    </p>
-                    <h3 
-                      className="text-2xl font-bold tracking-tight"
-                      data-testid={`text-program-${program.displayName.toLowerCase().replace(/\s+/g, '-')}`}
-                    >
-                      <span className="text-yellow-400">{first}</span>
-                      <span className="text-white">{rest}</span>
-                    </h3>
+                  <div className="flex items-center gap-4">
+                    {/* Program Logo Placeholder - ready for future upload */}
+                    <div className="w-16 h-16 bg-slate-700/50 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <Radio className="w-8 h-8 text-slate-500" />
+                    </div>
+                    
+                    <div>
+                      <p className="text-gray-400 text-sm font-medium mb-1">
+                        {program.timeRange}
+                      </p>
+                      <h3 
+                        className="text-2xl font-bold tracking-tight"
+                        data-testid={`text-program-${program.displayName.toLowerCase().replace(/\s+/g, '-')}`}
+                      >
+                        <span className="text-yellow-400">{first}</span>
+                        <span className="text-white">{rest}</span>
+                      </h3>
+                    </div>
                   </div>
                   
                   {/* Metrics */}
