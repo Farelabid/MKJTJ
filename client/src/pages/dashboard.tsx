@@ -1,13 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
 import { RadioStats } from "@shared/schema";
 import { useState, useEffect } from "react";
-import { Radio, Users, Signal, ExternalLink, RefreshCw, Copy, Check } from "lucide-react";
+import { Radio, Users, Signal, ExternalLink, RefreshCw, Copy, Check, Settings } from "lucide-react";
+import { Link } from "wouter";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { HistoricalChart } from "@/components/historical-chart";
+import { ExportPanel } from "@/components/export-panel";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Dashboard() {
@@ -152,6 +155,12 @@ export default function Dashboard() {
                   <span>Refresh dalam {autoRefreshCountdown}s</span>
                 </div>
               </div>
+              <Link href="/admin">
+                <Button variant="ghost" size="icon" data-testid="button-admin">
+                  <Settings className="h-5 w-5" />
+                  <span className="sr-only">Admin Settings</span>
+                </Button>
+              </Link>
               <ThemeToggle />
             </div>
           </div>
@@ -322,8 +331,8 @@ export default function Dashboard() {
           </Card>
         </section>
 
-        {/* Data Visualization */}
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Data Visualization & Export */}
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Bar Chart Comparison */}
           <Card className="p-6 space-y-4">
             <h3 className="text-lg font-semibold">Perbandingan Pendengar</h3>
@@ -403,6 +412,14 @@ export default function Dashboard() {
               </div>
             )}
           </Card>
+
+          {/* Export Panel */}
+          <ExportPanel />
+        </section>
+
+        {/* Historical Chart */}
+        <section>
+          <HistoricalChart />
         </section>
 
         {/* Actions */}
