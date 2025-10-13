@@ -110,7 +110,8 @@ Dashboard statistik real-time untuk TJ Radio Jakarta yang menampilkan data strea
 
 5. **Program On Air Integration**
    - Mengganti "Export Laporan" dengan "Program sedang On Air"
-   - Fetch data real-time dari https://www.tjradiojakarta.com/live
+   - **Implementation**: Schedule-based determination (WIB timezone)
+   - Data source: Hardcoded program schedules yang reliable
    - Menampilkan:
      * Foto program yang sedang on air
      * Nama program dan penyiar
@@ -118,6 +119,14 @@ Dashboard statistik real-time untuk TJ Radio Jakarta yang menampilkan data strea
      * Deskripsi program
      * Badge LIVE status
    - Auto-refresh setiap 30 detik
+   - 7 Program dengan jadwal tetap:
+     * Night Flow (00:00-06:00) - Denny CH & Eko Kuntadhi
+     * Good Morning Jakarta (06:00-10:00) - Indy & Irwan
+     * Office Hour (10:00-13:00) - Rio
+     * Coffee Break (13:00-16:00) - OT Syech & Nayla
+     * Drive Time (16:00-20:00) - Reno & MC Dany
+     * Shift Malam (20:00-23:00) - Denny CH & Eko Kuntadhi
+     * Yesterday Hits (23:00-00:00) - Rio
 
 ## Arsitektur Proyek
 
@@ -220,7 +229,7 @@ npm run db:push --force # Force push if needed
 ### Public Endpoints
 - `GET /api/radio-stats` - Current radio statistics
 - `GET /api/stats-history?hours=24` - Historical stats (query param: hours)
-- `GET /api/on-air-program` - Current on-air program info from tjradiojakarta.com/live
+- `GET /api/on-air-program` - Current on-air program (schedule-based, WIB timezone)
 - `GET /api/export/csv?hours=24` - Export CSV (query param: hours) - Admin only
 
 ### Configuration Endpoints
