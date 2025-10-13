@@ -94,15 +94,15 @@ export const insertAlertHistorySchema = createInsertSchema(alertHistory).omit({
 export type InsertAlertHistory = z.infer<typeof insertAlertHistorySchema>;
 export type AlertHistory = typeof alertHistory.$inferSelect;
 
-// Program Stats Table - stores cumulative delta per program per day
+// Program Stats Table - stores latest delta per program per day
 export const programStats = pgTable("program_stats", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   programName: text("program_name").notNull(),
   date: text("date").notNull(), // Format: YYYY-MM-DD (WIB timezone)
-  cumulativeDelta: integer("cumulative_delta").notNull().default(0),
+  latestDelta: integer("latest_delta").notNull().default(0),
+  rawListeners: integer("raw_listeners").notNull().default(0), // z = raw listeners from Icecast
   startTime: text("start_time").notNull(), // HH:mm format
   endTime: text("end_time").notNull(), // HH:mm format
-  lastListeners: integer("last_listeners"), // For delta calculation
   lastUpdated: timestamp("last_updated").notNull().defaultNow(),
 });
 

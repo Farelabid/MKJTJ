@@ -186,8 +186,8 @@ export class DatabaseStorage implements IStorage {
   async updateProgramStats(
     programName: string, 
     date: string, 
-    cumulativeDelta: number, 
-    lastListeners: number
+    latestDelta: number, 
+    rawListeners: number
   ): Promise<ProgramStats> {
     const existing = await this.getProgramStats(programName, date);
     
@@ -195,8 +195,8 @@ export class DatabaseStorage implements IStorage {
       const [updated] = await db
         .update(programStats)
         .set({ 
-          cumulativeDelta, 
-          lastListeners, 
+          latestDelta, 
+          rawListeners, 
           lastUpdated: new Date() 
         })
         .where(eq(programStats.id, existing.id))
@@ -210,8 +210,8 @@ export class DatabaseStorage implements IStorage {
         .values({
           programName,
           date,
-          cumulativeDelta,
-          lastListeners,
+          latestDelta,
+          rawListeners,
           startTime: programSchedule.startTime,
           endTime: programSchedule.endTime,
         })
@@ -231,13 +231,13 @@ export class DatabaseStorage implements IStorage {
   // Helper method to get program schedule
   private getProgramSchedule(programName: string): { startTime: string; endTime: string } {
     const schedules: Record<string, { startTime: string; endTime: string }> = {
-      "Night Flow": { startTime: "00:00", endTime: "05:59" },
-      "Good Morning Jakarta": { startTime: "06:00", endTime: "09:59" },
-      "Office Hour": { startTime: "10:00", endTime: "12:59" },
-      "Coffee Break": { startTime: "13:00", endTime: "15:59" },
-      "Drive Time": { startTime: "16:00", endTime: "19:59" },
-      "Shift Malam": { startTime: "20:00", endTime: "21:59" },
-      "Yesterday Hits": { startTime: "22:00", endTime: "23:59" },
+      "Night Flow": { startTime: "00:00", endTime: "06:00" },
+      "Good Morning Jakarta": { startTime: "06:00", endTime: "10:00" },
+      "Office Hour": { startTime: "10:00", endTime: "13:00" },
+      "Coffee Break": { startTime: "13:00", endTime: "16:00" },
+      "Drive Time": { startTime: "16:00", endTime: "20:00" },
+      "Shift Malam": { startTime: "20:00", endTime: "22:00" },
+      "Yesterday Hits": { startTime: "22:00", endTime: "24:00" },
     };
     return schedules[programName] || { startTime: "00:00", endTime: "23:59" };
   }

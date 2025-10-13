@@ -15,15 +15,15 @@ let deltaInterval: NodeJS.Timeout | null = null;
 // In-memory tracking: store last snapshot per program
 const programLastSnapshots: Map<string, { listeners: number; timestamp: Date }> = new Map();
 
-// Program schedules (WIB timezone)
+// Program schedules (WIB timezone) with correct durations
 const PROGRAM_SCHEDULES = [
-  { name: "Night Flow", startHour: 0, startMin: 0, endHour: 5, endMin: 59 },
-  { name: "Good Morning Jakarta", startHour: 6, startMin: 0, endHour: 9, endMin: 59 },
-  { name: "Office Hour", startHour: 10, startMin: 0, endHour: 12, endMin: 59 },
-  { name: "Coffee Break", startHour: 13, startMin: 0, endHour: 15, endMin: 59 },
-  { name: "Drive Time", startHour: 16, startMin: 0, endHour: 19, endMin: 59 },
-  { name: "Shift Malam", startHour: 20, startMin: 0, endHour: 21, endMin: 59 },
-  { name: "Yesterday Hits", startHour: 22, startMin: 0, endHour: 23, endMin: 59 },
+  { name: "Night Flow", startHour: 0, startMin: 0, endHour: 6, endMin: 0, durationMinutes: 360 },
+  { name: "Good Morning Jakarta", startHour: 6, startMin: 0, endHour: 10, endMin: 0, durationMinutes: 240 },
+  { name: "Office Hour", startHour: 10, startMin: 0, endHour: 13, endMin: 0, durationMinutes: 180 },
+  { name: "Coffee Break", startHour: 13, startMin: 0, endHour: 16, endMin: 0, durationMinutes: 180 },
+  { name: "Drive Time", startHour: 16, startMin: 0, endHour: 20, endMin: 0, durationMinutes: 240 },
+  { name: "Shift Malam", startHour: 20, startMin: 0, endHour: 22, endMin: 0, durationMinutes: 120 },
+  { name: "Yesterday Hits", startHour: 22, startMin: 0, endHour: 24, endMin: 0, durationMinutes: 120 },
 ];
 
 function getCurrentProgramWIB(): string | null {
