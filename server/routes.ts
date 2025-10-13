@@ -258,8 +258,7 @@ async function calculateEMAListenerMinutes() {
     await storage.saveMinuteSnapshot({
       programName: currentProgram,
       date: wibDate,
-      timestamp: new Date(),
-      N: N,
+      rawListeners: N,
       Nhat: state.Nhat,
     });
     
@@ -289,7 +288,8 @@ async function calculateEMAListenerMinutes() {
     
     // Calculate target LM and progress
     const targetLM = programSchedule.durationMinutes * (state.baselineN || 0);
-    const progress = clamp(LMhat / Math.max(1, targetLM), 0, 1);
+    const progressRatio = clamp(LMhat / Math.max(1, targetLM), 0, 1);
+    const progress = Math.round(progressRatio * 100); // Convert to 0-100 integer
     
     // Calculate final output: Jumlah Pendengar = K × (LMhat / ALT)
     const jumlahPendengar = Math.round(SCALE_K * (LMhat / ALT_MIN));
@@ -567,8 +567,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Use jumlahPendengar from database (calculated via EMA: K × (LMhat / ALT))
           const cumulativeListeners = stats?.jumlahPendengar || 0;
           
-          // Use progress from database (LMhat / targetLM)
-          const progressPercent = Math.round((stats?.progress || 0) * 100);
+          // Use progress from database (already 0-100)
+          const progressPercent = stats?.progress || 0;
           
           return {
             programName: program.name,
