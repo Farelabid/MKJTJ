@@ -93,3 +93,38 @@ export const insertAlertHistorySchema = createInsertSchema(alertHistory).omit({
 
 export type InsertAlertHistory = z.infer<typeof insertAlertHistorySchema>;
 export type AlertHistory = typeof alertHistory.$inferSelect;
+
+// Program Stats Table - stores cumulative delta per program per day
+export const programStats = pgTable("program_stats", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  programName: text("program_name").notNull(),
+  date: text("date").notNull(), // Format: YYYY-MM-DD (WIB timezone)
+  cumulativeDelta: integer("cumulative_delta").notNull().default(0),
+  startTime: text("start_time").notNull(), // HH:mm format
+  endTime: text("end_time").notNull(), // HH:mm format
+  lastListeners: integer("last_listeners"), // For delta calculation
+  lastUpdated: timestamp("last_updated").notNull().defaultNow(),
+});
+
+export const insertProgramStatsSchema = createInsertSchema(programStats).omit({
+  id: true,
+  lastUpdated: true,
+});
+
+export type InsertProgramStats = z.infer<typeof insertProgramStatsSchema>;
+export type ProgramStats = typeof programStats.$inferSelect;
+
+// API Response Schema for Program Listeners
+export const programListenersSchema = z.object({
+  programName: z.string(),
+  displayName: z.string(),
+  timeRange: z.string(),
+  startTime: z.string(),
+  endTime: z.string(),
+  cumulativeListeners: z.number(),
+  progressPercent: z.number(),
+  isActive: z.boolean(),
+  color: z.string(),
+});
+
+export type ProgramListenersResponse = z.infer<typeof programListenersSchema>;
