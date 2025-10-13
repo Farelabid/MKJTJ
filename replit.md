@@ -97,6 +97,7 @@ Dashboard statistik real-time untuk TJ Radio Jakarta yang menampilkan data strea
 2. **TJ Radio Branding**
    - Logo oficial TJ Radio di header dashboard
    - Menggantikan icon generic dengan brand identity
+   - Gambar ON AIR neon di header (center, visible on desktop md+)
 
 3. **Dashboard Simplification**
    - Menghapus "Statistik Cepat" (raw data)
