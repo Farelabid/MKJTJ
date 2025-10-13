@@ -19,8 +19,10 @@ The dashboard's design is inspired by Spotify Analytics and SoundCloud Stats, fe
 
 ### Technical Implementations
 - **Frontend**: React with TypeScript, Wouter for routing, TanStack Query for state management, Tailwind CSS and Shadcn/ui for styling, Recharts for historical data visualization.
-- **Backend**: Express.js, PostgreSQL (Neon) with Drizzle ORM, Cheerio for HTML parsing from Icecast, Axios for HTTP requests, Zod for schema validation.
-- **Data Source**: Icecast server.
+- **Backend**: Express.js, PostgreSQL (Neon) with Drizzle ORM, Cheerio for HTML parsing (Icecast stats + tjradiojakarta.com/live program info), Axios for HTTP requests, Zod for schema validation.
+- **Data Sources**: 
+  - Icecast server (listener statistics)
+  - tjradiojakarta.com/live (current program information via web scraping)
 - **Background Jobs**: Interval-based snapshots (every 5 minutes) to store historical data and check alert thresholds.
 - **Metrics Calculation**:
     - **Radio Stats**: Listeners (current/peak) = Raw Icecast data × Configurable Multiplier (default 4).
@@ -36,12 +38,14 @@ The dashboard's design is inspired by Spotify Analytics and SoundCloud Stats, fe
 - **Historical Data**: PostgreSQL database for storing listener statistics snapshots, with time-series charts (24h, 7d, 30d views) and CSV export functionality.
 - **Admin Dashboard**: `/admin` route for configuring listener multiplier, stream URL, and managing alert thresholds (min/max listeners).
 - **Alert System**: Configurable alert thresholds with real-time monitoring and history logging.
-- **Program On Air Integration**: Displays current program details (photo, name, presenters, air time, description) based on a hardcoded schedule in WIB timezone.
+- **Program On Air Integration**: Displays current program details (photo, name, presenters, air time, description) fetched dynamically from tjradiojakarta.com/live website with HTML parsing. Falls back to hardcoded schedule if scraping fails. Response includes "source" indicator ("website" or "schedule").
 - **Footer**: Includes a disclaimer for internal use and copyright information.
 
 ### System Design Choices
 - **Database Schema**: `stats_history` for historical data, `configuration` for app settings, `alert_thresholds` for alert rules, and `alert_history` for alert logs.
-- **Data Flow**: Frontend requests `/api/radio-stats`, backend fetches from Icecast, parses with Cheerio, applies multiplier from DB, validates with Zod, and returns JSON.
+- **Data Flow**: 
+  - Radio Stats: Frontend requests `/api/radio-stats`, backend fetches from Icecast, parses with Cheerio, applies multiplier from DB, validates with Zod, and returns JSON.
+  - Program Info: Frontend requests `/api/on-air-program`, backend scrapes tjradiojakarta.com/live, extracts program data (title, presenter, time, description, image) via Cheerio DOM traversal, falls back to schedule if scraping fails.
 - **Error Handling**: Comprehensive error handling with user-friendly messages and loading states.
 
 ## External Dependencies
