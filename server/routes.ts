@@ -12,7 +12,7 @@ let emaInterval: NodeJS.Timeout | null = null;
 
 // EMA Constants
 const ALPHA = 0.25; // EMA smoothing factor
-const DEVICE_TO_LISTENER_MULTIPLIER = 6; // K=6: One device can be heard by multiple people (public radios)
+const DEVICE_TO_LISTENER_MULTIPLIER = 4.5; // K=4.5: Device-to-listener multiplier for "Total Pendengar Saat ini"
 
 // EMA State tracking per program
 interface EMAState {
@@ -314,16 +314,22 @@ async function calculateEMAListenerMinutes() {
       elapsedMinutes = Math.max(1, (24 * 60) - programStartMinutes + currentMinutesSinceMidnight);
     }
     
-    // Get ALT_session from config (default 45 minutes)
+    // Get ALT_session from config (default 45 minutes) - kept for potential future use
     const altSessionConfig = await storage.getConfigValue('alt_session');
     const ALT_session = altSessionConfig ? parseInt(altSessionConfig) : 45;
     
-    // Calculate new metrics with K=6 device-to-listener multiplier
-    // 1. Average Concurrent Listeners = (LMhat ÷ elapsed minutes) × K
-    const avgConcurrentListeners = Math.round((LMhat / elapsedMinutes) * DEVICE_TO_LISTENER_MULTIPLIER);
+    // Calculate new metrics based on user requirements:
+    // 1. "Total Pendengar Saat ini" = raw listeners (N) × 4.5
+    const avgConcurrentListeners = Math.round(N * DEVICE_TO_LISTENER_MULTIPLIER);
     
-    // 2. Estimated Unique Listeners = (LMhat ÷ ALT_session) × K
-    const estimatedUniqueListeners = Math.round((LMhat / ALT_session) * DEVICE_TO_LISTENER_MULTIPLIER);
+    // 2. "TOTAL PENDENGAR" = cumulative absolute changes
+    // Calculate absolute difference from previous value
+    const previousN = state.lastN !== null ? state.lastN : N; // First time, no change
+    const absoluteChange = Math.abs(N - previousN);
+    
+    // Get previous cumulative total and add this change
+    const previousCumulative = existingStats?.estimatedUniqueListeners || 0;
+    const estimatedUniqueListeners = previousCumulative + absoluteChange;
     
     // Update program stats in database (all values rounded to integers)
     await storage.updateProgramStats(currentProgram, wibDate, {
@@ -342,7 +348,7 @@ async function calculateEMAListenerMinutes() {
     
     state.lastN = N;
     
-    console.log(`[EMA] ${currentProgram}: N=${N}, Nhat=${state.Nhat.toFixed(1)}, LMhat=${LMhat}, Avg=${avgConcurrentListeners}, Unique≈${estimatedUniqueListeners}`);
+    console.log(`[EMA] ${currentProgram}: N=${N}, Nhat=${state.Nhat.toFixed(1)}, Current=${avgConcurrentListeners} (N×4.5), Total=${estimatedUniqueListeners} (cumulative Δ)`);
     
   } catch (error) {
     console.error(`[EMA] Error calculating EMA:`, error);
