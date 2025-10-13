@@ -21,6 +21,8 @@ interface EMAState {
   spikeWindowMin: number; // Minutes remaining in spike detection window
   baselineN: number | null; // Baseline from first 5 minutes
   startedAt: Date; // When program started
+  programName: string; // Program name for this state
+  date: string; // WIB date for this state (YYYY-MM-DD)
 }
 
 const programEMAStates: Map<string, EMAState> = new Map();
@@ -225,16 +227,26 @@ async function calculateEMAListenerMinutes() {
     
     // Get or initialize EMA state for this program
     let state = programEMAStates.get(currentProgram);
-    if (!state) {
+    
+    // Check if state is stale (different program or different date)
+    const isStaleState = state && (state.programName !== currentProgram || state.date !== wibDate);
+    
+    if (!state || isStaleState) {
+      if (isStaleState) {
+        console.log(`[EMA] ${currentProgram}: Stale state detected (was ${state!.programName} on ${state!.date}), resetting...`);
+      }
+      
       state = {
         Nhat: null,
-        lastN: null,
+        lastN: null, // Critical: null ensures first minute has zero delta
         spikeWindowMin: 0,
         baselineN: null,
         startedAt: new Date(),
+        programName: currentProgram,
+        date: wibDate,
       };
       programEMAStates.set(currentProgram, state);
-      console.log(`[EMA] ${currentProgram}: New program started, initializing state`);
+      console.log(`[EMA] ${currentProgram}: New program started for ${wibDate}, initializing state`);
     }
     
     // Spike handling: cap N during spike window
