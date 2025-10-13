@@ -131,9 +131,9 @@ async function saveStatsSnapshot() {
         }
       });
 
-      // Get multiplier from config
+      // Get multiplier from config (default 11 to match program analytics)
       const multiplierConfig = await storage.getConfig('listener_multiplier');
-      const multiplier = multiplierConfig ? parseInt(multiplierConfig.value) : 4;
+      const multiplier = multiplierConfig ? parseInt(multiplierConfig.value) : DEVICE_TO_LISTENER_MULTIPLIER;
 
       const listenersCurrent = listenersRaw * multiplier;
       const listenersPeak = listenersPeakRaw * multiplier;
@@ -434,9 +434,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
 
-      // Get multiplier from config (default 4)
+      // Get multiplier from config (default 11 to match program analytics)
       const multiplierConfig = await storage.getConfig('listener_multiplier');
-      const multiplier = multiplierConfig ? parseInt(multiplierConfig.value) : 4;
+      const multiplier = multiplierConfig ? parseInt(multiplierConfig.value) : DEVICE_TO_LISTENER_MULTIPLIER;
 
       const listenersCurrent = listenersRaw * multiplier;
       const listenersPeak = listenersPeakRaw * multiplier;

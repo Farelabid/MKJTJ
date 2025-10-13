@@ -25,7 +25,19 @@ export default function Dashboard() {
   const { data: stats, isLoading, error, refetch } = useQuery<RadioStats>({
     queryKey: ["/api/radio-stats"],
     refetchInterval: 30000,
+    staleTime: 0, // Always fetch fresh data
   });
+
+  // Debug: log stats when it changes
+  useEffect(() => {
+    if (stats) {
+      console.log('[Dashboard] Stats updated:', {
+        listenersRaw: stats.listenersRaw,
+        listenersCurrent: stats.listenersCurrent,
+        multiplier: stats.listenersCurrent / stats.listenersRaw
+      });
+    }
+  }, [stats]);
 
   useEffect(() => {
     const timer = setInterval(() => {
