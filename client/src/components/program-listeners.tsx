@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Music } from "lucide-react";
+import { Radio } from "lucide-react";
 import { useState, useEffect } from "react";
 
 interface ProgramListenersData {
@@ -10,12 +10,38 @@ interface ProgramListenersData {
   timeRange: string;
   startTime: string;
   endTime: string;
-  cumulativeListeners: number; // Estimated Unique Listeners
-  avgConcurrent: number; // Average Concurrent Listeners
+  cumulativeListeners: number; // Estimated Unique Listeners (Total Pendengar)
+  avgConcurrent: number; // Average Concurrent Listeners (Pendengar Saat Ini)
   progressPercent: number;
   isActive: boolean;
   color: string;
 }
+
+// Split program name into colored first word and white rest
+const getProgramNameParts = (displayName: string) => {
+  const words = displayName.split(' ');
+  if (words.length === 1) {
+    // Single word like "Drive Time" → split at capital letter
+    const match = displayName.match(/^([a-z]+)([A-Z].*)$/);
+    if (match) {
+      return { first: match[1], rest: match[2] };
+    }
+    return { first: displayName.toLowerCase(), rest: '' };
+  }
+  
+  // Map display names to styled versions
+  const nameMap: Record<string, { first: string; rest: string }> = {
+    'Night Flow': { first: 'night', rest: 'FLOW' },
+    'Good Morning Jakarta': { first: 'good', rest: 'MORNING JAKARTA' },
+    'Office Hour': { first: 'office', rest: 'HOUR' },
+    'Coffee Break': { first: 'coffee', rest: 'BREAK' },
+    'Drive Time': { first: 'drive', rest: 'TIME' },
+    'Shift Malam': { first: 'shift', rest: 'MALAM' },
+    'Yesterday Hits': { first: 'yesterday', rest: 'HITS' },
+  };
+  
+  return nameMap[displayName] || { first: words[0].toLowerCase(), rest: words.slice(1).join(' ').toUpperCase() };
+};
 
 export function ProgramListeners() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -28,111 +54,140 @@ export function ProgramListeners() {
     return () => clearInterval(timer);
   }, []);
 
-  const formatDateString = () => {
-    const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-    const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+  const formatWIBTime = () => {
+    const wibOffset = 7 * 60; // WIB = UTC+7
+    const localOffset = currentDate.getTimezoneOffset();
+    const wibTime = new Date(currentDate.getTime() + (wibOffset + localOffset) * 60 * 1000);
     
-    const day = days[currentDate.getDay()];
-    const date = currentDate.getDate();
-    const month = months[currentDate.getMonth()];
-    const year = currentDate.getFullYear();
+    const hours = String(wibTime.getHours()).padStart(2, '0');
+    const minutes = String(wibTime.getMinutes()).padStart(2, '0');
     
-    return `${day} ${date} ${month} ${year}`;
+    return `${hours}.${minutes} WIB`;
   };
 
-  // Fetch program listeners data from new endpoint (every 4 minutes)
+  const formatDateString = () => {
+    const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+    const months = ['JAN', 'FEB', 'MAR', 'APR', 'MEI', 'JUN', 'JUL', 'AGS', 'SEP', 'OKT', 'NOV', 'DES'];
+    
+    const wibOffset = 7 * 60;
+    const localOffset = currentDate.getTimezoneOffset();
+    const wibTime = new Date(currentDate.getTime() + (wibOffset + localOffset) * 60 * 1000);
+    
+    const day = days[wibTime.getDay()];
+    const date = wibTime.getDate();
+    const month = months[wibTime.getMonth()];
+    const year = wibTime.getFullYear();
+    
+    return `${day}, ${date} ${month}, ${year}`;
+  };
+
+  // Fetch program listeners data
   const { data: programs, isLoading } = useQuery<ProgramListenersData[]>({
     queryKey: ["/api/program-listeners"],
-    refetchInterval: 4 * 60 * 1000, // 4 minutes
+    refetchInterval: 30 * 1000, // 30 seconds
   });
 
+  const wibTime = formatWIBTime();
   const dateStr = formatDateString();
-  const maxListeners = Math.max(...(programs?.map(p => p.cumulativeListeners) || [0]), 1);
 
   return (
-    <Card className="p-6 space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Jumlah Pendengar Tiap Program</h3>
-        <Music className="h-5 w-5 text-muted-foreground" />
+    <Card className="p-8 space-y-6 bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700">
+      {/* Header */}
+      <div className="flex items-start justify-between">
+        <div className="flex items-center gap-3">
+          <div className="bg-red-600 p-2 rounded">
+            <Radio className="h-6 w-6 text-white" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-white tracking-wide">
+              STATISTIK PENDENGAR PROGRAM
+            </h2>
+            <p className="text-yellow-400 font-semibold text-sm mt-1" data-testid="text-wib-time">
+              {wibTime}
+            </p>
+          </div>
+        </div>
+        <div className="text-right">
+          <p className="text-yellow-400 font-semibold text-sm" data-testid="text-date">
+            {dateStr}
+          </p>
+        </div>
       </div>
 
+      {/* Programs List */}
       {isLoading ? (
-        <div className="space-y-4">
+        <div className="space-y-6">
           {[1, 2, 3, 4, 5, 6, 7].map((i) => (
-            <div key={i} className="space-y-2">
-              <Skeleton className="h-4 w-48" />
-              <Skeleton className="h-8 w-full" />
+            <div key={i} className="space-y-3">
+              <Skeleton className="h-6 w-48 bg-slate-700" />
+              <Skeleton className="h-12 w-full bg-slate-700" />
             </div>
           ))}
         </div>
       ) : (
-        <div className="space-y-4 pt-2">
-          {programs?.map((program) => (
-            <div key={program.programName} className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
+        <div className="space-y-6">
+          {programs?.map((program) => {
+            const { first, rest } = getProgramNameParts(program.displayName);
+            
+            return (
+              <div key={program.programName} className="space-y-2">
+                {/* Time Range & Program Name */}
+                <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-medium flex items-center gap-2" data-testid={`text-program-${program.displayName.toLowerCase().replace(/\s+/g, '-')}`}>
-                      {program.displayName} - {dateStr}
-                      {program.isActive && (
-                        <span className="text-xs px-2 py-0.5 bg-red-500 text-white rounded-full animate-pulse">
-                          LIVE
-                        </span>
-                      )}
+                    <p className="text-gray-400 text-sm font-medium mb-1">
+                      {program.timeRange}
                     </p>
-                    <p className="text-xs text-muted-foreground">{program.timeRange}</p>
+                    <h3 
+                      className="text-2xl font-bold tracking-tight"
+                      data-testid={`text-program-${program.displayName.toLowerCase().replace(/\s+/g, '-')}`}
+                    >
+                      <span className="text-yellow-400">{first}</span>
+                      <span className="text-white">{rest}</span>
+                    </h3>
                   </div>
-                </div>
-                {/* Display both metrics with clear labels */}
-                <div className="flex gap-3 items-center">
+                  
+                  {/* Metrics */}
                   <div className="text-right">
-                    <p className="text-xs text-muted-foreground">Avg Concurrent</p>
-                    <span 
-                      className="font-mono font-bold text-sm" 
+                    <p className="text-gray-400 text-xs uppercase tracking-wide mb-1">
+                      Pendengar Saat Ini
+                    </p>
+                    <p 
+                      className="text-white text-lg font-mono font-semibold mb-2"
                       data-testid={`text-program-avg-${program.displayName.toLowerCase().replace(/\s+/g, '-')}`}
                     >
                       {program.avgConcurrent.toLocaleString()}
-                    </span>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xs text-muted-foreground">Est. Unique</p>
-                    <span 
-                      className="font-mono font-bold px-3 py-1.5 rounded-md min-w-[80px] text-center inline-block" 
-                      style={{
-                        backgroundColor: program.isActive ? program.color : 'transparent',
-                        color: program.isActive ? 'white' : 'inherit',
-                      }}
+                    </p>
+                    <p className="text-gray-400 text-xs uppercase tracking-wide mb-1">
+                      Total Pendengar
+                    </p>
+                    <p 
+                      className="text-yellow-400 text-3xl font-bold font-mono"
                       data-testid={`text-program-listeners-${program.displayName.toLowerCase().replace(/\s+/g, '-')}`}
                     >
                       {program.cumulativeListeners.toLocaleString()}
-                    </span>
+                    </p>
+                  </div>
+                </div>
+
+                {/* Progress Bar */}
+                <div className="h-10 bg-gray-600 rounded-full overflow-hidden relative">
+                  <div
+                    className="h-full transition-all duration-500 flex items-center justify-center"
+                    style={{
+                      width: program.isActive ? `${program.progressPercent}%` : '0%',
+                      backgroundColor: program.color,
+                    }}
+                  >
+                    {program.isActive && program.progressPercent > 0 && (
+                      <span className="text-white text-sm font-bold">
+                        {program.progressPercent}%
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
-              {/* Progress bar based on time (0-100%) */}
-              <div className="h-6 bg-muted rounded-md overflow-hidden relative">
-                <div
-                  className="h-full transition-all duration-500 flex items-center justify-end px-2"
-                  style={{
-                    width: program.isActive ? `${program.progressPercent}%` : '0%',
-                    backgroundColor: program.color,
-                  }}
-                >
-                  {program.isActive && program.progressPercent > 10 && (
-                    <span className="text-xs font-semibold text-white">
-                      {program.progressPercent}%
-                    </span>
-                  )}
-                </div>
-                {/* Show percentage outside bar if too small */}
-                {program.isActive && program.progressPercent <= 10 && program.progressPercent > 0 && (
-                  <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs font-semibold text-foreground">
-                    {program.progressPercent}%
-                  </span>
-                )}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </Card>
