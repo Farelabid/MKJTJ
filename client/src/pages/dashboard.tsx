@@ -10,14 +10,15 @@ import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { HistoricalChart } from "@/components/historical-chart";
-import { ExportPanel } from "@/components/export-panel";
 import { ProgramListeners } from "@/components/program-listeners";
+import { OnAirProgram } from "@/components/on-air-program";
 import { useToast } from "@/hooks/use-toast";
 import tjRadioLogo from "@assets/logo_official_tj_1760323825293.png";
 
 export default function Dashboard() {
   const [autoRefreshCountdown, setAutoRefreshCountdown] = useState(30);
   const [copied, setCopied] = useState(false);
+  const [currentDateTime, setCurrentDateTime] = useState(new Date());
   const { toast } = useToast();
 
   const { data: stats, isLoading, error, refetch } = useQuery<RadioStats>({
@@ -33,6 +34,14 @@ export default function Dashboard() {
         }
         return prev - 1;
       });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentDateTime(new Date());
     }, 1000);
 
     return () => clearInterval(timer);
@@ -98,6 +107,19 @@ export default function Dashboard() {
     return "hsl(var(--chart-1))";
   };
 
+  const formatDateTime = () => {
+    const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+    const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    
+    const day = days[currentDateTime.getDay()];
+    const time = currentDateTime.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+    const date = currentDateTime.getDate();
+    const month = months[currentDateTime.getMonth()];
+    const year = currentDateTime.getFullYear();
+    
+    return `${day}, ${time}, ${date} ${month} ${year}`;
+  };
+
   if (error) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -138,6 +160,7 @@ export default function Dashboard() {
                   <>
                     <Skeleton className="h-6 w-40 mb-1" />
                     <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-4 w-48 mt-1" />
                   </>
                 ) : (
                   <>
@@ -146,6 +169,9 @@ export default function Dashboard() {
                     </h1>
                     <p className="text-sm text-muted-foreground">
                       {stats?.streamDescription}
+                    </p>
+                    <p className="text-sm text-muted-foreground mt-1" data-testid="text-current-datetime">
+                      {formatDateTime()}
                     </p>
                   </>
                 )}
@@ -338,7 +364,7 @@ export default function Dashboard() {
           </Card>
         </section>
 
-        {/* Data Visualization & Export */}
+        {/* Data Visualization & On Air */}
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Bar Chart Comparison */}
           <Card className="p-6 space-y-4">
@@ -384,8 +410,8 @@ export default function Dashboard() {
             )}
           </Card>
 
-          {/* Export Panel */}
-          <ExportPanel />
+          {/* On Air Program */}
+          <OnAirProgram />
         </section>
 
         {/* Program Listeners */}

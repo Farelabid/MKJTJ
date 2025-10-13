@@ -3,6 +3,7 @@ import { StatsHistory } from "@shared/schema";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Music } from "lucide-react";
+import { useState, useEffect } from "react";
 
 interface ProgramStats {
   name: string;
@@ -12,6 +13,28 @@ interface ProgramStats {
 }
 
 export function ProgramListeners() {
+  const [currentDate, setCurrentDate] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentDate(new Date());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  const formatDateString = () => {
+    const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+    const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    
+    const day = days[currentDate.getDay()];
+    const date = currentDate.getDate();
+    const month = months[currentDate.getMonth()];
+    const year = currentDate.getFullYear();
+    
+    return `${day} ${date} ${month} ${year}`;
+  };
+
   const { data: history, isLoading } = useQuery<StatsHistory[]>({
     queryKey: ["/api/stats-history", 24],
     queryFn: async () => {
@@ -23,14 +46,16 @@ export function ProgramListeners() {
   });
 
   const calculateProgramListeners = (): ProgramStats[] => {
+    const dateStr = formatDateString();
+    
     if (!history || history.length === 0) {
       return [
-        { name: "Good Morning Jakarta", timeRange: "06:00 - 10:00", listeners: 0, color: "hsl(var(--chart-1))" },
-        { name: "Office Hour", timeRange: "10:01 - 13:00", listeners: 0, color: "hsl(var(--chart-2))" },
-        { name: "Coffee Break", timeRange: "13:01 - 16:00", listeners: 0, color: "hsl(var(--chart-3))" },
-        { name: "Drive Time", timeRange: "16:01 - 20:00", listeners: 0, color: "hsl(var(--chart-4))" },
-        { name: "Shift Malam", timeRange: "20:01 - 22:00", listeners: 0, color: "hsl(var(--chart-5))" },
-        { name: "Yesterday Hits", timeRange: "22:01 - 05:59", listeners: 0, color: "hsl(var(--chart-1))" },
+        { name: `Good Morning Jakarta - ${dateStr}`, timeRange: "06:00 - 10:00", listeners: 0, color: "hsl(var(--chart-1))" },
+        { name: `Office Hour - ${dateStr}`, timeRange: "10:01 - 13:00", listeners: 0, color: "hsl(var(--chart-2))" },
+        { name: `Coffee Break - ${dateStr}`, timeRange: "13:01 - 16:00", listeners: 0, color: "hsl(var(--chart-3))" },
+        { name: `Drive Time - ${dateStr}`, timeRange: "16:01 - 20:00", listeners: 0, color: "hsl(var(--chart-4))" },
+        { name: `Shift Malam - ${dateStr}`, timeRange: "20:01 - 22:00", listeners: 0, color: "hsl(var(--chart-5))" },
+        { name: `Yesterday Hits - ${dateStr}`, timeRange: "22:01 - 05:59", listeners: 0, color: "hsl(var(--chart-1))" },
       ];
     }
 
@@ -83,37 +108,37 @@ export function ProgramListeners() {
 
     return [
       {
-        name: "Good Morning Jakarta",
+        name: `Good Morning Jakarta - ${dateStr}`,
         timeRange: "06:00 - 10:00",
         listeners: programData.goodMorning.sum * 4,
         color: "hsl(var(--chart-1))",
       },
       {
-        name: "Office Hour",
+        name: `Office Hour - ${dateStr}`,
         timeRange: "10:01 - 13:00",
         listeners: programData.officeHour.sum * 4,
         color: "hsl(var(--chart-2))",
       },
       {
-        name: "Coffee Break",
+        name: `Coffee Break - ${dateStr}`,
         timeRange: "13:01 - 16:00",
         listeners: programData.coffeeBreak.sum * 4,
         color: "hsl(var(--chart-3))",
       },
       {
-        name: "Drive Time",
+        name: `Drive Time - ${dateStr}`,
         timeRange: "16:01 - 20:00",
         listeners: programData.driveTime.sum * 4,
         color: "hsl(var(--chart-4))",
       },
       {
-        name: "Shift Malam",
+        name: `Shift Malam - ${dateStr}`,
         timeRange: "20:01 - 22:00",
         listeners: programData.shiftMalam.sum * 4,
         color: "hsl(var(--chart-5))",
       },
       {
-        name: "Yesterday Hits",
+        name: `Yesterday Hits - ${dateStr}`,
         timeRange: "22:01 - 05:59",
         listeners: programData.yesterdayHits.sum * 4,
         color: "hsl(var(--chart-1))",

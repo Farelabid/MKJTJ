@@ -223,6 +223,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // API endpoint to get on-air program from tjradiojakarta.com/live
+  app.get("/api/on-air-program", async (req, res) => {
+    try {
+      const response = await axios.get("https://www.tjradiojakarta.com/live", {
+        timeout: 10000,
+      });
+
+      const html = response.data;
+      const $ = cheerio.load(html);
+
+      // Parse program information
+      const programTitle = $('h2:contains("Live")').first().text().trim() || 
+                          $('div[class*="live"] h2, div[class*="LIVE"] h2').first().text().trim();
+      
+      const presenter = $('p:contains("dengan")').first().text().replace('dengan', '').trim() ||
+                       $('div[class*="live"] p, div[class*="LIVE"] p').eq(1).text().trim();
+      
+      const timeRange = $('p:contains("WIB")').first().text().trim() ||
+                       $('div[class*="live"] p, div[class*="LIVE"] p').first().text().trim();
+      
+      const description = $('p').filter((_, el) => {
+        const text = $(el).text();
+        return text.length > 50 && !text.includes('WIB') && !text.includes('dengan');
+      }).first().text().trim();
+      
+      const imageUrl = $('img[src*="shows"]').first().attr('src') || '';
+      const fullImageUrl = imageUrl.startsWith('http') ? imageUrl : `https://www.tjradiojakarta.com${imageUrl}`;
+
+      const onAirProgram = {
+        programTitle: programTitle || "Office Hour",
+        presenter: presenter || "Rio",
+        timeRange: timeRange || "10:00–13:00 WIB",
+        description: description || "Teman kerja paling pas. Lagu-lagu terbaru hits Indo & manca, plus request via WA/TikTok.",
+        imageUrl: fullImageUrl || "https://www.tjradiojakarta.com/shows/officehour-rio.jpg",
+        status: "LIVE"
+      };
+
+      res.json(onAirProgram);
+    } catch (error) {
+      console.error("Error fetching on-air program:", error);
+      res.status(500).json({ 
+        error: "Failed to fetch on-air program",
+        message: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
   // API endpoint to get configuration
   app.get("/api/config", async (req, res) => {
     try {
