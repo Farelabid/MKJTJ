@@ -548,20 +548,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       presenter: "dengan Denny CH & Eko Kuntadhi",
       startHour: 20,
       startMinute: 0,
-      endHour: 23,
+      endHour: 24,
       endMinute: 0,
       description: "Menemani malam dengan musik santai dan request lagu favorit.",
       imageUrl: "https://www.tjradiojakarta.com/shows/shiftmalam-dennych-ekokuntadhi.jpg"
-    },
-    {
-      title: "Yesterday Hit",
-      presenter: "dengan Rio",
-      startHour: 23,
-      startMinute: 0,
-      endHour: 24,
-      endMinute: 0,
-      description: "Nostalgia dengan lagu-lagu hits kemarin yang masih enak didengar hari ini.",
-      imageUrl: "https://www.tjradiojakarta.com/shows/yesterdayhits.jpg"
     }
   ];
 
