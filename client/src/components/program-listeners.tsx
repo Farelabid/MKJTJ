@@ -3,6 +3,13 @@ import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Radio } from "lucide-react";
 import { useState, useEffect } from "react";
+import coffeebreakImg from "@assets/coffeebreak_1760412189349.png";
+import drivetimeImg from "@assets/drivetime_1760412189350.png";
+import goodmorningjakartaImg from "@assets/goodmorningjakarta_1760412189350.png";
+import nightflowImg from "@assets/nightflow_1760412189350.png";
+import odahoteImg from "@assets/odahote_1760412189350.png";
+import officehourImg from "@assets/officehour_1760412189350.png";
+import shiftmalamImg from "@assets/shiftmalam_1760412189350.png";
 
 interface ProgramListenersData {
   programName: string;
@@ -16,6 +23,29 @@ interface ProgramListenersData {
   isActive: boolean;
   color: string;
 }
+
+// Get program image based on program name and day of week
+const getProgramImage = (programName: string, currentDate: Date): string => {
+  const wibOffset = 7 * 60; // WIB = UTC+7
+  const localOffset = currentDate.getTimezoneOffset();
+  const wibTime = new Date(currentDate.getTime() + (wibOffset + localOffset) * 60 * 1000);
+  const dayOfWeek = wibTime.getDay(); // 0 = Sunday, 6 = Saturday
+  
+  // For Good Morning Jakarta: use odahote on Sat/Sun, goodmorningjakarta on Mon-Fri
+  if (programName === 'Good Morning Jakarta') {
+    return (dayOfWeek === 0 || dayOfWeek === 6) ? odahoteImg : goodmorningjakartaImg;
+  }
+  
+  const imageMap: Record<string, string> = {
+    'Night Flow': nightflowImg,
+    'Office Hour': officehourImg,
+    'Coffee Break': coffeebreakImg,
+    'Drive Time': drivetimeImg,
+    'Shift Malam': shiftmalamImg,
+  };
+  
+  return imageMap[programName] || '';
+};
 
 // Split program name into colored first word and white rest
 const getProgramNameParts = (displayName: string) => {
@@ -134,9 +164,14 @@ export function ProgramListeners() {
                 {/* Time Range & Program Name */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    {/* Program Logo Placeholder - ready for future upload */}
-                    <div className="w-16 h-16 bg-slate-700/50 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <Radio className="w-8 h-8 text-slate-500" />
+                    {/* Program Logo */}
+                    <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 bg-slate-800">
+                      <img 
+                        src={getProgramImage(program.displayName, currentDate)} 
+                        alt={program.displayName}
+                        className="w-full h-full object-cover"
+                        data-testid={`img-program-${program.displayName.toLowerCase().replace(/\s+/g, '-')}`}
+                      />
                     </div>
                     
                     <div>
