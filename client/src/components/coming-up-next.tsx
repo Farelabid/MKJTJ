@@ -77,7 +77,7 @@ export function ComingUpNext() {
               className="object-cover w-full h-full rounded-md"
               data-testid="img-coming-up-next"
             />
-            <div className="absolute top-3 right-3">
+            <div className="absolute top-1 right-1">
               <Badge variant="secondary" className="bg-teal-600 text-white" data-testid="badge-upcoming-status">
                 <Clock className="h-3 w-3 mr-1.5" />
                 <span className="font-semibold">{program.status}</span>

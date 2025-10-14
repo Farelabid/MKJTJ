@@ -77,7 +77,7 @@ export function OnAirProgram() {
               className="object-cover w-full h-full rounded-md"
               data-testid="img-on-air-program"
             />
-            <div className="absolute top-3 right-3">
+            <div className="absolute top-1 right-1">
               <Badge variant="destructive" className="bg-red-600 text-white animate-pulse" data-testid="badge-live-status">
                 <div className="absolute -inset-1 bg-red-600 rounded-full animate-ping opacity-75" />
                 <div className="relative flex items-center">
