@@ -197,7 +197,7 @@ export default function Dashboard() {
               <img 
                 src={sponsorHeaderImage} 
                 alt="Supported by" 
-                className="h-14 w-auto object-contain"
+                className="h-[52px] w-auto object-contain"
                 data-testid="img-sponsor-header"
               />
             </div>
