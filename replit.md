@@ -12,10 +12,11 @@ I prefer clear, concise explanations and a professional tone. For development, I
 The dashboard's design is inspired by Spotify Analytics and SoundCloud Stats, featuring a dark mode default with deep charcoal backgrounds.
 - **Color Scheme**: Primary "Radio red" (350 85% 55%), accent Teal (187 85% 45%) for data highlights, and Green (142 76% 45%) for success indicators.
 - **Typography**: Inter for UI elements, and JetBrains Mono for numeric data.
-- **Animations**: Minimal and purposeful, such as counter animations and pulse indicators.
-- **Branding**: Official TJ Radio logo in the header, modern neon "ON AIR" graphic, and program-specific logos.
+- **Animations**: Minimal and purposeful, such as counter animations, pulse indicators, and animated "LIVE" badge for active programs.
+- **Branding**: Official TJ Radio logo in the header, modern neon "ON AIR" graphic, and program-specific presenter photos.
 - **Layout**: Responsive design for both desktop and mobile, with key metrics prominently displayed.
 - **Information Display**: Real-time WIB clock and Indonesian date display in the header. Program statistics include "Pendengar Saat Ini" = raw listeners × 11 and "TOTAL PENDENGAR" = (Pendengar Saat Ini × 8) × percentage progress, with EMA smoothing for spike detection.
+- **Program Images**: Each program displays presenter photos (80×80px, rounded). Special logic: "Good Morning Jakarta" shows odahote.png on Sat/Sun, goodmorningjakarta.png on Mon-Fri. Programs without images show Radio icon fallback.
 
 ### Technical Implementations
 - **Frontend**: React with TypeScript, Wouter for routing, TanStack Query for state management, Tailwind CSS and Shadcn/ui for styling, Recharts for historical data visualization.
