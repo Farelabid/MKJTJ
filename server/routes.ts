@@ -34,8 +34,7 @@ const PROGRAM_SCHEDULES = [
   { name: "Office Hour", startHour: 10, startMin: 0, endHour: 13, endMin: 0, durationMinutes: 180 },
   { name: "Coffee Break", startHour: 13, startMin: 0, endHour: 16, endMin: 0, durationMinutes: 180 },
   { name: "Drive Time", startHour: 16, startMin: 0, endHour: 20, endMin: 0, durationMinutes: 240 },
-  { name: "Shift Malam", startHour: 20, startMin: 0, endHour: 23, endMin: 0, durationMinutes: 180 },
-  { name: "Yesterday Hit", startHour: 23, startMin: 0, endHour: 24, endMin: 0, durationMinutes: 60 },
+  { name: "Shift Malam", startHour: 20, startMin: 0, endHour: 24, endMin: 0, durationMinutes: 240 },
 ];
 
 function getCurrentProgramWIB(): string | null {
@@ -82,7 +81,6 @@ function getColorForProgram(programName: string): string {
     "Coffee Break": "#2196F3", // Blue
     "Drive Time": "#00BCD4", // Cyan
     "Shift Malam": "#FF9800", // Orange
-    "Yesterday Hit": "#9C27B0", // Purple
   };
   return colors[programName] || "#FDD835";
 }
