@@ -30,10 +30,13 @@ The dashboard's design is inspired by Spotify Analytics and SoundCloud Stats, fe
       * "Total Pendengar Saat ini" = Raw listeners (N) × **11** (direct real-time calculation)
       * "TOTAL PENDENGAR" = (Total Pendengar Saat ini × 8) × percentage progress
       * Formula: estimatedUniqueListeners = avgConcurrentListeners × 8 × (progress / 100)
-      * **Progress Calculation**: Based on TIME elapsed, not listener-minutes
-        - progress = (elapsedMinutes / programDuration) × 100
-        - Starts at 0% when program begins, reaches 100% when program ends
-        - Independent of listener count (time-based only)
+      * **Progress Calculation (Real-Time)**: Based on current WIB time vs program schedule
+        - Calculated on every API request (not from database snapshots)
+        - Formula: progress = (elapsedMinutes / programDuration) × 100
+        - Returns 0% for programs not started, 100% for programs finished
+        - Handles midnight crossing (Night Flow 00:00-06:00)
+        - Display format: 2 decimal places (e.g., "47.92%")
+        - Frontend shows progress for ALL programs (active/inactive)
       * EMA smoothing (α=0.25) used for spike detection (>50% threshold, 5-min capping at ±25%)
       * State resets automatically at midnight or program change to prevent spurious spikes
       * Calculation interval: **30 seconds** (previously 1 minute)
