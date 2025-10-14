@@ -3,13 +3,13 @@ import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Radio } from "lucide-react";
 import { useState, useEffect } from "react";
-import coffeebreakImg from "@assets/coffeebreak_1760412189349.png";
-import drivetimeImg from "@assets/drivetime_1760412189350.png";
-import goodmorningjakartaImg from "@assets/goodmorningjakarta_1760412189350.png";
-import nightflowImg from "@assets/nightflow_1760412189350.png";
-import odahoteImg from "@assets/odahote_1760412189350.png";
-import officehourImg from "@assets/officehour_1760412189350.png";
-import shiftmalamImg from "@assets/shiftmalam_1760412189350.png";
+import coffeebreakImg from "@assets/icon_coffeebrak_1760416515821.png";
+import drivetimeImg from "@assets/icon_drivetime_1760416515821.png";
+import goodmorningjakartaImg from "@assets/icon_goodmorningjakarta_1760416515821.png";
+import nightflowImg from "@assets/icon_nightflow_1760416515822.png";
+import odahoteImg from "@assets/icon_odahote_1760416515822.png";
+import officehourImg from "@assets/icon_officehour_1760416515822.png";
+import shiftmalamImg from "@assets/icon_shiftmalam_1760416515822.png";
 
 interface ProgramListenersData {
   programName: string;
@@ -67,7 +67,6 @@ const getProgramNameParts = (displayName: string) => {
     'Coffee Break': { first: 'coffee', rest: 'BREAK' },
     'Drive Time': { first: 'drive', rest: 'TIME' },
     'Shift Malam': { first: 'shift', rest: 'MALAM' },
-    'Yesterday Hit': { first: 'yesterday', rest: 'HIT' },
   };
   
   return nameMap[displayName] || { first: words[0].toLowerCase(), rest: words.slice(1).join(' ').toUpperCase() };
