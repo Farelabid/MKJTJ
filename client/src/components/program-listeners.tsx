@@ -211,7 +211,10 @@ export function ProgramListeners() {
                       className="text-yellow-400 text-3xl font-bold font-mono"
                       data-testid={`text-program-listeners-${program.displayName.toLowerCase().replace(/\s+/g, '-')}`}
                     >
-                      {program.cumulativeListeners.toLocaleString()}
+                      {program.cumulativeListeners === 0 && program.progressPercent === 100 
+                        ? '-' 
+                        : program.cumulativeListeners.toLocaleString()
+                      }
                     </p>
                   </div>
                 </div>
