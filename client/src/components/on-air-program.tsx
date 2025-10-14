@@ -3,7 +3,13 @@ import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Radio } from "lucide-react";
-import { useState, useEffect } from "react";
+import coffeebreakImg from "@assets/coffeebreak_1760412189349.png";
+import drivetimeImg from "@assets/drivetime_1760412189350.png";
+import goodmorningjakartaImg from "@assets/goodmorningjakarta_1760412189350.png";
+import nightflowImg from "@assets/nightflow_1760412189350.png";
+import odahoteImg from "@assets/odahote_1760412189350.png";
+import officehourImg from "@assets/officehour_1760412189350.png";
+import shiftmalamImg from "@assets/shiftmalam_1760412189350.png";
 import fallbackImage from "@assets/stock_images/radio_dj_broadcastin_492e4d9b.jpg";
 
 interface OnAirProgram {
@@ -15,18 +21,37 @@ interface OnAirProgram {
   status: string;
 }
 
+// Function to get program image based on program name and current date
+const getProgramImage = (programTitle: string): string => {
+  // Get current date in WIB timezone
+  const now = new Date();
+  const wibOffset = 7 * 60; // WIB = UTC+7
+  const localOffset = now.getTimezoneOffset();
+  const wibTime = new Date(now.getTime() + (wibOffset + localOffset) * 60 * 1000);
+  const dayOfWeek = wibTime.getDay(); // 0 = Sunday, 6 = Saturday
+  
+  // For Good Morning Jakarta: use odahote on Sat/Sun, goodmorningjakarta on Mon-Fri
+  if (programTitle === 'Good Morning Jakarta') {
+    return (dayOfWeek === 0 || dayOfWeek === 6) ? odahoteImg : goodmorningjakartaImg;
+  }
+  
+  const imageMap: Record<string, string> = {
+    'Night Flow': nightflowImg,
+    'Office Hour': officehourImg,
+    'Coffee Break': coffeebreakImg,
+    'Drive Time': drivetimeImg,
+    'Shift Malam': shiftmalamImg,
+    'Yesterday Hit': fallbackImage, // Use fallback for Yesterday Hit
+  };
+  
+  return imageMap[programTitle] || fallbackImage;
+};
+
 export function OnAirProgram() {
   const { data: program, isLoading } = useQuery<OnAirProgram>({
     queryKey: ["/api/on-air-program"],
     refetchInterval: 30000,
   });
-
-  const [imgError, setImgError] = useState(false);
-
-  // Reset error state when program imageUrl changes
-  useEffect(() => {
-    setImgError(false);
-  }, [program?.imageUrl]);
 
   return (
     <Card className="p-6 space-y-4">
@@ -44,19 +69,21 @@ export function OnAirProgram() {
         </div>
       ) : program ? (
         <div className="space-y-4">
-          {/* Program Image - Always show with fallback */}
+          {/* Program Image - Always show with program-specific image */}
           <div className="relative aspect-video w-full overflow-hidden rounded-md bg-muted">
             <img 
-              src={imgError || !program.imageUrl ? fallbackImage : program.imageUrl}
+              src={getProgramImage(program.programTitle)}
               alt={program.programTitle}
               className="object-cover w-full h-full rounded-md"
               data-testid="img-on-air-program"
-              onError={() => setImgError(true)}
             />
             <div className="absolute top-3 right-3">
-              <Badge variant="destructive" className="bg-red-600 text-white" data-testid="badge-live-status">
-                <div className="h-2 w-2 rounded-full bg-white animate-pulse-slow mr-1" />
-                {program.status}
+              <Badge variant="destructive" className="bg-red-600 text-white animate-pulse" data-testid="badge-live-status">
+                <div className="absolute -inset-1 bg-red-600 rounded-full animate-ping opacity-75" />
+                <div className="relative flex items-center">
+                  <div className="h-2 w-2 rounded-full bg-white mr-1.5" />
+                  <span className="font-semibold">{program.status}</span>
+                </div>
               </Badge>
             </div>
           </div>
