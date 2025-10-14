@@ -306,11 +306,6 @@ async function calculateEMAListenerMinutes() {
       return;
     }
     
-    // Calculate target LM and progress
-    const targetLM = programSchedule.durationMinutes * (state.baselineN || 0);
-    const progressRatio = clamp(LMhat / Math.max(1, targetLM), 0, 1);
-    const progress = progressRatio * 100; // Keep decimal precision for accurate calculations
-    
     // Calculate elapsed minutes from program start time (based on schedule)
     // Use same WIB conversion logic as getCurrentProgramWIB() to avoid double-offset
     const now = new Date();
@@ -329,6 +324,14 @@ async function calculateEMAListenerMinutes() {
       // Handle midnight crossing
       elapsedMinutes = Math.max(1, (24 * 60) - programStartMinutes + currentMinutesSinceMidnight);
     }
+    
+    // Calculate progress based on TIME (not listener-minutes!)
+    // Progress should be 0% at start and 100% at end, regardless of listener count
+    const progressRatio = Math.min(elapsedMinutes / programSchedule.durationMinutes, 1.0); // Cap at 1.0 (100%)
+    const progress = progressRatio * 100; // Keep decimal precision
+    
+    // Calculate targetLM for reference (not used for progress anymore)
+    const targetLM = programSchedule.durationMinutes * (state.baselineN || 0);
     
     // Get ALT_session from config (default 45 minutes) - kept for potential future use
     const altSessionConfig = await storage.getConfigValue('alt_session');
