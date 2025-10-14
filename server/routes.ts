@@ -606,6 +606,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return `${start}–${end} WIB`;
   }
 
+  // Calculate real-time progress based on current WIB time
+  function calculateRealTimeProgress(program: { startHour: number; startMin: number; endHour: number; endMin: number; durationMinutes: number }): number {
+    // Get current time in Jakarta timezone (WIB = UTC+7)
+    const now = new Date();
+    const jakartaTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
+    const currentHour = jakartaTime.getHours();
+    const currentMinute = jakartaTime.getMinutes();
+    const currentMinutesSinceMidnight = currentHour * 60 + currentMinute;
+
+    const startMinutes = program.startHour * 60 + program.startMin;
+    const endMinutes = program.endHour * 60 + program.endMin;
+
+    // Handle midnight crossing
+    let elapsedMinutes = 0;
+    if (startMinutes > endMinutes) {
+      // Midnight crossing (e.g., Night Flow 00:00-06:00)
+      if (currentMinutesSinceMidnight >= startMinutes) {
+        // Still same day (e.g., 23:30)
+        elapsedMinutes = currentMinutesSinceMidnight - startMinutes;
+      } else if (currentMinutesSinceMidnight < endMinutes) {
+        // Next day (e.g., 02:30)
+        elapsedMinutes = (1440 - startMinutes) + currentMinutesSinceMidnight;
+      } else {
+        // Program already finished
+        return 100;
+      }
+    } else {
+      // Normal case (no midnight crossing)
+      if (currentMinutesSinceMidnight < startMinutes) {
+        // Program not started yet
+        return 0;
+      } else if (currentMinutesSinceMidnight >= endMinutes) {
+        // Program already finished
+        return 100;
+      } else {
+        // Program in progress
+        elapsedMinutes = currentMinutesSinceMidnight - startMinutes;
+      }
+    }
+
+    // Calculate progress: (elapsed / duration) × 100, capped at 100%
+    const progressRatio = Math.min(elapsedMinutes / program.durationMinutes, 1.0);
+    return progressRatio * 100;
+  }
+
   // API endpoint to get program listeners with EMA-based calculation
   app.get("/api/program-listeners", async (req, res) => {
     try {
@@ -620,8 +665,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const cumulativeListeners = stats?.estimatedUniqueListeners || 0;
           const avgConcurrent = stats?.avgConcurrentListeners || 0;
           
-          // Use progress from database (already 0-100)
-          const progressPercent = stats?.progress || 0;
+          // Calculate real-time progress based on current WIB time
+          const progressPercent = calculateRealTimeProgress(program);
           
           return {
             programName: program.name,
