@@ -594,6 +594,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return programSchedules[0];
   }
 
+  function getNextProgram(): ProgramSchedule {
+    // Get current time in Jakarta timezone (WIB = UTC+7)
+    const now = new Date();
+    const jakartaTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
+    const currentHour = jakartaTime.getHours();
+    const currentMinute = jakartaTime.getMinutes();
+    const currentMinutesSinceMidnight = currentHour * 60 + currentMinute;
+
+    // Find current program first
+    let currentIndex = -1;
+    for (let i = 0; i < programSchedules.length; i++) {
+      const program = programSchedules[i];
+      const startMinutes = program.startHour * 60 + program.startMinute;
+      const endMinutes = program.endHour * 60 + program.endMinute;
+
+      // Handle midnight crossing
+      if (startMinutes > endMinutes) {
+        if (currentMinutesSinceMidnight >= startMinutes || currentMinutesSinceMidnight < endMinutes) {
+          currentIndex = i;
+          break;
+        }
+      } else {
+        if (currentMinutesSinceMidnight >= startMinutes && currentMinutesSinceMidnight < endMinutes) {
+          currentIndex = i;
+          break;
+        }
+      }
+    }
+
+    // Return next program (wrap around to first if at end)
+    const nextIndex = (currentIndex + 1) % programSchedules.length;
+    return programSchedules[nextIndex];
+  }
+
   function formatTimeRange(program: ProgramSchedule): string {
     const formatTime = (hour: number, minute: number) => {
       const h = hour.toString().padStart(2, '0');
@@ -712,6 +746,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error determining on-air program:", error);
       res.status(500).json({ 
         error: "Failed to determine on-air program",
+        message: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  // API endpoint to get coming up next program
+  app.get("/api/coming-up-next", async (req, res) => {
+    try {
+      const nextProgram = getNextProgram();
+      const formattedTimeRange = formatTimeRange(nextProgram);
+
+      console.log(`[ComingUpNext] Next program: ${nextProgram.title} (${formattedTimeRange})`);
+      
+      res.json({
+        programTitle: nextProgram.title,
+        presenter: nextProgram.presenter,
+        timeRange: formattedTimeRange,
+        description: nextProgram.description,
+        imageUrl: nextProgram.imageUrl,
+        status: "UPCOMING",
+        source: "schedule"
+      });
+    } catch (error) {
+      console.error("Error determining coming up next program:", error);
+      res.status(500).json({ 
+        error: "Failed to determine coming up next program",
         message: error instanceof Error ? error.message : "Unknown error"
       });
     }

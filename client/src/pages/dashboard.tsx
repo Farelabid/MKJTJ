@@ -12,6 +12,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { HistoricalChart } from "@/components/historical-chart";
 import { ProgramListeners } from "@/components/program-listeners";
 import { OnAirProgram } from "@/components/on-air-program";
+import { ComingUpNext } from "@/components/coming-up-next";
 import { useToast } from "@/hooks/use-toast";
 import tjRadioLogo from "@assets/logo_official_tj_1760323825293.png";
 import onAirImage from "@assets/onair_1760326793890.png";
@@ -280,51 +281,10 @@ export default function Dashboard() {
           )}
         </section>
 
-        {/* Data Visualization & On Air */}
+        {/* Coming Up Next & On Air */}
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Bar Chart Comparison */}
-          <Card className="p-6 space-y-4">
-            <h3 className="text-lg font-semibold">Perbandingan Pendengar</h3>
-            {isLoading ? (
-              <Skeleton className="h-48 w-full" />
-            ) : (
-              <div className="space-y-4 pt-4">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Saat Ini</span>
-                    <span className="font-mono font-semibold">{stats?.listenersCurrent.toLocaleString()}</span>
-                  </div>
-                  <div className="h-8 bg-muted rounded-md overflow-hidden">
-                    <div 
-                      className="h-full transition-all duration-500 flex items-center justify-end px-3"
-                      style={{ 
-                        width: `${getListenerRatio()}%`,
-                        backgroundColor: getRatioColor()
-                      }}
-                    >
-                      <span className="text-xs font-semibold text-white">
-                        {getListenerRatio().toFixed(0)}%
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Peak</span>
-                    <span className="font-mono font-semibold">{stats?.listenersPeak.toLocaleString()}</span>
-                  </div>
-                  <div className="h-8 bg-muted rounded-md overflow-hidden">
-                    <div 
-                      className="h-full bg-primary transition-all duration-500 flex items-center justify-end px-3"
-                      style={{ width: '100%' }}
-                    >
-                      <span className="text-xs font-semibold text-primary-foreground">100%</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </Card>
+          {/* Coming Up Next */}
+          <ComingUpNext />
 
           {/* On Air Program */}
           <OnAirProgram />
