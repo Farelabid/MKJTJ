@@ -67,7 +67,7 @@ const getProgramNameParts = (displayName: string) => {
     'Coffee Break': { first: 'coffee', rest: 'BREAK' },
     'Drive Time': { first: 'drive', rest: 'TIME' },
     'Shift Malam': { first: 'shift', rest: 'MALAM' },
-    'Yesterday Hits': { first: 'yesterday', rest: 'HITS' },
+    'Yesterday Hit': { first: 'yesterday', rest: 'HIT' },
   };
   
   return nameMap[displayName] || { first: words[0].toLowerCase(), rest: words.slice(1).join(' ').toUpperCase() };
@@ -165,13 +165,17 @@ export function ProgramListeners() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     {/* Program Logo */}
-                    <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 bg-slate-800">
-                      <img 
-                        src={getProgramImage(program.displayName, currentDate)} 
-                        alt={program.displayName}
-                        className="w-full h-full object-cover"
-                        data-testid={`img-program-${program.displayName.toLowerCase().replace(/\s+/g, '-')}`}
-                      />
+                    <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 bg-slate-800 flex items-center justify-center">
+                      {getProgramImage(program.displayName, currentDate) ? (
+                        <img 
+                          src={getProgramImage(program.displayName, currentDate)} 
+                          alt={program.displayName}
+                          className="w-full h-full object-cover"
+                          data-testid={`img-program-${program.displayName.toLowerCase().replace(/\s+/g, '-')}`}
+                        />
+                      ) : (
+                        <Radio className="w-10 h-10 text-slate-500" data-testid={`icon-program-${program.displayName.toLowerCase().replace(/\s+/g, '-')}`} />
+                      )}
                     </div>
                     
                     <div>
