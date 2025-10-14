@@ -143,13 +143,24 @@ export function ProgramListeners() {
                       <p className="text-gray-400 text-sm font-medium mb-1">
                         {program.timeRange}
                       </p>
-                      <h3 
-                        className="text-2xl font-bold tracking-tight"
-                        data-testid={`text-program-${program.displayName.toLowerCase().replace(/\s+/g, '-')}`}
-                      >
-                        <span className="text-yellow-400">{first}</span>
-                        <span className="text-white"> {rest}</span>
-                      </h3>
+                      <div className="flex items-center gap-3">
+                        <h3 
+                          className="text-2xl font-bold tracking-tight"
+                          data-testid={`text-program-${program.displayName.toLowerCase().replace(/\s+/g, '-')}`}
+                        >
+                          <span className="text-yellow-400">{first}</span>
+                          <span className="text-white"> {rest}</span>
+                        </h3>
+                        {program.isActive && (
+                          <span 
+                            className="relative flex h-7 px-3 items-center justify-center bg-red-500 text-white text-xs font-bold rounded-md animate-pulse"
+                            data-testid="badge-live"
+                          >
+                            <span className="absolute inline-flex h-full w-full rounded-md bg-red-400 opacity-75 animate-ping"></span>
+                            <span className="relative">LIVE</span>
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                   
