@@ -18,9 +18,13 @@ The dashboard's design is inspired by Spotify Analytics and SoundCloud Stats, fe
 - **Information Display**: Real-time WIB clock and Indonesian date display in the header. Program statistics include "Pendengar Saat Ini" = raw listeners × 11 and "TOTAL PENDENGAR" = (Pendengar Saat Ini × 8) × percentage progress, with EMA smoothing for spike detection.
 - **Program Images**: 
   - **Hero Card** ("Program Sedang On Air"): Large aspect-video (16:9) presenter photo for currently active program. Frontend mapping with WIB day detection.
+  - **Coming Up Next**: Large aspect-video (16:9) presenter photo for next scheduled program. Same image mapping logic as hero card.
   - **Statistics List**: Small 80×80px rounded presenter photos for all programs.
   - **Special Logic**: "Good Morning Jakarta" shows odahote.png on Sat/Sun, goodmorningjakarta.png on Mon-Fri.
   - **Fallback**: Programs without uploaded images (e.g., "Yesterday Hit") show Radio icon (statistics list) or stock image (hero card).
+- **Badge Styling**: 
+  - **LIVE Badge** (On Air Program): Red background (bg-red-600) with dual animation (pulse + ping effects), displays pulsing dot icon for active programs.
+  - **UPCOMING Badge** (Coming Up Next): Teal background (bg-teal-600) with Clock icon, no animation, indicates next scheduled program.
 
 ### Technical Implementations
 - **Frontend**: React with TypeScript, Wouter for routing, TanStack Query for state management, Tailwind CSS and Shadcn/ui for styling, Recharts for historical data visualization.
@@ -52,6 +56,7 @@ The dashboard's design is inspired by Spotify Analytics and SoundCloud Stats, fe
 - **Admin Dashboard**: `/admin` route for configuring listener multiplier, stream URL, and managing alert thresholds (min/max listeners).
 - **Alert System**: Configurable alert thresholds with real-time monitoring and history logging.
 - **Program On Air Integration**: Displays current program details (photo, name, presenters, air time, description) using hardcoded schedule (web scraping disabled due to unreliable JavaScript-rendered content). Schedule follows WIB timezone with accurate time range detection. Response always includes "source": "schedule".
+- **Coming Up Next**: Shows next scheduled program after the currently live one, with program image, time range, presenter info, and description. Uses same image mapping logic as "Program Sedang On Air". Displays UPCOMING badge (teal background) with Clock icon. Auto-refreshes every 30 seconds. Endpoint: `/api/coming-up-next` with wrap-around logic (last program → first program).
 - **Footer**: Includes a disclaimer for internal use and copyright information.
 
 ### System Design Choices
