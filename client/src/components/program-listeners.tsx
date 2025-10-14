@@ -172,11 +172,11 @@ export function ProgramListeners() {
                   <div
                     className="h-full transition-all duration-500 flex items-center justify-center"
                     style={{
-                      width: program.isActive ? `${program.progressPercent}%` : '0%',
+                      width: `${program.progressPercent}%`,
                       backgroundColor: program.color,
                     }}
                   >
-                    {program.isActive && program.progressPercent > 0 && (
+                    {program.progressPercent > 0 && (
                       <span className="text-white text-sm font-bold">
                         {program.progressPercent.toFixed(2)}%
                       </span>
