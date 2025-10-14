@@ -178,7 +178,7 @@ export function ProgramListeners() {
                   >
                     {program.isActive && program.progressPercent > 0 && (
                       <span className="text-white text-sm font-bold">
-                        {program.progressPercent}%
+                        {program.progressPercent.toFixed(2)}%
                       </span>
                     )}
                   </div>
