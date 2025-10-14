@@ -3,6 +3,12 @@
 ## Overview
 This project is a real-time dashboard for TJ Radio Jakarta, designed to display live streaming statistics from an Icecast server. Its primary purpose is to provide an internal, professional, and easily readable visualization of listener data. Key capabilities include displaying current listeners with a special 4x multiplier, station information, historical data visualization, and a comprehensive configuration management system. The dashboard also features an alert system for threshold notifications and supports both dark/light modes and responsive design. The overarching business vision is to provide TJ Radio Jakarta with robust tools for monitoring listenership, understanding trends, and managing broadcast configurations effectively.
 
+## Recent Changes (October 14, 2025)
+- **Program Schedule Update**: Reduced from 7 to 6 programs by removing "Yesterday Hit" (23:00-24:00)
+- **Shift Malam Extended**: Duration increased from 3 hours (20:00-23:00) to 4 hours (20:00-24:00), now covers evening to midnight
+- **Icon Replacement**: Program statistics icons updated to colorful rounded designs (80×80px) from attached_assets (icon_nightflow, icon_goodmorningjakarta, icon_odahote, icon_officehour, icon_coffeebrak, icon_drivetime, icon_shiftmalam)
+- **Program Count**: Now displays 6 programs across 24-hour schedule with no gaps
+
 ## User Preferences
 I prefer clear, concise explanations and a professional tone. For development, I favor an iterative approach, with a focus on maintainability and scalable solutions. Please ensure that all new features are thoroughly tested and documented. I expect the agent to ask for confirmation before making significant architectural changes or adding new external dependencies.
 
@@ -19,9 +25,9 @@ The dashboard's design is inspired by Spotify Analytics and SoundCloud Stats, fe
 - **Program Images**: 
   - **Hero Card** ("Program Sedang On Air"): Large aspect-video (16:9) presenter photo for currently active program. Frontend mapping with WIB day detection.
   - **Coming Up Next**: Large aspect-video (16:9) presenter photo for next scheduled program. Same image mapping logic as hero card.
-  - **Statistics List**: Small 80×80px rounded presenter photos for all programs.
-  - **Special Logic**: "Good Morning Jakarta" shows odahote.png on Sat/Sun, goodmorningjakarta.png on Mon-Fri.
-  - **Fallback**: Programs without uploaded images (e.g., "Yesterday Hit") show Radio icon (statistics list) or stock image (hero card).
+  - **Statistics List**: Small 80×80px colorful rounded icons for all 6 programs (icon_[program]_*.png).
+  - **Special Logic**: "Good Morning Jakarta" shows icon_odahote on Sat/Sun, icon_goodmorningjakarta on Mon-Fri.
+  - **Fallback**: Programs without uploaded images show Radio icon (statistics list) or stock image (hero card).
 - **Badge Styling**: 
   - **LIVE Badge** (On Air Program): Red background (bg-red-600) with dual animation (pulse + ping effects), displays pulsing dot icon for active programs.
   - **UPCOMING Badge** (Coming Up Next): Teal background (bg-teal-600) with Clock icon, no animation, indicates next scheduled program.
