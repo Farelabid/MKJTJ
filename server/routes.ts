@@ -52,7 +52,8 @@ function getCurrentProgramWIB(): string | null {
     const startMinutes = program.startHour * 60 + program.startMin;
     const endMinutes = program.endHour * 60 + program.endMin;
     
-    if (minutesSinceMidnight >= startMinutes && minutesSinceMidnight <= endMinutes) {
+    // Use < for endMinutes (exclusive end time)
+    if (minutesSinceMidnight >= startMinutes && minutesSinceMidnight < endMinutes) {
       return program.name;
     }
   }
@@ -641,144 +642,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // API endpoint to get on-air program (fetch from tjradiojakarta.com/live)
+  // API endpoint to get on-air program (use hardcoded schedule - web scraping unreliable)
   app.get("/api/on-air-program", async (req, res) => {
     try {
-      // Fetch HTML from TJ Radio Jakarta live page
-      const response = await axios.get("https://www.tjradiojakarta.com/live", {
-        timeout: 10000,
-      });
+      // Use hardcoded schedule directly (web scraping is unreliable due to JS rendering)
+      const currentProgram = getCurrentProgram();
+      const formattedTimeRange = formatTimeRange(currentProgram);
 
-      const html = response.data;
-      const $ = cheerio.load(html);
-
-      // Extract program information from the page
-      // The active program is shown in the "SEDANG MENGUDARA" section
-      let programTitle = "";
-      let presenter = "";
-      let timeRange = "";
-      let description = "";
-      let imageUrl = "";
-
-      // Strategy: Look for h2 that contains program name, then get surrounding elements
-      // The structure is typically: img -> time -> h2(program name) -> p(presenter) -> p(description)
+      console.log(`[OnAir] Using schedule: ${currentProgram.title} (${formattedTimeRange})`);
       
-      // Get all h2 elements and find the one that's in the main live section
-      const allH2 = $('h2');
-      let mainProgramHeading = allH2.eq(1); // Usually the second h2 (after page title)
-      
-      // If there are multiple h2s, try to find the one for current program
-      if (allH2.length > 2) {
-        // Look for h2 that has an img before it (program image)
-        allH2.each((i, elem) => {
-          const prevImg = $(elem).prevAll('img').first();
-          if (prevImg.length && prevImg.attr('src')?.includes('/shows/')) {
-            mainProgramHeading = $(elem);
-            return false; // break
-          }
-        });
-      }
-      
-      programTitle = mainProgramHeading.text().trim();
-
-      // Get presenter - look for p with "dengan" after the h2
-      let presenterElement = mainProgramHeading.next('p');
-      const presenterText = presenterElement.text().trim();
-      presenter = presenterText; // Store as-is (might include "dengan")
-
-      // Get time range - look for text with format HH:MM–HH:MM WIB before the h2
-      const prevElements = mainProgramHeading.prevAll();
-      prevElements.each((i, elem) => {
-        const text = $(elem).text().trim();
-        // Match pattern: HH:MM–HH:MM WIB (with en-dash or em-dash)
-        const timeMatch = text.match(/\d{1,2}:\d{2}[–—-]\d{1,2}:\d{2}\s*WIB/);
-        if (timeMatch) {
-          timeRange = timeMatch[0];
-          return false; // break
-        }
-      });
-
-      // Get description - next p after presenter
-      const descElement = presenterElement.next('p');
-      const descText = descElement.text().trim();
-      // Only use if it doesn't look like time or metadata
-      if (descText && !descText.includes('WIB') && !descText.startsWith('dengan') && !descText.includes('Dengarkan')) {
-        description = descText;
-      }
-
-      // Get image URL - look for img before the h2
-      const programImage = mainProgramHeading.prevAll('img').first();
-      imageUrl = programImage.attr('src') || "";
-      
-      // Fallback: try to find by alt text matching program title
-      if (!imageUrl && programTitle) {
-        const imgByAlt = $('img[alt*="' + programTitle + '"]').first();
-        imageUrl = imgByAlt.attr('src') || "";
-      }
-      
-      // Last fallback: first program image
-      if (!imageUrl) {
-        const firstImage = $('img[src*="/shows/"]').first();
-        imageUrl = firstImage.attr('src') || "";
-      }
-
-      // Make sure imageUrl is absolute
-      if (imageUrl && !imageUrl.startsWith('http')) {
-        imageUrl = `https://www.tjradiojakarta.com${imageUrl}`;
-      }
-
-      // Validate we got the data, fallback to schedule if scraping fails
-      if (!programTitle || !timeRange) {
-        console.log("[OnAir] Scraping failed, using schedule fallback");
-        const currentProgram = getCurrentProgram();
-        const formattedTimeRange = formatTimeRange(currentProgram);
-
-        return res.json({
-          programTitle: currentProgram.title,
-          presenter: currentProgram.presenter,
-          timeRange: formattedTimeRange,
-          description: currentProgram.description,
-          imageUrl: currentProgram.imageUrl,
-          status: "LIVE",
-          source: "schedule"
-        });
-      }
-
-      const onAirProgram = {
-        programTitle,
-        presenter,
-        timeRange,
-        description,
-        imageUrl,
+      res.json({
+        programTitle: currentProgram.title,
+        presenter: currentProgram.presenter,
+        timeRange: formattedTimeRange,
+        description: currentProgram.description,
+        imageUrl: currentProgram.imageUrl,
         status: "LIVE",
-        source: "website" // Indicates data source from tjradiojakarta.com/live
-      };
-
-      console.log(`[OnAir] Fetched from website: ${programTitle} (${timeRange})`);
-      res.json(onAirProgram);
+        source: "schedule" // Always use schedule (reliable)
+      });
     } catch (error) {
-      console.error("Error fetching on-air program from website:", error);
-      
-      // Fallback to schedule on error
-      try {
-        const currentProgram = getCurrentProgram();
-        const timeRange = formatTimeRange(currentProgram);
-
-        res.json({
-          programTitle: currentProgram.title,
-          presenter: currentProgram.presenter,
-          timeRange: timeRange,
-          description: currentProgram.description,
-          imageUrl: currentProgram.imageUrl,
-          status: "LIVE",
-          source: "schedule"
-        });
-      } catch (fallbackError) {
-        res.status(500).json({ 
-          error: "Failed to determine on-air program",
-          message: error instanceof Error ? error.message : "Unknown error"
-        });
-      }
+      console.error("Error determining on-air program:", error);
+      res.status(500).json({ 
+        error: "Failed to determine on-air program",
+        message: error instanceof Error ? error.message : "Unknown error"
+      });
     }
   });
 

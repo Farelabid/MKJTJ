@@ -39,7 +39,7 @@ The dashboard's design is inspired by Spotify Analytics and SoundCloud Stats, fe
 - **Historical Data**: PostgreSQL database for storing listener statistics snapshots, with time-series charts (24h, 7d, 30d views) and CSV export functionality.
 - **Admin Dashboard**: `/admin` route for configuring listener multiplier, stream URL, and managing alert thresholds (min/max listeners).
 - **Alert System**: Configurable alert thresholds with real-time monitoring and history logging.
-- **Program On Air Integration**: Displays current program details (photo, name, presenters, air time, description) fetched dynamically from tjradiojakarta.com/live website with HTML parsing. Falls back to hardcoded schedule if scraping fails. Response includes "source" indicator ("website" or "schedule").
+- **Program On Air Integration**: Displays current program details (photo, name, presenters, air time, description) using hardcoded schedule (web scraping disabled due to unreliable JavaScript-rendered content). Schedule follows WIB timezone with accurate time range detection. Response always includes "source": "schedule".
 - **Footer**: Includes a disclaimer for internal use and copyright information.
 
 ### System Design Choices
