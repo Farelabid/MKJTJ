@@ -391,19 +391,15 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Center: Video Cassette */}
+            {/* Center: Cassette GIF (Autoplay Looping) */}
             <div className="flex items-center justify-center">
               <div className="relative w-full max-w-sm aspect-video rounded-lg overflow-hidden bg-black/20">
-                <video
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
+                <img
+                  src="/attached_assets/kasetgif_1760582132231.gif"
+                  alt="TJ Radio Jakarta Cassette Animation"
                   className="w-full h-full object-cover"
-                  data-testid="video-hero-cassette"
-                >
-                  <source src="/attached_assets/kaset_1760576961949.mp4" type="video/mp4" />
-                </video>
+                  data-testid="image-hero-cassette"
+                />
               </div>
             </div>
 

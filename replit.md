@@ -6,8 +6,10 @@ This project is a real-time dashboard for TJ Radio Jakarta, designed to display 
 ## Recent Changes (October 16, 2025)
 - **Hero Section Redesign**: Complete redesign of top section with 3-column layout matching new UI mockup
   - Left: Current listeners (pink #FF69B4) & peak stats with yellow (#C4F542) highlights
-  - Center: Looping video cassette (kaset_1760576961949.mp4) with autoplay
+  - Center: Looping cassette animation (kasetgif_1760582132231.gif) - GIF format for reliable autoplay
   - Right: 3-day statistics with horizontal progress bars
+- **Video Format Update**: Replaced MP4 video with GIF (kasetgif_1760582132231.gif) to ensure reliable autoplay looping without browser restrictions
+- **Manual Historical Data**: Added data for 13 Oct (187K) and 15 Oct (193K) to complete 3-day statistics display
 - **3-Day Statistics Update**: Redesigned with horizontal bar charts showing daily listener totals for 3 days BEFORE current day (e.g., if today is Oct 16, shows Oct 13-15), yellow (#C4F542) bars, and "PROGRAM FAVORITE MINGGU INI" label
 - **3-Day Date Calculation Fix**: Corrected timezone handling to properly calculate dates using local timezone instead of UTC conversion, preventing off-by-one date errors
 - **Sponsor Image Enlargement**: Header sponsor image (TransJakarta, JXB logos) enlarged to 82px height (130% then 120% progressive scaling) for better visibility
