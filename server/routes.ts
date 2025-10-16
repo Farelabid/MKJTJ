@@ -1088,28 +1088,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/crew-on-duty", async (req, res) => {
     try {
       const currentProgram = getCurrentProgramWIB();
-      const currentDay = getDayOfWeekWIB();
       const currentShift = getCurrentOperatorShift();
       
-      if (!currentProgram || !currentDay || !currentShift) {
+      if (!currentProgram || !currentShift) {
         return res.status(500).json({ 
-          error: "Unable to determine current program, day, or shift" 
+          error: "Unable to determine current program or shift" 
         });
       }
       
+      // Get WIB time for day calculation
+      const now = new Date();
+      const wibOffset = 7 * 60;
+      const localOffset = now.getTimezoneOffset();
+      const wibTime = new Date(now.getTime() + (wibOffset + localOffset) * 60 * 1000);
+      const hour = wibTime.getHours();
+      
+      // Determine which day to use for operator lookup
+      // If hour is 00:00-04:59 (midnight continuation of shift3), use PREVIOUS day
+      let operatorDay: string;
+      if (hour >= 0 && hour < 5) {
+        // Use previous day's shift3 operator
+        const prevDayDate = new Date(wibTime);
+        prevDayDate.setDate(prevDayDate.getDate() - 1);
+        const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+        operatorDay = days[prevDayDate.getDay()];
+      } else {
+        // Use current day
+        const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+        operatorDay = days[wibTime.getDay()];
+      }
+      
+      // For producer, always use current WIB day
+      const producerDay = getDayOfWeekWIB();
+      
       // Get operator name from schedule
-      const operatorName = OPERATOR_SCHEDULE[currentDay]?.[currentShift] || "unknown";
+      const operatorName = OPERATOR_SCHEDULE[operatorDay]?.[currentShift] || "unknown";
       
       // Get producer name from schedule
-      const producerName = PRODUCER_SCHEDULE[currentProgram]?.[currentDay] || "default";
+      const producerName = PRODUCER_SCHEDULE[currentProgram]?.[producerDay] || "default";
       
       // Get photo paths
       const operatorPhoto = getCrewPhotoPath("operator", operatorName);
       const producerPhoto = getCrewPhotoPath("produser", producerName);
       
-      // Format names for display
+      // Format names for display - fallback to "CREW" for staff without photos or Night Flow default
       const formatName = (name: string) => {
-        if (name === "unknown" || name === "default" || name === "internship" || name === "ade") {
+        if (name === "unknown" || name === "default" || name === "internship" || name === "ade" || name === "indira") {
           return "CREW";
         }
         return name.toUpperCase();
@@ -1125,7 +1149,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           photoUrl: producerPhoto,
         },
         currentProgram,
-        currentDay,
+        operatorDay,
+        producerDay,
         currentShift,
       });
     } catch (error) {
