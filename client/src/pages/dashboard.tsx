@@ -239,7 +239,7 @@ export default function Dashboard() {
                 <Skeleton className="h-20 w-48 mx-auto lg:mx-0" />
               ) : (
                 <div className="animate-counter-up">
-                  <h2 className="text-5xl lg:text-6xl font-bold font-mono tracking-tight text-[#C4F542]" data-testid="text-listeners-current">
+                  <h2 className="text-5xl lg:text-6xl font-bold font-mono tracking-tight text-[#FF69B4]" data-testid="text-listeners-current">
                     {stats?.listenersCurrent.toLocaleString()}
                   </h2>
                 </div>
