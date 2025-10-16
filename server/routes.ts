@@ -117,19 +117,19 @@ function getCrewPhotoPath(role: "operator" | "produser", name: string): string {
   
   // Check if photo exists, otherwise return fallback
   const availablePhotos: Record<string, string> = {
-    // Operators
-    "aryo_operator": "/attached_assets/aryo_operator_1760588382907.png",
-    "audrey_operator": "/attached_assets/audrey_operator_1760588382907.png",
-    "jhosua_operator": "/attached_assets/jhosua_operator_1760588382908.png",
-    "rully_operator": "/attached_assets/rully_operator_1760588382908.png",
+    // Operators (blue uniform)
+    "aryo_operator": "/attached_assets/opr_aryo_1760589447425.png",
+    "audrey_operator": "/attached_assets/opr_audrey_1760589447426.png",
+    "jhosua_operator": "/attached_assets/opr_jhosua_1760589447426.png",
+    "rully_operator": "/attached_assets/opr_rully_1760589447426.png",
     
-    // Producers
-    "audrey_produser": "/attached_assets/audrey_produser_1760588382908.png",
-    "jhosua_produser": "/attached_assets/jhosua_produser_1760588382908.png",
-    "luvi_produser": "/attached_assets/luvi_produser_1760588382908.png",
-    "nayla_produser": "/attached_assets/nayla_produser_1760588382908.png",
-    "patricia_produser": "/attached_assets/patricia_produser_1760588382908.png",
-    "raisan_produser": "/attached_assets/raisan_produser_1760588382908.png",
+    // Producers (green military uniform)
+    "audrey_produser": "/attached_assets/audrey_1760589432000.png",
+    "jhosua_produser": "/attached_assets/jhosua_1760589432001.png",
+    "luvi_produser": "/attached_assets/luvi_1760589432001.png",
+    "nayla_produser": "/attached_assets/nayla_1760589432001.png",
+    "patricia_produser": "/attached_assets/patricia_1760589432001.png",
+    "raisan_produser": "/attached_assets/raisan_1760589432001.png",
   };
   
   const key = `${normalizedName}_${role}`;
