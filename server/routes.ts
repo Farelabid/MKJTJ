@@ -65,8 +65,8 @@ const PRODUCER_SCHEDULE: Record<string, Record<string, string>> = {
     friday: "audrey", saturday: "audrey", sunday: "audrey"
   },
   "Office Hour": {
-    monday: "raisan", tuesday: "indira", wednesday: "indira", thursday: "raisan",
-    friday: "raisan", saturday: "raisan", sunday: "raisan"
+    monday: "risan", tuesday: "indira", wednesday: "indira", thursday: "risan",
+    friday: "risan", saturday: "risan", sunday: "risan"
   },
   "Coffee Break": {
     monday: "nayla", tuesday: "patricia", wednesday: "nayla", thursday: "patricia",
@@ -129,7 +129,7 @@ function getCrewPhotoPath(role: "operator" | "produser", name: string): string {
     "luvi_produser": "/attached_assets/luvi_1760589432001.png",
     "nayla_produser": "/attached_assets/nayla_1760589432001.png",
     "patricia_produser": "/attached_assets/patricia_1760589432001.png",
-    "raisan_produser": "/attached_assets/raisan_1760589432001.png",
+    "risan_produser": "/attached_assets/raisan_1760589432001.png",
   };
   
   const key = `${normalizedName}_${role}`;
