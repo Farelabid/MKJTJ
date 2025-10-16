@@ -2,6 +2,8 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import axios from "axios";
 import * as cheerio from "cheerio";
+import express from "express";
+import path from "path";
 import { radioStatsSchema } from "@shared/schema";
 import { storage } from "./storage";
 
@@ -132,8 +134,8 @@ function getCrewPhotoPath(role: "operator" | "produser", name: string): string {
   
   const key = `${normalizedName}_${role}`;
   
-  // Return specific photo or fallback
-  return availablePhotos[key] || "/attached_assets/CREWONDUTY_1760588402336.png";
+  // Return specific photo or fallback to internship photo
+  return availablePhotos[key] || "/attached_assets/internship_1760589107237.png";
 }
 
 function getCurrentProgramWIB(): string | null {
@@ -490,6 +492,11 @@ async function calculateEMAListenerMinutes() {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Serve static files from attached_assets directory
+  // This must be registered BEFORE Vite's catch-all route to prevent HTML being served for image requests
+  const attachedAssetsPath = path.resolve(import.meta.dirname, "..", "attached_assets");
+  app.use("/attached_assets", express.static(attachedAssetsPath));
+
   // API endpoint to fetch current radio statistics
   app.get("/api/radio-stats", async (req, res) => {
     try {

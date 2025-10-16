@@ -7,8 +7,10 @@ This project is a real-time dashboard for TJ Radio Jakarta, designed to display 
 - **Crew On Duty Feature**: Replaced center cassette animation with dynamic staff photos showing current Operator and Producer
   - Displays photos based on shift schedule (Operators: 3 shifts) and program schedule (Producers: 6 programs)
   - Operator shifts: Shift 1 (05:00-12:00), Shift 2 (12:00-19:00), Shift 3 (19:00-24:00)
+  - Midnight rollover fix: 00:00-05:00 uses previous day's Shift 3 operator (e.g., 02:00 Monday shows Sunday's operator)
   - Producer schedule varies by program and weekday (Audrey, Risan/Raisan, Indira, Nayla, Patricia, Luvi, Jhosua/Joshua)
-  - Fallback to "CREW" label and default image for staff without photos (Ade, Internship)
+  - Fallback to "CREW" label and internship photo (masked person) for staff without photos (Ade, Indira, Internship, Night Flow)
+  - Static file middleware added to serve `/attached_assets/` images before Vite catch-all route
   - Auto-refresh every 30 seconds, endpoint: `/api/crew-on-duty`
 - **Hero Section Redesign**: Complete redesign of top section with 3-column layout matching new UI mockup
   - Left: Current listeners (pink #FF69B4) & peak stats with yellow (#C4F542) highlights
@@ -103,7 +105,8 @@ The dashboard's design is inspired by Spotify Analytics and SoundCloud Stats, fe
     * Drive Time: Luvi (Mon-Fri), Indira (Sat/Sun)
     * Shift Malam: Jhosua (all days)
   - Staff photos in military uniform theme (Operators: blue, Producers: green military)
-  - Fallback to generic "CREW" display for staff without photos (Ade, Indira, Internship)
+  - Fallback to generic "CREW" display with internship photo (masked person holding "Internship" sign) for staff without photos (Ade, Indira, Internship, Night Flow default)
+  - Midnight operator rollover: 00:00-05:00 WIB uses previous day's Shift 3 operator
   - Auto-refresh every 30 seconds. Endpoint: `/api/crew-on-duty`
 - **Admin Dashboard**: `/admin` route for configuring listener multiplier, stream URL, and managing alert thresholds (min/max listeners).
 - **Alert System**: Configurable alert thresholds with real-time monitoring and history logging.
