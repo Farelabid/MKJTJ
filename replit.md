@@ -3,7 +3,11 @@
 ## Overview
 This project is a real-time dashboard for TJ Radio Jakarta, designed to display live streaming statistics from an Icecast server. Its primary purpose is to provide an internal, professional, and easily readable visualization of listener data. Key capabilities include displaying current listeners with a special 4x multiplier, station information, historical data visualization, and a comprehensive configuration management system. The dashboard also features an alert system for threshold notifications and supports both dark/light modes and responsive design. The overarching business vision is to provide TJ Radio Jakarta with robust tools for monitoring listenership, understanding trends, and managing broadcast configurations effectively.
 
-## Recent Changes (October 14, 2025)
+## Recent Changes (October 16, 2025)
+- **3-Day Statistics Component**: Added top-right dashboard widget showing aggregated listener totals from all 6 programs for last 3 days (yesterday through 3 days ago), with record program identification displaying program with highest listeners in that period
+- **Sponsor Image Enlargement**: Header sponsor image (TransJakarta, JXB logos) enlarged to 82px height (130% then 120% progressive scaling) for better visibility
+
+## Previous Changes (October 14, 2025)
 - **Program Schedule Update**: Reduced from 7 to 6 programs by removing "Yesterday Hit" (23:00-24:00)
 - **Shift Malam Extended**: Duration increased from 3 hours (20:00-23:00) to 4 hours (20:00-24:00), now covers evening to midnight
 - **Icon Replacement**: Program statistics icons updated to colorful rounded designs (80×80px) from attached_assets (icon_nightflow, icon_goodmorningjakarta, icon_odahote, icon_officehour, icon_coffeebrak, icon_drivetime, icon_shiftmalam)
@@ -59,6 +63,7 @@ The dashboard's design is inspired by Spotify Analytics and SoundCloud Stats, fe
 ### Feature Specifications
 - **Real-time Statistics**: Display of current listeners, peak listeners, and currently playing song with auto-refresh every 30 seconds.
 - **Historical Data**: PostgreSQL database for storing listener statistics snapshots, with time-series charts (24h, 7d, 30d views) and CSV export functionality.
+- **3-Day Statistics Widget**: Top-right dashboard component showing aggregated listener totals from all 6 programs for last 3 days (yesterday, 2 days ago, 3 days ago), with Indonesian date labels (yellow/lime background), formatted listener counts (K/M suffix), and record program display showing which program had highest listeners in the period. Responsive layout (desktop: absolute top-right, mobile: stacked below hero). Auto-refreshes every 30 seconds. Endpoint: `/api/three-day-stats`.
 - **Admin Dashboard**: `/admin` route for configuring listener multiplier, stream URL, and managing alert thresholds (min/max listeners).
 - **Alert System**: Configurable alert thresholds with real-time monitoring and history logging.
 - **Program On Air Integration**: Displays current program details (photo, name, presenters, air time, description) using hardcoded schedule (web scraping disabled due to unreliable JavaScript-rendered content). Schedule follows WIB timezone with accurate time range detection. Response always includes "source": "schedule".
