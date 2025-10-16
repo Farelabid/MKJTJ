@@ -461,11 +461,13 @@ async function calculateEMAListenerMinutes() {
     const ALT_session = altSessionConfig ? parseInt(altSessionConfig) : 45;
     
     // Calculate new metrics based on user requirements (Oct 2025):
-    // 1. "Total Pendengar Saat ini" = raw listeners (N) × 11
+    // 1. avgConcurrentListeners for display = raw listeners (N) × 11 (multiplier is for display only!)
     const avgConcurrentListeners = Math.round(N * DEVICE_TO_LISTENER_MULTIPLIER);
     
-    // 2. "TOTAL PENDENGAR" = (PENDENGAR SAAT INI × 8) × percentage progress
-    const estimatedUniqueListeners = Math.round(avgConcurrentListeners * 8 * (progress / 100));
+    // 2. "TOTAL PENDENGAR" (estimated unique) = raw listeners (N) × 8 × percentage progress
+    // NOTE: We use RAW listeners (N) here, NOT the multiplied value!
+    // Multiplier 11x is only for display purposes, not for unique listener calculation
+    const estimatedUniqueListeners = Math.round(N * 8 * (progress / 100));
     
     // Update program stats in database (all values rounded to integers)
     await storage.updateProgramStats(currentProgram, wibDate, {
@@ -484,7 +486,7 @@ async function calculateEMAListenerMinutes() {
     
     state.lastN = N;
     
-    console.log(`[EMA] ${currentProgram}: N=${N}, Nhat=${state.Nhat.toFixed(1)}, Current=${avgConcurrentListeners} (N×11), Total=${estimatedUniqueListeners} (Current×8×progress%)`);
+    console.log(`[EMA] ${currentProgram}: N=${N}, Nhat=${state.Nhat.toFixed(1)}, Current=${avgConcurrentListeners} (N×11), Total=${estimatedUniqueListeners} (N×8×${progress.toFixed(1)}%)`);
     
   } catch (error) {
     console.error(`[EMA] Error calculating EMA:`, error);

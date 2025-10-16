@@ -3,7 +3,15 @@
 ## Overview
 This project is a real-time dashboard for TJ Radio Jakarta, designed to display live streaming statistics from an Icecast server. Its primary purpose is to provide an internal, professional, and easily readable visualization of listener data. Key capabilities include displaying current listeners with a special 4x multiplier, station information, historical data visualization, and a comprehensive configuration management system. The dashboard also features an alert system for threshold notifications and supports both dark/light modes and responsive design. The overarching business vision is to provide TJ Radio Jakarta with robust tools for monitoring listenership, understanding trends, and managing broadcast configurations effectively.
 
-## Recent Changes (October 16, 2025)
+## Recent Changes (October 17, 2025)
+- **CRITICAL FIX - Total Listeners Calculation**: Fixed double multiplication error in estimated unique listeners calculation
+  - OLD (WRONG): estimatedUniqueListeners = (N × 11) × 8 = ~52,800 per program, ~316,000+ per day ❌
+  - NEW (CORRECT): estimatedUniqueListeners = N × 8 × progress% = ~4,800 per program, ~29,000 per day ✅
+  - Multiplier 11x is now ONLY for display ("PENDENGAR SAAT INI"), NOT for unique listener calculation
+  - Result: Daily totals now realistic (~30K instead of 300K+)
+- **Producer Name Correction**: Changed "RAISAN" to "RISAN" in PRODUCER_SCHEDULE and photo mapping
+
+## Previous Changes (October 16, 2025)
 - **Crew On Duty Feature**: Replaced center cassette animation with dynamic staff photos showing current Operator and Producer
   - Displays photos based on shift schedule (Operators: 3 shifts) and program schedule (Producers: 6 programs)
   - Operator shifts: Shift 1 (05:00-12:00), Shift 2 (12:00-19:00), Shift 3 (19:00-24:00)
@@ -74,10 +82,11 @@ The dashboard's design is inspired by Spotify Analytics and SoundCloud Stats, fe
 - **Background Jobs**: Interval-based snapshots (every 5 minutes) to store historical data and check alert thresholds.
 - **Metrics Calculation**:
     - **Radio Stats**: Listeners (current/peak) = Raw Icecast data × Configurable Multiplier (default 11).
-    - **Program Analytics (Updated Oct 2025)**: 
-      * "Total Pendengar Saat ini" = Raw listeners (N) × **11** (direct real-time calculation)
-      * "TOTAL PENDENGAR" = (Total Pendengar Saat ini × 8) × percentage progress
-      * Formula: estimatedUniqueListeners = avgConcurrentListeners × 8 × (progress / 100)
+    - **Program Analytics (Updated Oct 17, 2025 - FIXED CALCULATION)**: 
+      * "PENDENGAR SAAT INI" (for display) = Raw listeners (N) × **11** (multiplier for display ONLY)
+      * "TOTAL PENDENGAR" (estimated unique) = Raw listeners (N) × 8 × percentage progress
+      * Formula: estimatedUniqueListeners = N × 8 × (progress / 100)
+      * NOTE: Multiplier 11x is NOT applied to unique listener calculation!
       * **Progress Calculation (Real-Time)**: Based on current WIB time vs program schedule
         - Calculated on every API request (not from database snapshots)
         - Formula: progress = (elapsedMinutes / programDuration) × 100
