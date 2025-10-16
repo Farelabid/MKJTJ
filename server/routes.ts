@@ -908,6 +908,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // API endpoint for 3-day statistics
   app.get("/api/three-day-stats", async (req, res) => {
     try {
+      // Disable caching to always return fresh data
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      
       const today = getWIBDate();
       const [year, month, day] = today.split('-').map(Number);
       

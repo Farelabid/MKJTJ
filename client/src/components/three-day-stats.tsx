@@ -19,8 +19,11 @@ interface ThreeDayStatsResponse {
 }
 
 export default function ThreeDayStats() {
+  // Force fresh data by adding timestamp to queryKey
+  const timestamp = Math.floor(Date.now() / 30000); // Changes every 30 seconds
+  
   const { data, isLoading } = useQuery<ThreeDayStatsResponse>({
-    queryKey: ["/api/three-day-stats"],
+    queryKey: ["/api/three-day-stats", timestamp],
     refetchInterval: 30000, // Refresh every 30 seconds
     staleTime: 0, // Always fetch fresh data
   });
