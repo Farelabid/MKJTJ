@@ -18,6 +18,13 @@ This project is a real-time dashboard for TJ Radio Jakarta, designed to display 
   4. Visual progress bar with gradient for "% DARI PEAK" (replaces plain text)
   5. Trending indicator with arrow icons (up/down/stable) showing percentage change vs previous update (5% threshold)
   6. Subtle geometric background pattern (diagonal lines) for visual depth
+- **"JUMLAH LISTENERS SEBELUMNYA" Visual Enhancements**: Applied consistent visual improvements to 3-day statistics section:
+  1. Card container with animated gradient border (yellow-to-pink) and glow shadow effects
+  2. Animated Calendar and Trophy icons with pulse and ping effects
+  3. Highlighted highest listener number with yellow (#C4F542) color and neon glow effect
+  4. Enhanced horizontal progress bars with gradient fills and glow effects (extra bright for highest value)
+  5. Pink (#FF69B4) glow on program favorite name
+  6. Subtle diagonal line background pattern matching PENDENGAR SAAT INI section
 
 ## Previous Changes (October 14, 2025)
 - **Program Schedule Update**: Reduced from 7 to 6 programs by removing "Yesterday Hit" (23:00-24:00)
