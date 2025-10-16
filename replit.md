@@ -4,11 +4,16 @@
 This project is a real-time dashboard for TJ Radio Jakarta, designed to display live streaming statistics from an Icecast server. Its primary purpose is to provide an internal, professional, and easily readable visualization of listener data. Key capabilities include displaying current listeners with a special 4x multiplier, station information, historical data visualization, and a comprehensive configuration management system. The dashboard also features an alert system for threshold notifications and supports both dark/light modes and responsive design. The overarching business vision is to provide TJ Radio Jakarta with robust tools for monitoring listenership, understanding trends, and managing broadcast configurations effectively.
 
 ## Recent Changes (October 16, 2025)
+- **Crew On Duty Feature**: Replaced center cassette animation with dynamic staff photos showing current Operator and Producer
+  - Displays photos based on shift schedule (Operators: 3 shifts) and program schedule (Producers: 6 programs)
+  - Operator shifts: Shift 1 (05:00-12:00), Shift 2 (12:00-19:00), Shift 3 (19:00-24:00)
+  - Producer schedule varies by program and weekday (Audrey, Risan/Raisan, Indira, Nayla, Patricia, Luvi, Jhosua/Joshua)
+  - Fallback to "CREW" label and default image for staff without photos (Ade, Internship)
+  - Auto-refresh every 30 seconds, endpoint: `/api/crew-on-duty`
 - **Hero Section Redesign**: Complete redesign of top section with 3-column layout matching new UI mockup
   - Left: Current listeners (pink #FF69B4) & peak stats with yellow (#C4F542) highlights
-  - Center: Looping cassette animation (kasetgif_1760582132231.gif) - GIF format for reliable autoplay
+  - Center: Crew On Duty - Operator and Producer photos with "crewOnDuty" logo header
   - Right: 3-day statistics with horizontal progress bars
-- **Video Format Update**: Replaced MP4 video with GIF (kasetgif_1760582132231.gif) to ensure reliable autoplay looping without browser restrictions
 - **Manual Historical Data**: Added data for 13 Oct (187K) and 15 Oct (193K) to complete 3-day statistics display
 - **3-Day Statistics Update**: Redesigned with horizontal bar charts showing daily listener totals for 3 days BEFORE current day (e.g., if today is Oct 16, shows Oct 13-15), yellow (#C4F542) bars, and "PROGRAM FAVORITE MINGGU INI" label
 - **3-Day Date Calculation Fix**: Corrected timezone handling to properly calculate dates using local timezone instead of UTC conversion, preventing off-by-one date errors
@@ -86,6 +91,20 @@ The dashboard's design is inspired by Spotify Analytics and SoundCloud Stats, fe
 - **Real-time Statistics**: Display of current listeners, peak listeners, and currently playing song with auto-refresh every 30 seconds.
 - **Historical Data**: PostgreSQL database for storing listener statistics snapshots, with time-series charts (24h, 7d, 30d views) and CSV export functionality.
 - **3-Day Statistics Widget**: Top-right dashboard component showing aggregated listener totals from all 6 programs for last 3 days (yesterday, 2 days ago, 3 days ago), with Indonesian date labels (yellow/lime background), formatted listener counts (K/M suffix), and record program display showing which program had highest listeners in the period. Responsive layout (desktop: absolute top-right, mobile: stacked below hero). Auto-refreshes every 30 seconds. Endpoint: `/api/three-day-stats`.
+- **Crew On Duty Widget**: Center hero section component displaying current on-duty staff based on real-time scheduling:
+  - **Operator Schedule** (shift-based, 3 shifts per day): 
+    * Shift 1 (05:00-12:00): Audrey (Mon/Fri/Sat/Sun), Rully (Tue/Wed/Thu)
+    * Shift 2 (12:00-19:00): Jhosua (Mon/Tue/Thu), Ade (Wed/Sun), Rully (Fri/Sat)
+    * Shift 3 (19:00-24:00): Aryo (Mon/Tue/Wed/Sat), Ade (Thu), Jhosua (Fri), Internship (Sun)
+  - **Producer Schedule** (program + weekday-based):
+    * Good Morning Jakarta: Audrey (all days)
+    * Office Hour: Risan (Mon/Thu/Fri/Sat/Sun), Indira (Tue/Wed)
+    * Coffee Break: Nayla (Mon/Wed/Sun), Patricia (Tue/Thu/Fri/Sat)
+    * Drive Time: Luvi (Mon-Fri), Indira (Sat/Sun)
+    * Shift Malam: Jhosua (all days)
+  - Staff photos in military uniform theme (Operators: blue, Producers: green military)
+  - Fallback to generic "CREW" display for staff without photos (Ade, Indira, Internship)
+  - Auto-refresh every 30 seconds. Endpoint: `/api/crew-on-duty`
 - **Admin Dashboard**: `/admin` route for configuring listener multiplier, stream URL, and managing alert thresholds (min/max listeners).
 - **Alert System**: Configurable alert thresholds with real-time monitoring and history logging.
 - **Program On Air Integration**: Displays current program details (photo, name, presenters, air time, description) using hardcoded schedule (web scraping disabled due to unreliable JavaScript-rendered content). Schedule follows WIB timezone with accurate time range detection. Response always includes "source": "schedule".
