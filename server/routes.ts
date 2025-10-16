@@ -37,6 +37,105 @@ const PROGRAM_SCHEDULES = [
   { name: "Shift Malam", startHour: 20, startMin: 0, endHour: 24, endMin: 0, durationMinutes: 240 },
 ];
 
+// Operator shift schedules (WIB timezone)
+const OPERATOR_SHIFTS = {
+  shift1: { startHour: 5, endHour: 12 }, // 05:00-12:00
+  shift2: { startHour: 12, endHour: 19 }, // 12:00-19:00
+  shift3: { startHour: 19, endHour: 24 }, // 19:00-24:00
+  nightShift: { startHour: 0, endHour: 5 }, // 00:00-05:00 (continuation of shift3)
+};
+
+// Operator schedule mapping: [day][shift] = operator_name
+const OPERATOR_SCHEDULE: Record<string, Record<string, string>> = {
+  monday: { shift1: "audrey", shift2: "jhosua", shift3: "aryo" },
+  tuesday: { shift1: "rully", shift2: "jhosua", shift3: "aryo" },
+  wednesday: { shift1: "rully", shift2: "ade", shift3: "aryo" },
+  thursday: { shift1: "rully", shift2: "jhosua", shift3: "ade" },
+  friday: { shift1: "audrey", shift2: "rully", shift3: "jhosua" },
+  saturday: { shift1: "audrey", shift2: "rully", shift3: "aryo" },
+  sunday: { shift1: "audrey", shift2: "ade", shift3: "internship" },
+};
+
+// Producer schedule mapping: [program][day] = producer_name
+const PRODUCER_SCHEDULE: Record<string, Record<string, string>> = {
+  "Good Morning Jakarta": {
+    monday: "audrey", tuesday: "audrey", wednesday: "audrey", thursday: "audrey",
+    friday: "audrey", saturday: "audrey", sunday: "audrey"
+  },
+  "Office Hour": {
+    monday: "raisan", tuesday: "indira", wednesday: "indira", thursday: "raisan",
+    friday: "raisan", saturday: "raisan", sunday: "raisan"
+  },
+  "Coffee Break": {
+    monday: "nayla", tuesday: "patricia", wednesday: "nayla", thursday: "patricia",
+    friday: "patricia", saturday: "patricia", sunday: "nayla"
+  },
+  "Drive Time": {
+    monday: "luvi", tuesday: "luvi", wednesday: "luvi", thursday: "luvi",
+    friday: "luvi", saturday: "indira", sunday: "indira"
+  },
+  "Shift Malam": {
+    monday: "jhosua", tuesday: "jhosua", wednesday: "jhosua", thursday: "jhosua",
+    friday: "jhosua", saturday: "jhosua", sunday: "jhosua"
+  },
+  "Night Flow": {
+    monday: "default", tuesday: "default", wednesday: "default", thursday: "default",
+    friday: "default", saturday: "default", sunday: "default"
+  },
+};
+
+function getDayOfWeekWIB(): string {
+  const now = new Date();
+  const wibOffset = 7 * 60;
+  const localOffset = now.getTimezoneOffset();
+  const wibTime = new Date(now.getTime() + (wibOffset + localOffset) * 60 * 1000);
+  
+  const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+  return days[wibTime.getDay()];
+}
+
+function getCurrentOperatorShift(): string | null {
+  const now = new Date();
+  const wibOffset = 7 * 60;
+  const localOffset = now.getTimezoneOffset();
+  const wibTime = new Date(now.getTime() + (wibOffset + localOffset) * 60 * 1000);
+  
+  const hour = wibTime.getHours();
+  
+  if (hour >= 5 && hour < 12) return "shift1";
+  if (hour >= 12 && hour < 19) return "shift2";
+  if (hour >= 19 && hour < 24) return "shift3";
+  if (hour >= 0 && hour < 5) return "shift3"; // Night continuation
+  
+  return null;
+}
+
+function getCrewPhotoPath(role: "operator" | "produser", name: string): string {
+  const normalizedName = name.toLowerCase();
+  
+  // Check if photo exists, otherwise return fallback
+  const availablePhotos: Record<string, string> = {
+    // Operators
+    "aryo_operator": "/attached_assets/aryo_operator_1760588382907.png",
+    "audrey_operator": "/attached_assets/audrey_operator_1760588382907.png",
+    "jhosua_operator": "/attached_assets/jhosua_operator_1760588382908.png",
+    "rully_operator": "/attached_assets/rully_operator_1760588382908.png",
+    
+    // Producers
+    "audrey_produser": "/attached_assets/audrey_produser_1760588382908.png",
+    "jhosua_produser": "/attached_assets/jhosua_produser_1760588382908.png",
+    "luvi_produser": "/attached_assets/luvi_produser_1760588382908.png",
+    "nayla_produser": "/attached_assets/nayla_produser_1760588382908.png",
+    "patricia_produser": "/attached_assets/patricia_produser_1760588382908.png",
+    "raisan_produser": "/attached_assets/raisan_produser_1760588382908.png",
+  };
+  
+  const key = `${normalizedName}_${role}`;
+  
+  // Return specific photo or fallback
+  return availablePhotos[key] || "/attached_assets/CREWONDUTY_1760588402336.png";
+}
+
 function getCurrentProgramWIB(): string | null {
   const now = new Date();
   const wibOffset = 7 * 60; // WIB is UTC+7
@@ -982,6 +1081,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching 3-day stats:", error);
       res.status(500).json({ error: "Failed to fetch 3-day statistics" });
+    }
+  });
+
+  // API endpoint for crew on duty (Operator + Producer)
+  app.get("/api/crew-on-duty", async (req, res) => {
+    try {
+      const currentProgram = getCurrentProgramWIB();
+      const currentDay = getDayOfWeekWIB();
+      const currentShift = getCurrentOperatorShift();
+      
+      if (!currentProgram || !currentDay || !currentShift) {
+        return res.status(500).json({ 
+          error: "Unable to determine current program, day, or shift" 
+        });
+      }
+      
+      // Get operator name from schedule
+      const operatorName = OPERATOR_SCHEDULE[currentDay]?.[currentShift] || "unknown";
+      
+      // Get producer name from schedule
+      const producerName = PRODUCER_SCHEDULE[currentProgram]?.[currentDay] || "default";
+      
+      // Get photo paths
+      const operatorPhoto = getCrewPhotoPath("operator", operatorName);
+      const producerPhoto = getCrewPhotoPath("produser", producerName);
+      
+      // Format names for display
+      const formatName = (name: string) => {
+        if (name === "unknown" || name === "default" || name === "internship" || name === "ade") {
+          return "CREW";
+        }
+        return name.toUpperCase();
+      };
+      
+      res.json({
+        operator: {
+          name: formatName(operatorName),
+          photoUrl: operatorPhoto,
+        },
+        producer: {
+          name: formatName(producerName),
+          photoUrl: producerPhoto,
+        },
+        currentProgram,
+        currentDay,
+        currentShift,
+      });
+    } catch (error) {
+      console.error("Error fetching crew on duty:", error);
+      res.status(500).json({ error: "Failed to fetch crew on duty" });
     }
   });
 

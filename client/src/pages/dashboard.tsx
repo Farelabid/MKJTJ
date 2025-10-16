@@ -14,6 +14,7 @@ import { ProgramListeners } from "@/components/program-listeners";
 import { OnAirProgram } from "@/components/on-air-program";
 import { ComingUpNext } from "@/components/coming-up-next";
 import ThreeDayStats from "@/components/three-day-stats";
+import CrewOnDuty from "@/components/crew-on-duty";
 import { useToast } from "@/hooks/use-toast";
 import tjRadioLogo from "@assets/logo_official_tj_1760323825293.png";
 import sponsorHeaderImage from "@assets/back_header_1760419724787.png";
@@ -391,16 +392,9 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Center: Cassette GIF (Autoplay Looping) */}
+            {/* Center: Crew On Duty (Operator + Producer Photos) */}
             <div className="flex items-center justify-center">
-              <div className="relative w-full max-w-sm aspect-video rounded-lg overflow-hidden bg-black/20">
-                <img
-                  src="/attached_assets/kasetgif_1760582132231.gif?v=2"
-                  alt="TJ Radio Jakarta Cassette Animation"
-                  className="w-full h-full object-cover"
-                  data-testid="image-hero-cassette"
-                />
-              </div>
+              <CrewOnDuty />
             </div>
 
             {/* Right: 3-Day Stats with Horizontal Bars */}
