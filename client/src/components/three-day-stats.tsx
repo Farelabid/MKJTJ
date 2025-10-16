@@ -52,7 +52,7 @@ export default function ThreeDayStats() {
   const maxListeners = Math.max(...data.dailyStats.map(s => s.totalListeners), 1);
 
   return (
-    <div className="relative" data-testid="card-three-day-stats">
+    <div className="relative h-full" data-testid="card-three-day-stats">
       {/* Background Pattern */}
       <div 
         className="absolute inset-0 opacity-10 rounded-xl"
@@ -69,13 +69,13 @@ export default function ThreeDayStats() {
       
       {/* Card Container with Gradient Border & Glow */}
       <div 
-        className="relative rounded-xl p-[2px] animate-gradient-rotate"
+        className="relative rounded-xl p-[2px] animate-gradient-rotate h-full"
         style={{
           background: 'linear-gradient(90deg, #C4F542, #FF69B4, #C4F542, #FF69B4)',
           backgroundSize: '300% 100%'
         }}
       >
-        <div className="relative bg-card/95 backdrop-blur-sm rounded-xl p-5 shadow-[0_0_30px_rgba(196,245,66,0.3),0_0_60px_rgba(255,105,180,0.2)]">
+        <div className="relative bg-card/95 backdrop-blur-sm rounded-xl p-5 shadow-[0_0_30px_rgba(196,245,66,0.3),0_0_60px_rgba(255,105,180,0.2)] h-full">
           {/* Header with Animated Icon */}
           <div className="flex items-center gap-2 mb-4">
             <div className="relative">

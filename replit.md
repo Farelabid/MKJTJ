@@ -25,6 +25,7 @@ This project is a real-time dashboard for TJ Radio Jakarta, designed to display 
   4. Enhanced horizontal progress bars with gradient fills and glow effects (extra bright for highest value)
   5. Pink (#FF69B4) glow on program favorite name
   6. Subtle diagonal line background pattern matching PENDENGAR SAAT INI section
+- **Hero Section Layout Balance**: Updated grid layout to use `items-stretch` and added `h-full` to both "PENDENGAR SAAT INI" and "JUMLAH LISTENERS SEBELUMNYA" cards for equal height and balanced appearance
 
 ## Previous Changes (October 14, 2025)
 - **Program Schedule Update**: Reduced from 7 to 6 programs by removing "Yesterday Hit" (23:00-24:00)

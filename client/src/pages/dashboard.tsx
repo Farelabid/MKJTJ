@@ -268,9 +268,9 @@ export default function Dashboard() {
       <main className="max-w-7xl mx-auto px-4 py-8 space-y-8">
         {/* Hero Statistics - Redesigned 3 Column Layout */}
         <section className="bg-card/30 backdrop-blur-sm rounded-lg p-6 lg:p-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-stretch">
             {/* Left: Current Listeners & Peak - Enhanced with 6 Visual Features */}
-            <div className="relative">
+            <div className="relative flex flex-col">
               {/* Background Pattern (Feature 6) */}
               <div 
                 className="absolute inset-0 opacity-10 rounded-xl"
@@ -293,13 +293,13 @@ export default function Dashboard() {
               
               {/* Card Container with Gradient Border & Glow (Feature 1) */}
               <div 
-                className="relative rounded-xl p-[2px] animate-gradient-rotate"
+                className="relative rounded-xl p-[2px] animate-gradient-rotate h-full"
                 style={{
                   background: 'linear-gradient(90deg, #FF69B4, #C4F542, #FF69B4, #C4F542)',
                   backgroundSize: '300% 100%'
                 }}
               >
-                <div className="relative bg-card/95 backdrop-blur-sm rounded-xl p-6 shadow-[0_0_30px_rgba(255,105,180,0.3),0_0_60px_rgba(196,245,66,0.2)]">
+                <div className="relative bg-card/95 backdrop-blur-sm rounded-xl p-6 shadow-[0_0_30px_rgba(255,105,180,0.3),0_0_60px_rgba(196,245,66,0.2)] h-full">
                   <div className="text-center lg:text-left space-y-4">
                     {/* Header with Animated Icons (Feature 2) */}
                     <div className="flex items-center justify-center lg:justify-start gap-2">
@@ -408,7 +408,7 @@ export default function Dashboard() {
             </div>
 
             {/* Right: 3-Day Stats with Horizontal Bars */}
-            <div>
+            <div className="flex flex-col h-full">
               <ThreeDayStats />
             </div>
           </div>
