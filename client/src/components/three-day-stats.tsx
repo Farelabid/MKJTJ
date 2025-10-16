@@ -22,6 +22,7 @@ export default function ThreeDayStats() {
   const { data, isLoading } = useQuery<ThreeDayStatsResponse>({
     queryKey: ["/api/three-day-stats"],
     refetchInterval: 30000, // Refresh every 30 seconds
+    staleTime: 0, // Always fetch fresh data
   });
 
   if (isLoading || !data) {

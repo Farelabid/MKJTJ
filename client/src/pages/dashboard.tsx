@@ -395,7 +395,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-center">
               <div className="relative w-full max-w-sm aspect-video rounded-lg overflow-hidden bg-black/20">
                 <img
-                  src="/attached_assets/kasetgif_1760582132231.gif"
+                  src="/attached_assets/kasetgif_1760582132231.gif?v=2"
                   alt="TJ Radio Jakarta Cassette Animation"
                   className="w-full h-full object-cover"
                   data-testid="image-hero-cassette"
