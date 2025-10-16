@@ -227,70 +227,61 @@ export default function Dashboard() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-8 space-y-8">
-        {/* Hero Statistics */}
-        <section className="relative">
-          {/* 3-Day Stats - Top Right Corner */}
-          <div className="absolute top-0 right-0 hidden lg:block w-64">
-            <ThreeDayStats />
-          </div>
-          
-          <div className="text-center space-y-4 lg:pr-72">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground mb-2">
+        {/* Hero Statistics - Redesigned 3 Column Layout */}
+        <section className="bg-card/30 backdrop-blur-sm rounded-lg p-6 lg:p-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-center">
+            {/* Left: Current Listeners & Peak */}
+            <div className="text-center lg:text-left space-y-3">
+              <p className="text-xs font-bold text-[#C4F542] tracking-wider">
                 PENDENGAR SAAT INI
               </p>
               {isLoading ? (
-                <Skeleton className="h-24 w-64 mx-auto" />
+                <Skeleton className="h-20 w-48 mx-auto lg:mx-0" />
               ) : (
                 <div className="animate-counter-up">
-                  <h2 className="text-6xl md:text-7xl font-bold font-mono tracking-tight" data-testid="text-listeners-current">
+                  <h2 className="text-5xl lg:text-6xl font-bold font-mono tracking-tight text-[#C4F542]" data-testid="text-listeners-current">
                     {stats?.listenersCurrent.toLocaleString()}
                   </h2>
                 </div>
               )}
-            </div>
-            
-            <div className="flex items-center justify-center gap-4 flex-wrap">
-              {isLoading ? (
-                <Skeleton className="h-8 w-48" />
-              ) : (
-                <>
-                  <Badge variant="secondary" className="px-4 py-2 text-sm">
-                    <Users className="h-4 w-4 mr-1" />
-                    PEAK - LONJAKAN LISTENER TERTINGGI : {stats?.listenersPeak.toLocaleString()}
-                  </Badge>
-                  <Badge 
-                    variant="outline" 
-                    className="px-4 py-2 text-sm"
-                    style={{ 
-                      borderColor: getRatioColor(),
-                      color: getRatioColor() 
-                    }}
-                  >
-                    {getListenerRatio().toFixed(0)}% dari Peak
-                  </Badge>
-                </>
+              
+              {!isLoading && stats && (
+                <div className="space-y-2">
+                  <div className="text-left">
+                    <span className="text-sm text-[#C4F542] font-bold">PEAK </span>
+                    <span className="text-2xl font-bold font-mono text-[#C4F542]">
+                      {stats.listenersPeak.toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="text-left">
+                    <span className="text-sm font-bold" style={{ color: getRatioColor() }}>
+                      {getListenerRatio().toFixed(0)}% DARI PEAK
+                    </span>
+                  </div>
+                </div>
               )}
             </div>
 
-            {/* Progress Bar */}
-            {!isLoading && stats && (
-              <div className="max-w-md mx-auto">
-                <Progress 
-                  value={getListenerRatio()} 
-                  className="h-2"
-                  style={{
-                    // @ts-ignore
-                    '--progress-background': getRatioColor()
-                  }}
-                />
+            {/* Center: Video Cassette */}
+            <div className="flex items-center justify-center">
+              <div className="relative w-full max-w-sm aspect-video rounded-lg overflow-hidden bg-black/20">
+                <video
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="w-full h-full object-cover"
+                  data-testid="video-hero-cassette"
+                >
+                  <source src="/attached_assets/kaset_1760576961949.mp4" type="video/mp4" />
+                </video>
               </div>
-            )}
-          </div>
-          
-          {/* 3-Day Stats - Mobile View */}
-          <div className="lg:hidden mt-6">
-            <ThreeDayStats />
+            </div>
+
+            {/* Right: 3-Day Stats with Horizontal Bars */}
+            <div>
+              <ThreeDayStats />
+            </div>
           </div>
         </section>
 
