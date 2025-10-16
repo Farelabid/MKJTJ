@@ -108,6 +108,11 @@ export default {
           from: { opacity: "0" },
           to: { opacity: "1" },
         },
+        "gradient-rotate": {
+          "0%": { backgroundPosition: "0% 50%" },
+          "50%": { backgroundPosition: "100% 50%" },
+          "100%": { backgroundPosition: "0% 50%" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -115,6 +120,7 @@ export default {
         "pulse-slow": "pulse-slow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
         "counter-up": "counter-up 0.3s ease-out",
         "fade-in": "fade-in 0.2s ease-in",
+        "gradient-rotate": "gradient-rotate 3s ease infinite",
       },
     },
   },

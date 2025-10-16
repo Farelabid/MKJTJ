@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { RadioStats } from "@shared/schema";
 import { useState, useEffect } from "react";
-import { Radio, Users, Signal, ExternalLink, RefreshCw, Copy, Check, Settings } from "lucide-react";
+import { Radio, Users, Signal, ExternalLink, RefreshCw, Copy, Check, Settings, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { Link } from "wouter";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,8 @@ export default function Dashboard() {
   const [autoRefreshCountdown, setAutoRefreshCountdown] = useState(30);
   const [copied, setCopied] = useState(false);
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
+  const [previousListeners, setPreviousListeners] = useState<number | null>(null);
+  const [trend, setTrend] = useState<'up' | 'down' | 'stable'>('stable');
   const { toast } = useToast();
 
   const { data: stats, isLoading, error, refetch } = useQuery<RadioStats>({
@@ -40,6 +42,25 @@ export default function Dashboard() {
       });
     }
   }, [stats]);
+
+  // Track listener trend
+  useEffect(() => {
+    if (stats && stats.listenersCurrent !== undefined) {
+      if (previousListeners !== null) {
+        const diff = stats.listenersCurrent - previousListeners;
+        const threshold = previousListeners * 0.05; // 5% change threshold
+        
+        if (diff > threshold) {
+          setTrend('up');
+        } else if (diff < -threshold) {
+          setTrend('down');
+        } else {
+          setTrend('stable');
+        }
+      }
+      setPreviousListeners(stats.listenersCurrent);
+    }
+  }, [stats?.listenersCurrent]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -120,6 +141,24 @@ export default function Dashboard() {
     if (ratio >= 80) return "hsl(var(--chart-3))";
     if (ratio >= 50) return "hsl(var(--chart-5))";
     return "hsl(var(--chart-1))";
+  };
+
+  const getTrendPercentage = () => {
+    if (!stats || !previousListeners || previousListeners === 0) return 0;
+    const diff = stats.listenersCurrent - previousListeners;
+    return ((diff / previousListeners) * 100);
+  };
+
+  const getTrendIcon = () => {
+    if (trend === 'up') return <TrendingUp className="h-4 w-4" />;
+    if (trend === 'down') return <TrendingDown className="h-4 w-4" />;
+    return <Minus className="h-4 w-4" />;
+  };
+
+  const getTrendColor = () => {
+    if (trend === 'up') return 'text-[#C4F542]';
+    if (trend === 'down') return 'text-[#FF69B4]';
+    return 'text-muted-foreground';
   };
 
   const formatDateTime = () => {
@@ -230,36 +269,126 @@ export default function Dashboard() {
         {/* Hero Statistics - Redesigned 3 Column Layout */}
         <section className="bg-card/30 backdrop-blur-sm rounded-lg p-6 lg:p-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-center">
-            {/* Left: Current Listeners & Peak */}
-            <div className="text-center lg:text-left space-y-3">
-              <p className="text-xs font-bold text-[#C4F542] tracking-wider">
-                PENDENGAR SAAT INI
-              </p>
-              {isLoading ? (
-                <Skeleton className="h-20 w-48 mx-auto lg:mx-0" />
-              ) : (
-                <div className="animate-counter-up">
-                  <h2 className="text-5xl lg:text-6xl font-bold font-mono tracking-tight text-[#FF69B4]" data-testid="text-listeners-current">
-                    {stats?.listenersCurrent.toLocaleString()}
-                  </h2>
-                </div>
-              )}
+            {/* Left: Current Listeners & Peak - Enhanced with 6 Visual Features */}
+            <div className="relative">
+              {/* Background Pattern (Feature 6) */}
+              <div 
+                className="absolute inset-0 opacity-10 rounded-xl"
+                style={{
+                  backgroundImage: `repeating-linear-gradient(
+                    45deg,
+                    transparent,
+                    transparent 10px,
+                    rgba(196, 245, 66, 0.1) 10px,
+                    rgba(196, 245, 66, 0.1) 20px
+                  ), repeating-linear-gradient(
+                    -45deg,
+                    transparent,
+                    transparent 10px,
+                    rgba(255, 105, 180, 0.1) 10px,
+                    rgba(255, 105, 180, 0.1) 20px
+                  )`
+                }}
+              />
               
-              {!isLoading && stats && (
-                <div className="space-y-2">
-                  <div className="text-left">
-                    <span className="text-sm text-[#C4F542] font-bold">PEAK </span>
-                    <span className="text-2xl font-bold font-mono text-[#C4F542]">
-                      {stats.listenersPeak.toLocaleString()}
-                    </span>
-                  </div>
-                  <div className="text-left">
-                    <span className="text-sm font-bold" style={{ color: getRatioColor() }}>
-                      {getListenerRatio().toFixed(0)}% DARI PEAK
-                    </span>
+              {/* Card Container with Gradient Border & Glow (Feature 1) */}
+              <div 
+                className="relative rounded-xl p-[2px] animate-gradient-rotate"
+                style={{
+                  background: 'linear-gradient(90deg, #FF69B4, #C4F542, #FF69B4, #C4F542)',
+                  backgroundSize: '300% 100%'
+                }}
+              >
+                <div className="relative bg-card/95 backdrop-blur-sm rounded-xl p-6 shadow-[0_0_30px_rgba(255,105,180,0.3),0_0_60px_rgba(196,245,66,0.2)]">
+                  <div className="text-center lg:text-left space-y-4">
+                    {/* Header with Animated Icons (Feature 2) */}
+                    <div className="flex items-center justify-center lg:justify-start gap-2">
+                      <div className="relative">
+                        <Signal className="h-4 w-4 text-[#C4F542] animate-pulse" />
+                        <div className="absolute inset-0 animate-ping opacity-75">
+                          <Signal className="h-4 w-4 text-[#C4F542]" />
+                        </div>
+                      </div>
+                      <p className="text-xs font-bold text-[#C4F542] tracking-wider">
+                        PENDENGAR SAAT INI
+                      </p>
+                      <div className="relative">
+                        <Radio className="h-4 w-4 text-[#FF69B4] animate-pulse" />
+                        <div className="absolute inset-0 animate-ping opacity-75" style={{ animationDelay: '0.5s' }}>
+                          <Radio className="h-4 w-4 text-[#FF69B4]" />
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {isLoading ? (
+                      <Skeleton className="h-20 w-48 mx-auto lg:mx-0" />
+                    ) : (
+                      <div className="animate-counter-up">
+                        {/* Big Number with Glow Effect (Feature 3) */}
+                        <h2 
+                          className="text-5xl lg:text-6xl font-bold font-mono tracking-tight text-[#FF69B4]"
+                          style={{
+                            textShadow: '0 0 20px rgba(255, 105, 180, 0.6), 0 0 40px rgba(255, 105, 180, 0.4), 0 0 60px rgba(255, 105, 180, 0.2)'
+                          }}
+                          data-testid="text-listeners-current"
+                        >
+                          {stats?.listenersCurrent.toLocaleString()}
+                        </h2>
+                      </div>
+                    )}
+                    
+                    {!isLoading && stats && (
+                      <div className="space-y-3">
+                        {/* Trending Indicator (Feature 5) */}
+                        {previousListeners !== null && (
+                          <div className="flex items-center justify-center lg:justify-start gap-2">
+                            <div className={`flex items-center gap-1 ${getTrendColor()}`}>
+                              {getTrendIcon()}
+                              <span className="text-sm font-bold">
+                                {Math.abs(getTrendPercentage()).toFixed(1)}%
+                              </span>
+                            </div>
+                            <span className="text-xs text-muted-foreground">
+                              vs update terakhir
+                            </span>
+                          </div>
+                        )}
+                        
+                        {/* Peak Stats */}
+                        <div className="text-left space-y-1">
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-sm text-[#C4F542] font-bold">PEAK</span>
+                            <span className="text-2xl font-bold font-mono text-[#C4F542]" style={{
+                              textShadow: '0 0 15px rgba(196, 245, 66, 0.5)'
+                            }}>
+                              {stats.listenersPeak.toLocaleString()}
+                            </span>
+                          </div>
+                          
+                          {/* Progress Bar Visual (Feature 4) */}
+                          <div className="space-y-1">
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="font-bold" style={{ color: getRatioColor() }}>
+                                {getListenerRatio().toFixed(0)}% DARI PEAK
+                              </span>
+                            </div>
+                            <div className="relative h-2 bg-background/50 rounded-full overflow-hidden">
+                              <div 
+                                className="absolute inset-y-0 left-0 rounded-full transition-all duration-1000 ease-out"
+                                style={{
+                                  width: `${getListenerRatio()}%`,
+                                  background: `linear-gradient(90deg, ${getRatioColor()}, ${getRatioColor()}99)`,
+                                  boxShadow: `0 0 10px ${getRatioColor()}`
+                                }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
-              )}
+              </div>
             </div>
 
             {/* Center: Video Cassette */}
