@@ -13,6 +13,7 @@ import { HistoricalChart } from "@/components/historical-chart";
 import { ProgramListeners } from "@/components/program-listeners";
 import { OnAirProgram } from "@/components/on-air-program";
 import { ComingUpNext } from "@/components/coming-up-next";
+import ThreeDayStats from "@/components/three-day-stats";
 import { useToast } from "@/hooks/use-toast";
 import tjRadioLogo from "@assets/logo_official_tj_1760323825293.png";
 import sponsorHeaderImage from "@assets/back_header_1760419724787.png";
@@ -227,58 +228,70 @@ export default function Dashboard() {
 
       <main className="max-w-7xl mx-auto px-4 py-8 space-y-8">
         {/* Hero Statistics */}
-        <section className="text-center space-y-4">
-          <div>
-            <p className="text-sm font-medium text-muted-foreground mb-2">
-              PENDENGAR SAAT INI
-            </p>
-            {isLoading ? (
-              <Skeleton className="h-24 w-64 mx-auto" />
-            ) : (
-              <div className="animate-counter-up">
-                <h2 className="text-6xl md:text-7xl font-bold font-mono tracking-tight" data-testid="text-listeners-current">
-                  {stats?.listenersCurrent.toLocaleString()}
-                </h2>
+        <section className="relative">
+          {/* 3-Day Stats - Top Right Corner */}
+          <div className="absolute top-0 right-0 hidden lg:block w-64">
+            <ThreeDayStats />
+          </div>
+          
+          <div className="text-center space-y-4 lg:pr-72">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground mb-2">
+                PENDENGAR SAAT INI
+              </p>
+              {isLoading ? (
+                <Skeleton className="h-24 w-64 mx-auto" />
+              ) : (
+                <div className="animate-counter-up">
+                  <h2 className="text-6xl md:text-7xl font-bold font-mono tracking-tight" data-testid="text-listeners-current">
+                    {stats?.listenersCurrent.toLocaleString()}
+                  </h2>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex items-center justify-center gap-4 flex-wrap">
+              {isLoading ? (
+                <Skeleton className="h-8 w-48" />
+              ) : (
+                <>
+                  <Badge variant="secondary" className="px-4 py-2 text-sm">
+                    <Users className="h-4 w-4 mr-1" />
+                    PEAK - LONJAKAN LISTENER TERTINGGI : {stats?.listenersPeak.toLocaleString()}
+                  </Badge>
+                  <Badge 
+                    variant="outline" 
+                    className="px-4 py-2 text-sm"
+                    style={{ 
+                      borderColor: getRatioColor(),
+                      color: getRatioColor() 
+                    }}
+                  >
+                    {getListenerRatio().toFixed(0)}% dari Peak
+                  </Badge>
+                </>
+              )}
+            </div>
+
+            {/* Progress Bar */}
+            {!isLoading && stats && (
+              <div className="max-w-md mx-auto">
+                <Progress 
+                  value={getListenerRatio()} 
+                  className="h-2"
+                  style={{
+                    // @ts-ignore
+                    '--progress-background': getRatioColor()
+                  }}
+                />
               </div>
             )}
           </div>
           
-          <div className="flex items-center justify-center gap-4">
-            {isLoading ? (
-              <Skeleton className="h-8 w-48" />
-            ) : (
-              <>
-                <Badge variant="secondary" className="px-4 py-2 text-sm">
-                  <Users className="h-4 w-4 mr-1" />
-                  PEAK - LONJAKAN LISTENER TERTINGGI : {stats?.listenersPeak.toLocaleString()}
-                </Badge>
-                <Badge 
-                  variant="outline" 
-                  className="px-4 py-2 text-sm"
-                  style={{ 
-                    borderColor: getRatioColor(),
-                    color: getRatioColor() 
-                  }}
-                >
-                  {getListenerRatio().toFixed(0)}% dari Peak
-                </Badge>
-              </>
-            )}
+          {/* 3-Day Stats - Mobile View */}
+          <div className="lg:hidden mt-6">
+            <ThreeDayStats />
           </div>
-
-          {/* Progress Bar */}
-          {!isLoading && stats && (
-            <div className="max-w-md mx-auto">
-              <Progress 
-                value={getListenerRatio()} 
-                className="h-2"
-                style={{
-                  // @ts-ignore
-                  '--progress-background': getRatioColor()
-                }}
-              />
-            </div>
-          )}
         </section>
 
         {/* Coming Up Next & On Air */}

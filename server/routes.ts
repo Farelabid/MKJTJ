@@ -85,6 +85,30 @@ function getColorForProgram(programName: string): string {
   return colors[programName] || "#FDD835";
 }
 
+function formatDateIndonesian(dateStr: string): string {
+  // Parse YYYY-MM-DD format
+  const [year, month, day] = dateStr.split("-");
+  const monthNames = [
+    "JANUARI", "FEBRUARI", "MARET", "APRIL", "MEI", "JUNI",
+    "JULI", "AGUSTUS", "SEPTEMBER", "OKTOBER", "NOVEMBER", "DESEMBER"
+  ];
+  
+  const monthName = monthNames[parseInt(month) - 1];
+  return `${parseInt(day)} ${monthName}`;
+}
+
+function getDisplayProgramName(programName: string): string {
+  const displayNames: Record<string, string> = {
+    "Night Flow": "nightFLOW",
+    "Good Morning Jakarta": "good MORNING JAKARTA",
+    "Office Hour": "office HOUR",
+    "Coffee Break": "coffee BREAK",
+    "Drive Time": "drive TIME",
+    "Shift Malam": "shift MALAM",
+  };
+  return displayNames[programName] || programName.toUpperCase();
+}
+
 async function saveStatsSnapshot() {
   const maxRetries = 3;
   let lastError: any;
@@ -878,6 +902,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error exporting CSV:", error);
       res.status(500).json({ error: "Failed to export CSV" });
+    }
+  });
+
+  // API endpoint for 3-day statistics
+  app.get("/api/three-day-stats", async (req, res) => {
+    try {
+      const today = getWIBDate();
+      const todayDate = new Date(today + "T00:00:00+07:00");
+      
+      // Calculate dates for last 3 days (yesterday, 2 days ago, 3 days ago)
+      const dates = [];
+      for (let i = 1; i <= 3; i++) {
+        const date = new Date(todayDate);
+        date.setDate(date.getDate() - i);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        dates.push(`${year}-${month}-${day}`);
+      }
+      
+      // Get program stats for the last 3 days
+      const dailyStats = await Promise.all(
+        dates.map(async (date) => {
+          const stats = await storage.getAllProgramStatsForDate(date);
+          
+          // Sum up estimated unique listeners from all 6 programs for this day
+          const totalListeners = stats.reduce(
+            (sum: number, stat) => sum + (stat.estimatedUniqueListeners || 0),
+            0
+          );
+          
+          return {
+            date,
+            totalListeners,
+            programs: stats,
+          };
+        })
+      );
+      
+      // Find program with highest listeners across all 3 days
+      let recordProgram = {
+        name: "",
+        listeners: 0,
+      };
+      
+      dailyStats.forEach(({ programs }) => {
+        programs.forEach((stat) => {
+          if (stat.estimatedUniqueListeners > recordProgram.listeners) {
+            recordProgram = {
+              name: stat.programName,
+              listeners: stat.estimatedUniqueListeners,
+            };
+          }
+        });
+      });
+      
+      // Format response
+      const response = {
+        dailyStats: dailyStats.map(({ date, totalListeners }) => ({
+          date,
+          totalListeners,
+          formattedDate: formatDateIndonesian(date),
+        })),
+        recordProgram: {
+          name: recordProgram.name,
+          listeners: recordProgram.listeners,
+          displayName: getDisplayProgramName(recordProgram.name),
+        },
+      };
+      
+      res.json(response);
+    } catch (error) {
+      console.error("Error fetching 3-day stats:", error);
+      res.status(500).json({ error: "Failed to fetch 3-day statistics" });
     }
   });
 
