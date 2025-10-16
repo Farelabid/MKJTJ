@@ -909,17 +909,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/three-day-stats", async (req, res) => {
     try {
       const today = getWIBDate();
-      const todayDate = new Date(today + "T00:00:00+07:00");
+      const [year, month, day] = today.split('-').map(Number);
       
       // Calculate dates for last 3 days (yesterday, 2 days ago, 3 days ago)
       const dates = [];
       for (let i = 1; i <= 3; i++) {
-        const date = new Date(todayDate);
+        // Create date in local timezone to avoid UTC conversion issues
+        const date = new Date(year, month - 1, day);
         date.setDate(date.getDate() - i);
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        dates.push(`${year}-${month}-${day}`);
+        const dateYear = date.getFullYear();
+        const dateMonth = String(date.getMonth() + 1).padStart(2, '0');
+        const dateDay = String(date.getDate()).padStart(2, '0');
+        dates.push(`${dateYear}-${dateMonth}-${dateDay}`);
       }
       
       // Get program stats for the last 3 days
