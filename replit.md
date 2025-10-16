@@ -9,7 +9,15 @@ This project is a real-time dashboard for TJ Radio Jakarta, designed to display 
   - Center: Looping video cassette (kaset_1760576961949.mp4) with autoplay
   - Right: 3-day statistics with horizontal progress bars
 - **3-Day Statistics Update**: Redesigned with horizontal bar charts showing daily listener totals for 3 days BEFORE current day (e.g., if today is Oct 16, shows Oct 13-15), yellow (#C4F542) bars, and "PROGRAM FAVORITE MINGGU INI" label
+- **3-Day Date Calculation Fix**: Corrected timezone handling to properly calculate dates using local timezone instead of UTC conversion, preventing off-by-one date errors
 - **Sponsor Image Enlargement**: Header sponsor image (TransJakarta, JXB logos) enlarged to 82px height (130% then 120% progressive scaling) for better visibility
+- **"PENDENGAR SAAT INI" Visual Enhancements**: Implemented 6 visual improvements for better aesthetics and user engagement:
+  1. Card container with animated gradient border (pink-to-yellow) and glow shadow effects
+  2. Animated radio wave/signal icons with pulse and ping effects as visual indicators
+  3. Neon glow effect on large listener numbers using multi-layer text-shadow
+  4. Visual progress bar with gradient for "% DARI PEAK" (replaces plain text)
+  5. Trending indicator with arrow icons (up/down/stable) showing percentage change vs previous update (5% threshold)
+  6. Subtle geometric background pattern (diagonal lines) for visual depth
 
 ## Previous Changes (October 14, 2025)
 - **Program Schedule Update**: Reduced from 7 to 6 programs by removing "Yesterday Hit" (23:00-24:00)
