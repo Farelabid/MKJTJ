@@ -4,7 +4,11 @@
 This project is a real-time dashboard for TJ Radio Jakarta, designed to display live streaming statistics from an Icecast server. Its primary purpose is to provide an internal, professional, and easily readable visualization of listener data. Key capabilities include displaying current listeners with a special 4x multiplier, station information, historical data visualization, and a comprehensive configuration management system. The dashboard also features an alert system for threshold notifications and supports both dark/light modes and responsive design. The overarching business vision is to provide TJ Radio Jakarta with robust tools for monitoring listenership, understanding trends, and managing broadcast configurations effectively.
 
 ## Recent Changes (October 16, 2025)
-- **3-Day Statistics Component**: Added top-right dashboard widget showing aggregated listener totals from all 6 programs for last 3 days (yesterday through 3 days ago), with record program identification displaying program with highest listeners in that period
+- **Hero Section Redesign**: Complete redesign of top section with 3-column layout matching new UI mockup
+  - Left: Current listeners & peak stats with yellow (#C4F542) highlights
+  - Center: Looping video cassette (kaset_1760576961949.mp4) with autoplay
+  - Right: 3-day statistics with horizontal progress bars
+- **3-Day Statistics Update**: Redesigned with horizontal bar charts showing daily listener totals, yellow (#C4F542) bars, and "PROGRAM FAVORITE MINGGU INI" label
 - **Sponsor Image Enlargement**: Header sponsor image (TransJakarta, JXB logos) enlarged to 82px height (130% then 120% progressive scaling) for better visibility
 
 ## Previous Changes (October 14, 2025)
