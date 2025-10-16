@@ -1167,6 +1167,127 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // API endpoint to recalculate program stats for a specific date
+  app.post("/api/recalculate-date", async (req, res) => {
+    try {
+      const { date } = req.body;
+      
+      if (!date) {
+        return res.status(400).json({ error: "Date is required (format: YYYY-MM-DD)" });
+      }
+      
+      console.log(`[Recalculate] Starting recalculation for date: ${date}`);
+      
+      // Get all snapshots for this date
+      const snapshots = await storage.getSnapshotsForDate(date);
+      
+      if (snapshots.length === 0) {
+        return res.status(404).json({ error: `No snapshots found for date: ${date}` });
+      }
+      
+      console.log(`[Recalculate] Found ${snapshots.length} snapshots for ${date}`);
+      
+      // Group snapshots by program based on timestamp
+      const programSnapshots: Map<string, Array<{ timestamp: Date, listenersRaw: number }>> = new Map();
+      
+      for (const snapshot of snapshots) {
+        const snapshotTime = new Date(snapshot.timestamp);
+        const hour = snapshotTime.getUTCHours() + 7; // Convert to WIB
+        const minute = snapshotTime.getUTCMinutes();
+        const minutesSinceMidnight = (hour % 24) * 60 + minute;
+        
+        // Find which program this snapshot belongs to
+        let programName: string | null = null;
+        for (const program of PROGRAM_SCHEDULES) {
+          const programStartMinutes = program.startHour * 60 + program.startMin;
+          const programEndMinutes = program.endHour * 60 + program.endMin;
+          
+          if (programEndMinutes === 0 || programEndMinutes === 1440) {
+            // Special case for midnight crossing (Shift Malam ends at 00:00)
+            if (minutesSinceMidnight >= programStartMinutes || minutesSinceMidnight < 60) {
+              programName = program.name;
+              break;
+            }
+          } else if (minutesSinceMidnight >= programStartMinutes && minutesSinceMidnight < programEndMinutes) {
+            programName = program.name;
+            break;
+          }
+        }
+        
+        if (programName) {
+          if (!programSnapshots.has(programName)) {
+            programSnapshots.set(programName, []);
+          }
+          programSnapshots.get(programName)!.push({
+            timestamp: snapshotTime,
+            listenersRaw: snapshot.listenersRaw,
+          });
+        }
+      }
+      
+      console.log(`[Recalculate] Grouped into ${programSnapshots.size} programs`);
+      
+      // Calculate stats for each program
+      const results = [];
+      for (const [programName, programData] of Array.from(programSnapshots)) {
+        if (programData.length === 0) continue;
+        
+        // Calculate average raw listeners (N) for this program
+        const totalRaw = programData.reduce((sum: number, s: { timestamp: Date; listenersRaw: number }) => sum + s.listenersRaw, 0);
+        const avgN = Math.round(totalRaw / programData.length);
+        
+        // Get program schedule
+        const programSchedule = PROGRAM_SCHEDULES.find(p => p.name === programName);
+        if (!programSchedule) continue;
+        
+        // For historical data recalculation, assume program completed (100% progress)
+        const progress = 100;
+        
+        // Calculate using NEW formula (Oct 17, 2025):
+        // PENDENGAR SAAT INI = N × 11
+        const avgConcurrentListeners = avgN * DEVICE_TO_LISTENER_MULTIPLIER;
+        
+        // TOTAL PENDENGAR = PENDENGAR SAAT INI × 6 × progress%
+        const estimatedUniqueListeners = Math.round(avgConcurrentListeners * 6 * (progress / 100));
+        
+        // Save to database
+        await storage.updateProgramStats(programName, date, {
+          LM: 0, // Not calculated for historical recalculation
+          LMhat: 0, // Not calculated for historical recalculation
+          Nhat: avgN, // Use average raw listeners as Nhat
+          baseline: avgN,
+          avgConcurrentListeners,
+          estimatedUniqueListeners,
+          progress,
+          elapsedMinutes: programSchedule.durationMinutes,
+          startTime: `${String(programSchedule.startHour).padStart(2, '0')}:${String(programSchedule.startMin).padStart(2, '0')}`,
+          endTime: `${String(programSchedule.endHour).padStart(2, '0')}:${String(programSchedule.endMin).padStart(2, '0')}`,
+        });
+        
+        results.push({
+          program: programName,
+          snapshots: programData.length,
+          avgRawListeners: avgN,
+          displayListeners: avgConcurrentListeners,
+          estimatedUnique: estimatedUniqueListeners,
+        });
+        
+        console.log(`[Recalculate] ${programName}: N=${avgN}, Display=${avgConcurrentListeners}, Unique=${estimatedUniqueListeners}`);
+      }
+      
+      res.json({
+        success: true,
+        date,
+        programsProcessed: results.length,
+        results,
+      });
+      
+    } catch (error) {
+      console.error("[Recalculate] Error:", error);
+      res.status(500).json({ error: "Failed to recalculate date statistics" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   // Start background job for saving stats snapshots (every 5 minutes)

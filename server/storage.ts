@@ -26,6 +26,7 @@ export interface IStorage {
   saveStatsSnapshot(stats: InsertStatsHistory): Promise<StatsHistory>;
   getStatsHistory(startDate?: Date, endDate?: Date): Promise<StatsHistory[]>;
   getRecentStats(hours: number): Promise<StatsHistory[]>;
+  getSnapshotsForDate(date: string): Promise<StatsHistory[]>;
   
   // Configuration
   getConfig(key: string): Promise<Configuration | undefined>;
@@ -105,6 +106,26 @@ export class DatabaseStorage implements IStorage {
       .from(statsHistory)
       .where(gte(statsHistory.timestamp, startDate))
       .orderBy(desc(statsHistory.timestamp));
+    
+    return results;
+  }
+
+  async getSnapshotsForDate(date: string): Promise<StatsHistory[]> {
+    // Parse date string (YYYY-MM-DD) and create start/end of day in UTC
+    const [year, month, day] = date.split('-').map(Number);
+    const startDate = new Date(Date.UTC(year, month - 1, day, 0, 0, 0));
+    const endDate = new Date(Date.UTC(year, month - 1, day, 23, 59, 59, 999));
+    
+    const results = await db
+      .select()
+      .from(statsHistory)
+      .where(
+        and(
+          gte(statsHistory.timestamp, startDate),
+          lte(statsHistory.timestamp, endDate)
+        )
+      )
+      .orderBy(statsHistory.timestamp);
     
     return results;
   }
