@@ -46,19 +46,20 @@ export default function CrewOnDuty() {
         />
       </div>
 
-      {/* Crew Photos Side by Side */}
-      <div className="flex gap-6 items-end justify-center">
+      {/* Crew Photos Side by Side with Shared Background */}
+      <div 
+        className="flex gap-6 items-end justify-center rounded-lg p-6 relative overflow-hidden"
+        style={{
+          backgroundImage: `url(${backgroundTeamImage})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
+        <div className="absolute inset-0 bg-background/60 backdrop-blur-sm"></div>
+        
         {/* Producer */}
-        <div 
-          className="flex flex-col items-center space-y-2 rounded-lg p-4 relative overflow-hidden"
-          style={{
-            backgroundImage: `url(${backgroundTeamImage})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-          }}
-        >
-          <div className="absolute inset-0 bg-background/60 backdrop-blur-sm"></div>
-          <div className="relative z-10">
+        <div className="flex flex-col items-center space-y-2 relative z-10">
+          <div className="relative">
             <img
               src={data.producer.photoUrl}
               alt={`Producer ${data.producer.name}`}
@@ -66,7 +67,7 @@ export default function CrewOnDuty() {
               data-testid="image-producer"
             />
           </div>
-          <div className="text-center relative z-10">
+          <div className="text-center">
             <p className="text-xl font-bold text-[#C4F542] drop-shadow-lg" data-testid="text-producer-name">
               {data.producer.name}
             </p>
@@ -75,16 +76,8 @@ export default function CrewOnDuty() {
         </div>
 
         {/* Operator */}
-        <div 
-          className="flex flex-col items-center space-y-2 rounded-lg p-4 relative overflow-hidden"
-          style={{
-            backgroundImage: `url(${backgroundTeamImage})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-          }}
-        >
-          <div className="absolute inset-0 bg-background/60 backdrop-blur-sm"></div>
-          <div className="relative z-10">
+        <div className="flex flex-col items-center space-y-2 relative z-10">
+          <div className="relative">
             <img
               src={data.operator.photoUrl}
               alt={`Operator ${data.operator.name}`}
@@ -92,7 +85,7 @@ export default function CrewOnDuty() {
               data-testid="image-operator"
             />
           </div>
-          <div className="text-center relative z-10">
+          <div className="text-center">
             <p className="text-xl font-bold text-[#C4F542] drop-shadow-lg" data-testid="text-operator-name">
               {data.operator.name}
             </p>
