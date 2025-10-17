@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
+import backgroundTeamImage from "@assets/back_team_1760659734255.png";
 
 interface CrewOnDutyData {
   operator: {
@@ -48,38 +49,54 @@ export default function CrewOnDuty() {
       {/* Crew Photos Side by Side */}
       <div className="flex gap-6 items-end justify-center">
         {/* Producer */}
-        <div className="flex flex-col items-center space-y-2">
-          <div className="relative">
+        <div 
+          className="flex flex-col items-center space-y-2 rounded-lg p-4 relative overflow-hidden"
+          style={{
+            backgroundImage: `url(${backgroundTeamImage})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+        >
+          <div className="absolute inset-0 bg-background/60 backdrop-blur-sm"></div>
+          <div className="relative z-10">
             <img
               src={data.producer.photoUrl}
               alt={`Producer ${data.producer.name}`}
-              className="h-48 w-auto object-contain"
+              className="h-48 w-auto object-contain drop-shadow-2xl"
               data-testid="image-producer"
             />
           </div>
-          <div className="text-center">
-            <p className="text-xl font-bold text-[#C4F542]" data-testid="text-producer-name">
+          <div className="text-center relative z-10">
+            <p className="text-xl font-bold text-[#C4F542] drop-shadow-lg" data-testid="text-producer-name">
               {data.producer.name}
             </p>
-            <p className="text-xs text-muted-foreground">PRODUSER</p>
+            <p className="text-xs text-muted-foreground font-semibold">PRODUSER</p>
           </div>
         </div>
 
         {/* Operator */}
-        <div className="flex flex-col items-center space-y-2">
-          <div className="relative">
+        <div 
+          className="flex flex-col items-center space-y-2 rounded-lg p-4 relative overflow-hidden"
+          style={{
+            backgroundImage: `url(${backgroundTeamImage})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+        >
+          <div className="absolute inset-0 bg-background/60 backdrop-blur-sm"></div>
+          <div className="relative z-10">
             <img
               src={data.operator.photoUrl}
               alt={`Operator ${data.operator.name}`}
-              className="h-48 w-auto object-contain"
+              className="h-48 w-auto object-contain drop-shadow-2xl"
               data-testid="image-operator"
             />
           </div>
-          <div className="text-center">
-            <p className="text-xl font-bold text-[#C4F542]" data-testid="text-operator-name">
+          <div className="text-center relative z-10">
+            <p className="text-xl font-bold text-[#C4F542] drop-shadow-lg" data-testid="text-operator-name">
               {data.operator.name}
             </p>
-            <p className="text-xs text-muted-foreground">OPERATOR</p>
+            <p className="text-xs text-muted-foreground font-semibold">OPERATOR</p>
           </div>
         </div>
       </div>
