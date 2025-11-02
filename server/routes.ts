@@ -89,15 +89,15 @@ const OPERATOR_SCHEDULE: Record<string, Record<string, string>> = {
   sunday: { shift1: "audrey", shift2: "ade", shift3: "internship" },
 };
 
-// Producer schedule mapping: [program][day] = producer_name
+// Producer schedule mapping: [program][day] = producer_name (updated from official schedule)
 const PRODUCER_SCHEDULE: Record<string, Record<string, string>> = {
   "Good Morning Jakarta": {
-    monday: "audrey", tuesday: "zakiya", wednesday: "zakiya", thursday: "audrey",
-    friday: "zakiya", saturday: "zakiya", sunday: "audrey"
+    monday: "risan", tuesday: "indira", wednesday: "indira", thursday: "risan",
+    friday: "risan", saturday: "risan", sunday: "risan"
   },
   "Good Morning JKT Weekend": {
     monday: "zakiya", tuesday: "zakiya", wednesday: "zakiya", thursday: "zakiya",
-    friday: "zakiya", saturday: "zakiya", sunday: "audrey"
+    friday: "zakiya", saturday: "zakiya", sunday: "zakiya"
   },
   "Office Hour": {
     monday: "risan", tuesday: "indira", wednesday: "indira", thursday: "risan",
@@ -109,15 +109,15 @@ const PRODUCER_SCHEDULE: Record<string, Record<string, string>> = {
   },
   "Coffee Break": {
     monday: "nayla", tuesday: "opet", wednesday: "nayla", thursday: "opet",
-    friday: "patricia", saturday: "patricia", sunday: "nayla"
+    friday: "patricia", saturday: "patricia", sunday: "patricia"
   },
   "Song on the Week": {
-    monday: "patricia", tuesday: "patricia", wednesday: "patricia", thursday: "patricia",
-    friday: "patricia", saturday: "patricia", sunday: "nayla"
+    monday: "odah", tuesday: "odah", wednesday: "odah", thursday: "odah",
+    friday: "odah", saturday: "odah", sunday: "patricia"
   },
   "Drive Time": {
     monday: "luvi", tuesday: "luvi", wednesday: "luvi", thursday: "luvi",
-    friday: "luvi", saturday: "sakinah", sunday: "sakinah"
+    friday: "luvi", saturday: "nayla", sunday: "nayla"
   },
   "Shift Malam": {
     monday: "jhosua", tuesday: "jhosua", wednesday: "jhosua", thursday: "jhosua",
@@ -202,7 +202,7 @@ function getCrewPhotoPath(role: "operator" | "produser", name: string): string {
 function getHostPhotoPath(hostName: string): string {
   const normalizedName = hostName.toLowerCase().trim();
   
-  // Host photo mapping - 20 unique hosts with photos (including PUTRI)
+  // Host photo mapping - 22 unique hosts with photos (including PUTRI, SALSA, SAKINAH)
   const hostPhotos: Record<string, string> = {
     // Main hosts from schedule
     "abi": "/attached_assets/host_abisaan_1762096185716.png",
@@ -229,6 +229,9 @@ function getHostPhotoPath(hostName: string): string {
     "reno": "/attached_assets/host_reno_1762096257882.png",
     "rio": "/attached_assets/host_rio_1762096257882.png",
     "risan": "/attached_assets/host_risan_1762096272039.png",
+    "sakinah": "/attached_assets/magang_sakinanh_1762097040087.png",
+    "salsa": "/attached_assets/magang_salsabilla_1762097040087.png",
+    "salsabilla": "/attached_assets/magang_salsabilla_1762097040087.png",
     "yasser": "/attached_assets/host_yasser_1762096272039.png",
   };
   
@@ -731,7 +734,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     imageUrl: string;
   }
 
-  // Host mapping per program per day (from CSV)
+  // Host mapping per program per day (updated from official schedule)
   const HOST_MAPPING: Record<string, Record<string, string>> = {
     "Good Morning Jakarta": {
       monday: "INDY & IRWAN", tuesday: "INDY & IRWAN", wednesday: "INDY & IRWAN",
@@ -742,8 +745,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       thursday: "OT & ODAH", friday: "OT & ODAH", saturday: "OT & ODAH", sunday: "OT & ODAH"
     },
     "Office Hour": {
-      monday: "RIO", tuesday: "ODAH", wednesday: "ODAH",
-      thursday: "LUVI", friday: "LUVI", saturday: "LUVI", sunday: "LUVI"
+      monday: "RIO", tuesday: "ODAH", wednesday: "LUVI",
+      thursday: "LUVI", friday: "LUVI", saturday: "RIO", sunday: "RIO"
     },
     "Rute Akhir Pekan": {
       monday: "RIO", tuesday: "RIO", wednesday: "RIO",
@@ -754,24 +757,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       thursday: "ABI & HATMA", friday: "OT & RISAN", saturday: "OT & RISAN", sunday: "OT & RISAN"
     },
     "Song on the Week": {
-      monday: "PUTRI & HATMA", tuesday: "PUTRI & HATMA", wednesday: "PUTRI & HATMA",
-      thursday: "PUTRI & HATMA", friday: "PUTRI & HATMA", saturday: "PUTRI & HATMA", sunday: "PUTRI & ABI"
+      monday: "PUTRI & NAYLA", tuesday: "PUTRI & NAYLA", wednesday: "PUTRI & NAYLA",
+      thursday: "PUTRI & NAYLA", friday: "PUTRI & NAYLA", saturday: "PUTRI & NAYLA", sunday: "PUTRI & ABI"
     },
     "Drive Time": {
       monday: "RENO & DANY", tuesday: "RENO & DANY", wednesday: "RENO & DANY",
-      thursday: "RENO & DANY", friday: "RENO & DANY", saturday: "RISAN & NAYLA", sunday: "RISAN & NAYLA"
+      thursday: "RENO & DANY", friday: "LUVI & SALSA", saturday: "NAYLA & SAKINAH", sunday: "NAYLA & SAKINAH"
     },
     "MALMING (TAPPING)": {
       monday: "-", tuesday: "-", wednesday: "-",
-      thursday: "-", friday: "-", saturday: "-", sunday: "-"
+      thursday: "-", friday: "-", saturday: "TAPPING", sunday: "-"
     },
     "Weekend Seru": {
       monday: "-", tuesday: "-", wednesday: "-",
-      thursday: "-", friday: "-", saturday: "-", sunday: "-"
+      thursday: "-", friday: "-", saturday: "-", sunday: "WEEKEND SERU"
     },
     "Shift Malam": {
       monday: "DENNY & EKO", tuesday: "MAZDJO & EKO", wednesday: "MO & DENNY",
-      thursday: "MAZDJO & EKO", friday: "MOSIDIK", saturday: "-", sunday: "MAZJO & EKO"
+      thursday: "MAZDJO & EKO", friday: "MOSIDIK", saturday: "SHIFT MALAM", sunday: "MALAM WEEKEND"
     },
     "Night Flow": {
       monday: "Denny CH & Eko Kuntadhi", tuesday: "Denny CH & Eko Kuntadhi", wednesday: "Denny CH & Eko Kuntadhi",

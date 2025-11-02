@@ -18,7 +18,7 @@ The dashboard's design is inspired by Spotify Analytics and SoundCloud Stats, fe
 - **Information Display**: Real-time WIB clock and Indonesian date display. Program statistics include "Pendengar Saat Ini" (raw listeners × 11) and "TOTAL PENDENGAR" (estimated unique listeners based on program progress), with EMA smoothing for spike detection.
 - **Program Images**: Large aspect-video presenter photos for "Program Sedang On Air" and "Coming Up Next". Small 80×80px colorful rounded icons for all 6 programs in statistics lists.
 - **Badge Styling**: "LIVE Badge" for on-air programs (red background, dual animation) and "UPCOMING Badge" for next programs (teal background, static).
-- **Host Photos**: 19 unique host photos dynamically displayed in Team Work section based on current program schedule. Mapped hosts include: ABI, AKBAR, CAK LONTONG, DENNY/DENNY CH, DANY, EKO/EKO KUNTADHI, HATMA, INDY, IRWAN, LUVI, MAZDJO/MAZJO, MO/MOSIDIK, NAYLA, ODAH, OT, RENO, RIO, RISAN, YASSER. Missing: PUTRI (uses fallback).
+- **Host Photos**: 22 unique host photos dynamically displayed in Team Work section based on current program schedule. Mapped hosts include: ABI, AKBAR, CAK LONTONG, DENNY/DENNY CH, DANY, EKO/EKO KUNTADHI, HATMA, INDY, IRWAN, LUVI, MAZDJO/MAZJO, MO/MOSIDIK, NAYLA, ODAH, OT, PUTRI, RENO, RIO, RISAN, SAKINAH, SALSA/SALSABILLA, YASSER. All hosts now have photos (100% coverage).
 
 ### Technical Implementations
 - **Frontend**: React with TypeScript, Wouter for routing, TanStack Query for state management, Tailwind CSS and Shadcn/ui for styling, Recharts for historical data visualization.
