@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Calendar, TrendingUp } from "lucide-react";
-import championIcon from "@assets/champion_1762078537198.png";
+import { Calendar, TrendingUp, Trophy } from "lucide-react";
 
 interface DailyStat {
   date: string;
@@ -95,7 +94,7 @@ export default function ThreeDayStats() {
           </div>
           
           {/* Daily stats with enhanced horizontal bars */}
-          <div className="space-y-2">
+          <div className="space-y-3">
             {data.dailyStats.map((stat, index) => {
               const barWidth = (stat.totalListeners / maxListeners) * 100;
               const isHighest = stat.totalListeners === maxListeners && maxListeners > 0;
@@ -103,36 +102,36 @@ export default function ThreeDayStats() {
               return (
                 <div 
                   key={stat.date} 
-                  className="space-y-1"
+                  className="space-y-1.5"
                   data-testid={`stat-day-${stat.date}`}
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-wide">
                       {stat.formattedDate}
                     </span>
                     <span 
-                      className="text-xl font-bold font-mono tabular-nums"
+                      className={`text-2xl font-bold font-mono tabular-nums ${isHighest ? 'text-[#C4F542]' : ''}`}
                       style={{
-                        color: isHighest ? '#C4F542' : 'inherit',
-                        textShadow: isHighest ? '0 0 15px rgba(196, 245, 66, 0.6), 0 0 30px rgba(196, 245, 66, 0.4)' : 'none'
+                        textShadow: isHighest ? '0 0 20px rgba(196, 245, 66, 0.8)' : 'none',
+                        color: isHighest ? '#C4F542 !important' : undefined
                       }}
                       data-testid={`text-listeners-${stat.date}`}
                     >
                       {formatNumber(stat.totalListeners)}
                     </span>
                   </div>
-                  <div className="relative w-full bg-background/50 h-2.5 rounded-full overflow-hidden">
+                  <div className="relative w-full bg-background/50 h-3 rounded-full overflow-hidden">
                     <div 
                       className="absolute inset-y-0 left-0 rounded-full transition-all duration-1000 ease-out"
                       style={{
                         width: `${barWidth}%`,
                         background: isHighest 
-                          ? 'linear-gradient(90deg, #C4F542, #C4F542DD)' 
-                          : 'linear-gradient(90deg, #C4F542DD, #C4F54299)',
+                          ? 'linear-gradient(90deg, #C4F542 0%, #C4F542 100%)' 
+                          : 'linear-gradient(90deg, #A4D532 0%, #94C522 100%)',
                         boxShadow: isHighest 
-                          ? '0 0 15px rgba(196, 245, 66, 0.6)' 
-                          : '0 0 10px rgba(196, 245, 66, 0.3)'
+                          ? '0 0 20px rgba(196, 245, 66, 0.8)' 
+                          : '0 0 8px rgba(196, 245, 66, 0.4)'
                       }}
                     />
                   </div>
@@ -141,37 +140,23 @@ export default function ThreeDayStats() {
             })}
           </div>
 
-          {/* Record program with Champion Icon */}
+          {/* Record program with Trophy Icon */}
           {data.recordProgram.name && (
-            <div className="mt-3 pt-3 border-t border-border/30">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <div className="text-[10px] font-bold text-[#FF69B4] tracking-wider">
-                      PROGRAM FAVORITE MINGGU INI
-                    </div>
-                  </div>
-                  <div 
-                    className="text-base font-bold uppercase tracking-wide text-[#FF69B4]"
-                    style={{
-                      textShadow: '0 0 15px rgba(255, 105, 180, 0.5)'
-                    }}
-                    data-testid="text-record-program"
-                  >
-                    {data.recordProgram.displayName}
-                  </div>
+            <div className="mt-4 pt-3 border-t border-border/30">
+              <div className="flex items-center gap-2 mb-2">
+                <Trophy className="h-4 w-4 text-[#FF69B4]" />
+                <div className="text-[10px] font-bold text-muted-foreground tracking-wider uppercase">
+                  PROGRAM FAVORITE MINGGU INI
                 </div>
-                <div className="flex-shrink-0">
-                  <img 
-                    src={championIcon} 
-                    alt="Champion" 
-                    className="w-16 h-16 object-contain animate-pulse"
-                    style={{
-                      filter: 'drop-shadow(0 0 10px rgba(255, 215, 0, 0.6))',
-                      animationDuration: '2s'
-                    }}
-                  />
-                </div>
+              </div>
+              <div 
+                className="text-lg font-bold uppercase tracking-wide text-[#FF69B4]"
+                style={{
+                  textShadow: '0 0 15px rgba(255, 105, 180, 0.5)'
+                }}
+                data-testid="text-record-program"
+              >
+                {data.recordProgram.displayName}
               </div>
             </div>
           )}
