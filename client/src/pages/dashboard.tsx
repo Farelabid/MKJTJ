@@ -289,16 +289,17 @@ export default function Dashboard() {
                 <Skeleton className="h-80 w-80 rounded-full" />
               ) : (
                 <div className="relative w-full max-w-sm aspect-square flex items-center justify-center">
-                  {/* Speedometer SVG */}
-                  <svg viewBox="0 0 200 200" className="w-full h-full">
+                  {/* Speedometer Background Image */}
+                  <img 
+                    src="/attached_assets/SPEEDOBACK_1762085711848.png" 
+                    alt="Speedometer Background"
+                    className="w-full h-full object-contain"
+                    data-testid="img-speedometer-background"
+                  />
+                  
+                  {/* Needle SVG Overlay */}
+                  <svg viewBox="0 0 200 200" className="absolute inset-0 w-full h-full pointer-events-none">
                     <defs>
-                      <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="#FFD700" />
-                        <stop offset="25%" stopColor="#FFA500" />
-                        <stop offset="50%" stopColor="#FF6347" />
-                        <stop offset="75%" stopColor="#FF4500" />
-                        <stop offset="100%" stopColor="#DC143C" />
-                      </linearGradient>
                       <linearGradient id="needleGradient" x1="0%" y1="0%" x2="0%" y2="100%">
                         <stop offset="0%" stopColor="#FF00FF" />
                         <stop offset="50%" stopColor="#C71585" />
@@ -312,83 +313,6 @@ export default function Dashboard() {
                         </feMerge>
                       </filter>
                     </defs>
-                    
-                    {/* Main Arc - Yellow to Red gradient */}
-                    <circle
-                      cx="100"
-                      cy="100"
-                      r="85"
-                      fill="none"
-                      stroke="url(#gaugeGradient)"
-                      strokeWidth="8"
-                      strokeDasharray="267 267"
-                      strokeDashoffset="67"
-                      filter="url(#glow)"
-                      style={{
-                        transform: 'rotate(-180deg)',
-                        transformOrigin: '50% 50%'
-                      }}
-                    />
-                    
-                    {/* Scale Marks - 1.000 to 10K (500 increments) */}
-                    {[1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10].map((num, index) => {
-                      // Map 1K-10K evenly across 200° arc
-                      const scaleMin = 1;
-                      const scaleMax = 10;
-                      const percentage = ((num - scaleMin) / (scaleMax - scaleMin)) * 100;
-                      const angle = -180 + (percentage * 200 / 100);
-                      const radian = (angle * Math.PI) / 180;
-                      const x1 = 100 + 72 * Math.cos(radian);
-                      const y1 = 100 + 72 * Math.sin(radian);
-                      const x2 = 100 + 80 * Math.cos(radian);
-                      const y2 = 100 + 80 * Math.sin(radian);
-                      const textX = 100 + 90 * Math.cos(radian);
-                      const textY = 100 + 90 * Math.sin(radian);
-                      
-                      // Format number with dots: 1000 → 1.000, or use "10K" for 10000
-                      let formattedNum;
-                      if (num === 10) {
-                        formattedNum = '10K';
-                      } else {
-                        formattedNum = (num * 1000).toLocaleString('id-ID');
-                      }
-                      
-                      // Color gradient: yellow on left, orange-red on right
-                      let fillColor = '#FFD700'; // Yellow (left)
-                      if (num >= 5) {
-                        fillColor = '#FFA500'; // Orange (middle)
-                      }
-                      if (num >= 7) {
-                        fillColor = '#FF4500'; // Orange-red (right)
-                      }
-                      if (num >= 9) {
-                        fillColor = '#DC143C'; // Crimson (far right)
-                      }
-                      
-                      return (
-                        <g key={num}>
-                          <line
-                            x1={x1}
-                            y1={y1}
-                            x2={x2}
-                            y2={y2}
-                            stroke="#555555"
-                            strokeWidth="1"
-                          />
-                          <text
-                            x={textX}
-                            y={textY}
-                            fill={fillColor}
-                            fontSize="8"
-                            fontWeight="700"
-                            textAnchor="middle"
-                            dominantBaseline="middle"
-                          >
-                            {formattedNum}
-                          </text>
-                        </g>
-                      );
-                    })}
                     
                     {/* Needle - Purple/Magenta gradient */}
                     {stats && (
