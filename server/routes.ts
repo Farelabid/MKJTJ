@@ -29,8 +29,8 @@ interface EMAState {
 
 const programEMAStates: Map<string, EMAState> = new Map();
 
-// Program schedules (WIB timezone) with correct durations
-const PROGRAM_SCHEDULES = [
+// Program schedules (WIB timezone) - Different for weekday vs weekend
+const WEEKDAY_SCHEDULES = [
   { name: "Night Flow", startHour: 0, startMin: 0, endHour: 6, endMin: 0, durationMinutes: 360 },
   { name: "Good Morning Jakarta", startHour: 6, startMin: 0, endHour: 10, endMin: 0, durationMinutes: 240 },
   { name: "Office Hour", startHour: 10, startMin: 0, endHour: 13, endMin: 0, durationMinutes: 180 },
@@ -38,6 +38,37 @@ const PROGRAM_SCHEDULES = [
   { name: "Drive Time", startHour: 16, startMin: 0, endHour: 20, endMin: 0, durationMinutes: 240 },
   { name: "Shift Malam", startHour: 20, startMin: 0, endHour: 24, endMin: 0, durationMinutes: 240 },
 ];
+
+const SATURDAY_SCHEDULES = [
+  { name: "Night Flow", startHour: 0, startMin: 0, endHour: 6, endMin: 0, durationMinutes: 360 },
+  { name: "Good Morning JKT Weekend", startHour: 6, startMin: 0, endHour: 10, endMin: 0, durationMinutes: 240 },
+  { name: "Rute Akhir Pekan", startHour: 10, startMin: 0, endHour: 12, endMin: 0, durationMinutes: 120 },
+  { name: "Song on the Week", startHour: 13, startMin: 0, endHour: 16, endMin: 0, durationMinutes: 180 },
+  { name: "Drive Time", startHour: 16, startMin: 0, endHour: 20, endMin: 0, durationMinutes: 240 },
+  { name: "MALMING (TAPPING)", startHour: 20, startMin: 0, endHour: 22, endMin: 0, durationMinutes: 120 },
+  { name: "Shift Malam", startHour: 22, startMin: 0, endHour: 24, endMin: 0, durationMinutes: 120 },
+];
+
+const SUNDAY_SCHEDULES = [
+  { name: "Night Flow", startHour: 0, startMin: 0, endHour: 6, endMin: 0, durationMinutes: 360 },
+  { name: "Good Morning JKT Weekend", startHour: 6, startMin: 0, endHour: 10, endMin: 0, durationMinutes: 240 },
+  { name: "Rute Akhir Pekan", startHour: 10, startMin: 0, endHour: 12, endMin: 0, durationMinutes: 120 },
+  { name: "Song on the Week", startHour: 13, startMin: 0, endHour: 16, endMin: 0, durationMinutes: 180 },
+  { name: "Drive Time", startHour: 16, startMin: 0, endHour: 20, endMin: 0, durationMinutes: 240 },
+  { name: "Weekend Seru", startHour: 20, startMin: 0, endHour: 22, endMin: 0, durationMinutes: 120 },
+  { name: "Shift Malam", startHour: 22, startMin: 0, endHour: 24, endMin: 0, durationMinutes: 120 },
+];
+
+// Helper function to get current day's schedule
+function getProgramSchedules(): typeof WEEKDAY_SCHEDULES {
+  const dayOfWeek = getDayOfWeekWIB();
+  if (dayOfWeek === "saturday") return SATURDAY_SCHEDULES;
+  if (dayOfWeek === "sunday") return SUNDAY_SCHEDULES;
+  return WEEKDAY_SCHEDULES;
+}
+
+// For backward compatibility
+const PROGRAM_SCHEDULES = WEEKDAY_SCHEDULES;
 
 // Operator shift schedules (WIB timezone)
 const OPERATOR_SHIFTS = {
@@ -61,22 +92,42 @@ const OPERATOR_SCHEDULE: Record<string, Record<string, string>> = {
 // Producer schedule mapping: [program][day] = producer_name
 const PRODUCER_SCHEDULE: Record<string, Record<string, string>> = {
   "Good Morning Jakarta": {
-    monday: "audrey", tuesday: "audrey", wednesday: "audrey", thursday: "audrey",
-    friday: "audrey", saturday: "audrey", sunday: "audrey"
+    monday: "audrey", tuesday: "zakiya", wednesday: "zakiya", thursday: "audrey",
+    friday: "zakiya", saturday: "zakiya", sunday: "audrey"
+  },
+  "Good Morning JKT Weekend": {
+    monday: "zakiya", tuesday: "zakiya", wednesday: "zakiya", thursday: "zakiya",
+    friday: "zakiya", saturday: "zakiya", sunday: "audrey"
   },
   "Office Hour": {
     monday: "risan", tuesday: "indira", wednesday: "indira", thursday: "risan",
-    friday: "risan", saturday: "risan", sunday: "risan"
+    friday: "risan", saturday: "indira", sunday: "indira"
+  },
+  "Rute Akhir Pekan": {
+    monday: "indira", tuesday: "indira", wednesday: "indira", thursday: "indira",
+    friday: "indira", saturday: "indira", sunday: "indira"
   },
   "Coffee Break": {
-    monday: "nayla", tuesday: "patricia", wednesday: "nayla", thursday: "patricia",
+    monday: "nayla", tuesday: "opet", wednesday: "nayla", thursday: "opet",
+    friday: "patricia", saturday: "patricia", sunday: "nayla"
+  },
+  "Song on the Week": {
+    monday: "patricia", tuesday: "patricia", wednesday: "patricia", thursday: "patricia",
     friday: "patricia", saturday: "patricia", sunday: "nayla"
   },
   "Drive Time": {
     monday: "luvi", tuesday: "luvi", wednesday: "luvi", thursday: "luvi",
-    friday: "luvi", saturday: "indira", sunday: "indira"
+    friday: "luvi", saturday: "sakinah", sunday: "sakinah"
   },
   "Shift Malam": {
+    monday: "jhosua", tuesday: "jhosua", wednesday: "jhosua", thursday: "jhosua",
+    friday: "jhosua", saturday: "jhosua", sunday: "jhosua"
+  },
+  "MALMING (TAPPING)": {
+    monday: "jhosua", tuesday: "jhosua", wednesday: "jhosua", thursday: "jhosua",
+    friday: "jhosua", saturday: "jhosua", sunday: "jhosua"
+  },
+  "Weekend Seru": {
     monday: "jhosua", tuesday: "jhosua", wednesday: "jhosua", thursday: "jhosua",
     friday: "jhosua", saturday: "jhosua", sunday: "jhosua"
   },
@@ -134,8 +185,8 @@ function getCrewPhotoPath(role: "operator" | "produser", name: string): string {
   
   const key = `${normalizedName}_${role}`;
   
-  // Return specific photo or fallback to internship photo
-  return availablePhotos[key] || "/attached_assets/internship_1760589107237.png";
+  // Return specific photo or fallback to sementara.png
+  return availablePhotos[key] || "/attached_assets/sementara_1762090833934.png";
 }
 
 function getCurrentProgramWIB(): string | null {
@@ -148,7 +199,10 @@ function getCurrentProgramWIB(): string | null {
   const minute = wibTime.getMinutes();
   const minutesSinceMidnight = hour * 60 + minute;
 
-  for (const program of PROGRAM_SCHEDULES) {
+  // Get the correct schedule for current day
+  const schedules = getProgramSchedules();
+
+  for (const program of schedules) {
     const startMinutes = program.startHour * 60 + program.startMin;
     const endMinutes = program.endHour * 60 + program.endMin;
     
@@ -178,9 +232,14 @@ function getColorForProgram(programName: string): string {
   const colors: Record<string, string> = {
     "Night Flow": "#4CAF50", // Green
     "Good Morning Jakarta": "#FDD835", // Yellow
+    "Good Morning JKT Weekend": "#FDD835", // Yellow
     "Office Hour": "#F44336", // Red
+    "Rute Akhir Pekan": "#9C27B0", // Purple
     "Coffee Break": "#2196F3", // Blue
+    "Song on the Week": "#E91E63", // Pink
     "Drive Time": "#00BCD4", // Cyan
+    "MALMING (TAPPING)": "#FF5722", // Deep Orange
+    "Weekend Seru": "#8BC34A", // Light Green
     "Shift Malam": "#FF9800", // Orange
   };
   return colors[programName] || "#FDD835";
@@ -202,9 +261,14 @@ function getDisplayProgramName(programName: string): string {
   const displayNames: Record<string, string> = {
     "Night Flow": "nightFLOW",
     "Good Morning Jakarta": "good MORNING JAKARTA",
+    "Good Morning JKT Weekend": "good MORNING JKT weekend",
     "Office Hour": "office HOUR",
+    "Rute Akhir Pekan": "rute AKHIR PEKAN",
     "Coffee Break": "coffee BREAK",
+    "Song on the Week": "song ON THE week",
     "Drive Time": "drive TIME",
+    "MALMING (TAPPING)": "MALMING (tapping)",
+    "Weekend Seru": "weekend SERU",
     "Shift Malam": "shift MALAM",
   };
   return displayNames[programName] || programName.toUpperCase();
@@ -621,70 +685,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
     imageUrl: string;
   }
 
-  const programSchedules: ProgramSchedule[] = [
-    {
-      title: "Night Flow",
-      presenter: "dengan Denny CH & Eko Kuntadhi",
-      startHour: 0,
-      startMinute: 0,
-      endHour: 6,
-      endMinute: 0,
-      description: "Musik untuk menemani malam dan dini hari. Request lagu favorit via WA!",
-      imageUrl: "https://www.tjradiojakarta.com/shows/nightflow.jpg"
+  // Host mapping per program per day (from CSV)
+  const HOST_MAPPING: Record<string, Record<string, string>> = {
+    "Good Morning Jakarta": {
+      monday: "INDY & IRWAN", tuesday: "INDY & IRWAN", wednesday: "INDY & IRWAN",
+      thursday: "INDY & IRWAN", friday: "INDY & IRWAN", saturday: "INDY & IRWAN", sunday: "INDY & IRWAN"
     },
-    {
-      title: "Good Morning Jakarta",
-      presenter: "dengan Indy & Irwan",
-      startHour: 6,
-      startMinute: 0,
-      endHour: 10,
-      endMinute: 0,
-      description: "Mulai pagi dengan ceria! Info, musik hits, dan request dari pendengar.",
-      imageUrl: "https://www.tjradiojakarta.com/shows/goodmorning-indy-irwan.jpg"
+    "Good Morning JKT Weekend": {
+      monday: "OT & ODAH", tuesday: "OT & ODAH", wednesday: "OT & ODAH",
+      thursday: "OT & ODAH", friday: "OT & ODAH", saturday: "OT & ODAH", sunday: "OT & ODAH"
     },
-    {
-      title: "Office Hour",
-      presenter: "dengan Rio",
-      startHour: 10,
-      startMinute: 0,
-      endHour: 13,
-      endMinute: 0,
-      description: "Teman kerja paling pas. Lagu-lagu terbaru hits Indo & manca, plus request via WA/TikTok.",
-      imageUrl: "https://www.tjradiojakarta.com/shows/officehour-rio.jpg"
+    "Office Hour": {
+      monday: "RIO", tuesday: "ODAH", wednesday: "ODAH",
+      thursday: "LUVI", friday: "LUVI", saturday: "LUVI", sunday: "LUVI"
     },
-    {
-      title: "Coffee Break",
-      presenter: "dengan OT Syech & Nayla",
-      startHour: 13,
-      startMinute: 0,
-      endHour: 16,
-      endMinute: 0,
-      description: "Istirahat siang yang menyenangkan dengan musik hits dan obrolan seru.",
-      imageUrl: "https://www.tjradiojakarta.com/shows/coffeebreak-otsyech-nayla.jpg"
+    "Rute Akhir Pekan": {
+      monday: "RIO", tuesday: "RIO", wednesday: "RIO",
+      thursday: "RIO", friday: "RIO", saturday: "RIO", sunday: "RIO"
     },
-    {
-      title: "Drive Time",
-      presenter: "dengan Reno & MC Dany",
-      startHour: 16,
-      startMinute: 0,
-      endHour: 20,
-      endMinute: 0,
-      description: "Teman perjalanan pulang kerja. Info lalu lintas, musik hits, dan request lagu.",
-      imageUrl: "https://www.tjradiojakarta.com/shows/drivetime-reno-mcdany.jpg"
+    "Coffee Break": {
+      monday: "OT & RISAN", tuesday: "ABI & HATMA", wednesday: "ABI & HATMA",
+      thursday: "ABI & HATMA", friday: "OT & RISAN", saturday: "OT & RISAN", sunday: "OT & RISAN"
     },
-    {
-      title: "Shift Malam",
-      presenter: "dengan Denny CH & Eko Kuntadhi",
-      startHour: 20,
-      startMinute: 0,
-      endHour: 24,
-      endMinute: 0,
-      description: "Menemani malam dengan musik santai dan request lagu favorit.",
-      imageUrl: "https://www.tjradiojakarta.com/shows/shiftmalam-dennych-ekokuntadhi.jpg"
-    }
-  ];
+    "Song on the Week": {
+      monday: "PUTRI & HATMA", tuesday: "PUTRI & HATMA", wednesday: "PUTRI & HATMA",
+      thursday: "PUTRI & HATMA", friday: "PUTRI & HATMA", saturday: "PUTRI & HATMA", sunday: "PUTRI & ABI"
+    },
+    "Drive Time": {
+      monday: "RENO & DANY", tuesday: "RENO & DANY", wednesday: "RENO & DANY",
+      thursday: "RENO & DANY", friday: "RENO & DANY", saturday: "RISAN & NAYLA", sunday: "RISAN & NAYLA"
+    },
+    "MALMING (TAPPING)": {
+      monday: "-", tuesday: "-", wednesday: "-",
+      thursday: "-", friday: "-", saturday: "-", sunday: "-"
+    },
+    "Weekend Seru": {
+      monday: "-", tuesday: "-", wednesday: "-",
+      thursday: "-", friday: "-", saturday: "-", sunday: "-"
+    },
+    "Shift Malam": {
+      monday: "DENNY & EKO", tuesday: "MAZDJO & EKO", wednesday: "MO & DENNY",
+      thursday: "MAZDJO & EKO", friday: "MOSIDIK", saturday: "-", sunday: "MAZJO & EKO"
+    },
+    "Night Flow": {
+      monday: "Denny CH & Eko Kuntadhi", tuesday: "Denny CH & Eko Kuntadhi", wednesday: "Denny CH & Eko Kuntadhi",
+      thursday: "Denny CH & Eko Kuntadhi", friday: "Denny CH & Eko Kuntadhi", saturday: "Denny CH & Eko Kuntadhi", sunday: "Denny CH & Eko Kuntadhi"
+    },
+  };
+
+  function getProgramSchedulesDetailed(): ProgramSchedule[] {
+    const dayOfWeek = getDayOfWeekWIB();
+    const schedules = getProgramSchedules();
+    
+    return schedules.map(program => {
+      const hosts = HOST_MAPPING[program.name]?.[dayOfWeek] || "-";
+      const presenter = hosts === "-" ? "" : `dengan ${hosts}`;
+      
+      return {
+        title: program.name,
+        presenter,
+        startHour: program.startHour,
+        startMinute: program.startMin,
+        endHour: program.endHour,
+        endMinute: program.endMin,
+        description: `${program.name} - Program TJ Radio Jakarta`,
+        imageUrl: `https://www.tjradiojakarta.com/shows/${program.name.toLowerCase().replace(/\s/g, '-')}.jpg`
+      };
+    });
+  }
 
   function getCurrentProgram(): ProgramSchedule {
+    // Get current program schedules based on day of week
+    const programSchedules = getProgramSchedulesDetailed();
+    
     // Get current time in Jakarta timezone (WIB = UTC+7)
     const now = new Date();
     const jakartaTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
@@ -714,6 +787,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }
 
   function getNextProgram(): ProgramSchedule {
+    // Get current program schedules based on day of week
+    const programSchedules = getProgramSchedulesDetailed();
+    
     // Get current time in Jakarta timezone (WIB = UTC+7)
     const now = new Date();
     const jakartaTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
@@ -810,8 +886,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const wibDate = getWIBDate();
       const currentProgramName = getCurrentProgramWIB();
       
+      // Get current day's schedule
+      const schedules = getProgramSchedules();
+      
       const programsData = await Promise.all(
-        PROGRAM_SCHEDULES.map(async (program) => {
+        schedules.map(async (program) => {
           const stats = await storage.getProgramStats(program.name, wibDate);
           
           // Use new metrics: avgConcurrentListeners and estimatedUniqueListeners
