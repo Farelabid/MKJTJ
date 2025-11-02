@@ -259,13 +259,23 @@ export default function CrewOnDuty() {
           </div>
         </div>
 
-        {/* Producer - Using NEW professional photos (Orange) */}
+        {/* Producer - Using NEW professional photos (Orange) with 3D Tilt Effect */}
         <div className="flex flex-col items-center space-y-1">
-          <div className="w-20 h-28 rounded-lg overflow-hidden bg-gradient-to-br from-orange-500/20 to-orange-700/20 border-2 border-orange-500">
+          <div 
+            className="w-20 h-28 rounded-lg overflow-hidden bg-gradient-to-br from-orange-500/20 to-orange-700/20 border-2 border-orange-500"
+            style={{
+              perspective: '1000px',
+              transformStyle: 'preserve-3d'
+            }}
+          >
             <img
               src={producer.photoUrl}
               alt={`Producer ${producer.name}`}
               className="w-full h-full object-cover"
+              style={{
+                animation: 'tilt3d 6s ease-in-out infinite',
+                transformStyle: 'preserve-3d'
+              }}
               data-testid="image-producer"
             />
           </div>

@@ -355,3 +355,22 @@
     inset: -1px;
   }
 }
+
+/* 3D Tilt Effect Animation for Producer Photo */
+@keyframes tilt3d {
+  0% {
+    transform: perspective(1000px) rotateX(0deg) rotateY(0deg);
+  }
+  25% {
+    transform: perspective(1000px) rotateX(-3deg) rotateY(5deg);
+  }
+  50% {
+    transform: perspective(1000px) rotateX(2deg) rotateY(-4deg);
+  }
+  75% {
+    transform: perspective(1000px) rotateX(-2deg) rotateY(3deg);
+  }
+  100% {
+    transform: perspective(1000px) rotateX(0deg) rotateY(0deg);
+  }
+}
