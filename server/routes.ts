@@ -1200,6 +1200,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // API endpoint for weekly statistics (7 days for bar chart)
+  app.get("/api/weekly-stats", async (req, res) => {
+    try {
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      
+      const today = getWIBDate();
+      const [year, month, day] = today.split('-').map(Number);
+      
+      // Helper function to get short day name (3 letters)
+      const getShortDayName = (dateStr: string): string => {
+        const [y, m, d] = dateStr.split('-').map(Number);
+        const date = new Date(y, m - 1, d);
+        const dayNames = ['MIN', 'SEN', 'SEL', 'RAB', 'KAM', 'JUM', 'SAB'];
+        return dayNames[date.getDay()];
+      };
+      
+      // Helper function to format date as "DD MMM"
+      const formatShortDate = (dateStr: string): string => {
+        const [y, m, d] = dateStr.split('-').map(Number);
+        const months = ['JAN', 'FEB', 'MAR', 'APR', 'MEI', 'JUN', 'JUL', 'AGU', 'SEP', 'OKT', 'NOV', 'DES'];
+        return `${d} ${months[m - 1]}`;
+      };
+      
+      // Calculate dates for last 7 days (today, yesterday, ..., 6 days ago)
+      const dates = [];
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(year, month - 1, day);
+        date.setDate(date.getDate() - i);
+        const dateYear = date.getFullYear();
+        const dateMonth = String(date.getMonth() + 1).padStart(2, '0');
+        const dateDay = String(date.getDate()).padStart(2, '0');
+        dates.push(`${dateYear}-${dateMonth}-${dateDay}`);
+      }
+      
+      // Reverse to show oldest to newest
+      dates.reverse();
+      
+      // Get program stats for the last 7 days
+      const weeklyStats = await Promise.all(
+        dates.map(async (date) => {
+          const stats = await storage.getAllProgramStatsForDate(date);
+          
+          // Sum up estimated unique listeners from all programs for this day
+          const totalListeners = stats.reduce(
+            (sum: number, stat) => sum + (stat.estimatedUniqueListeners || 0),
+            0
+          );
+          
+          return {
+            date,
+            totalListeners,
+            dayName: getShortDayName(date),
+            formattedDate: formatShortDate(date),
+          };
+        })
+      );
+      
+      res.json({ weeklyStats });
+    } catch (error) {
+      console.error("Error fetching weekly stats:", error);
+      res.status(500).json({ error: "Failed to fetch weekly statistics" });
+    }
+  });
+
   // API endpoint for crew on duty (Operator + Producer)
   app.get("/api/crew-on-duty", async (req, res) => {
     try {
