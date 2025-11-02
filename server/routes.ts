@@ -43,8 +43,9 @@ const SATURDAY_SCHEDULES = [
   { name: "Night Flow", startHour: 0, startMin: 0, endHour: 6, endMin: 0, durationMinutes: 360 },
   { name: "Good Morning JKT Weekend", startHour: 6, startMin: 0, endHour: 10, endMin: 0, durationMinutes: 240 },
   { name: "Rute Akhir Pekan", startHour: 10, startMin: 0, endHour: 12, endMin: 0, durationMinutes: 120 },
-  { name: "Song on the Week", startHour: 13, startMin: 0, endHour: 16, endMin: 0, durationMinutes: 180 },
-  { name: "Drive Time", startHour: 16, startMin: 0, endHour: 20, endMin: 0, durationMinutes: 240 },
+  { name: "Song on the Week", startHour: 12, startMin: 0, endHour: 13, endMin: 0, durationMinutes: 60 },
+  { name: "Afternoon Show", startHour: 13, startMin: 0, endHour: 16, endMin: 0, durationMinutes: 180 },
+  { name: "Drive Time Weekend", startHour: 16, startMin: 0, endHour: 20, endMin: 0, durationMinutes: 240 },
   { name: "MALMING (TAPPING)", startHour: 20, startMin: 0, endHour: 22, endMin: 0, durationMinutes: 120 },
   { name: "Shift Malam", startHour: 22, startMin: 0, endHour: 24, endMin: 0, durationMinutes: 120 },
 ];
@@ -53,8 +54,9 @@ const SUNDAY_SCHEDULES = [
   { name: "Night Flow", startHour: 0, startMin: 0, endHour: 6, endMin: 0, durationMinutes: 360 },
   { name: "Good Morning JKT Weekend", startHour: 6, startMin: 0, endHour: 10, endMin: 0, durationMinutes: 240 },
   { name: "Rute Akhir Pekan", startHour: 10, startMin: 0, endHour: 12, endMin: 0, durationMinutes: 120 },
-  { name: "Song on the Week", startHour: 13, startMin: 0, endHour: 16, endMin: 0, durationMinutes: 180 },
-  { name: "Drive Time", startHour: 16, startMin: 0, endHour: 20, endMin: 0, durationMinutes: 240 },
+  { name: "Song on the Week", startHour: 12, startMin: 0, endHour: 13, endMin: 0, durationMinutes: 60 },
+  { name: "Afternoon Show", startHour: 13, startMin: 0, endHour: 16, endMin: 0, durationMinutes: 180 },
+  { name: "Drive Time Weekend", startHour: 16, startMin: 0, endHour: 20, endMin: 0, durationMinutes: 240 },
   { name: "Weekend Seru", startHour: 20, startMin: 0, endHour: 22, endMin: 0, durationMinutes: 120 },
   { name: "Shift Malam", startHour: 22, startMin: 0, endHour: 24, endMin: 0, durationMinutes: 120 },
 ];
@@ -89,15 +91,15 @@ const OPERATOR_SCHEDULE: Record<string, Record<string, string>> = {
   sunday: { shift1: "audrey", shift2: "ade", shift3: "internship" },
 };
 
-// Producer schedule mapping: [program][day] = producer_name (updated from official schedule)
+// Producer schedule mapping: [program][day] = producer_name (updated from CSV file)
 const PRODUCER_SCHEDULE: Record<string, Record<string, string>> = {
   "Good Morning Jakarta": {
-    monday: "risan", tuesday: "indira", wednesday: "indira", thursday: "risan",
-    friday: "risan", saturday: "risan", sunday: "risan"
+    monday: "audrey", tuesday: "zakiya", wednesday: "zakiya", thursday: "audrey",
+    friday: "zakiya", saturday: "zakiya", sunday: "audrey"
   },
   "Good Morning JKT Weekend": {
     monday: "zakiya", tuesday: "zakiya", wednesday: "zakiya", thursday: "zakiya",
-    friday: "zakiya", saturday: "zakiya", sunday: "zakiya"
+    friday: "zakiya", saturday: "zakiya", sunday: "audrey"
   },
   "Office Hour": {
     monday: "risan", tuesday: "indira", wednesday: "indira", thursday: "risan",
@@ -108,16 +110,24 @@ const PRODUCER_SCHEDULE: Record<string, Record<string, string>> = {
     friday: "indira", saturday: "indira", sunday: "indira"
   },
   "Coffee Break": {
-    monday: "nayla", tuesday: "opet", wednesday: "nayla", thursday: "opet",
+    monday: "nayla", tuesday: "patricia", wednesday: "nayla", thursday: "patricia",
     friday: "patricia", saturday: "patricia", sunday: "patricia"
   },
   "Song on the Week": {
-    monday: "odah", tuesday: "odah", wednesday: "odah", thursday: "odah",
-    friday: "odah", saturday: "odah", sunday: "patricia"
+    monday: "default", tuesday: "default", wednesday: "default", thursday: "default",
+    friday: "default", saturday: "default", sunday: "default"
+  },
+  "Afternoon Show": {
+    monday: "patricia", tuesday: "patricia", wednesday: "patricia", thursday: "patricia",
+    friday: "patricia", saturday: "patricia", sunday: "nayla"
   },
   "Drive Time": {
     monday: "luvi", tuesday: "luvi", wednesday: "luvi", thursday: "luvi",
-    friday: "luvi", saturday: "nayla", sunday: "nayla"
+    friday: "luvi", saturday: "sakinah", sunday: "sakinah"
+  },
+  "Drive Time Weekend": {
+    monday: "sakinah", tuesday: "sakinah", wednesday: "sakinah", thursday: "sakinah",
+    friday: "sakinah", saturday: "sakinah", sunday: "sakinah"
   },
   "Shift Malam": {
     monday: "jhosua", tuesday: "jhosua", wednesday: "jhosua", thursday: "jhosua",
@@ -166,7 +176,7 @@ function getCurrentOperatorShift(): string | null {
 function getCrewPhotoPath(role: "operator" | "produser", name: string): string {
   const normalizedName = name.toLowerCase();
   
-  // Check if photo exists, otherwise return fallback
+  // Check if photo exists, otherwise return fallback (updated with new producer photos)
   const availablePhotos: Record<string, string> = {
     // Operators (blue uniform)
     "aryo_operator": "/attached_assets/opr_aryo_1760589447425.png",
@@ -178,13 +188,14 @@ function getCrewPhotoPath(role: "operator" | "produser", name: string): string {
     "ade_operator": "/attached_assets/magang_nanda_1762097040087.png",
     "internship_operator": "/attached_assets/magang_farhan_1762097040086.png",
     
-    // Producers (green military uniform)
+    // Producers (new professional photos)
     "audrey_produser": "/attached_assets/audrey_1760589432000.png",
-    "jhosua_produser": "/attached_assets/jhosua_1760589432001.png",
-    "luvi_produser": "/attached_assets/luvi_1760589432001.png",
-    "nayla_produser": "/attached_assets/nayla_1760589432001.png",
-    "patricia_produser": "/attached_assets/patricia_1760589432001.png",
-    "risan_produser": "/attached_assets/raisan_1760589432001.png",
+    "jhosua_produser": "/attached_assets/produser_jhosua_1762098258506.png",
+    "luvi_produser": "/attached_assets/produser_luvi_1762098258507.png",
+    "nayla_produser": "/attached_assets/produser_nayla_1762098258507.png",
+    "patricia_produser": "/attached_assets/produser_patricia_1762098258507.png",
+    "risan_produser": "/attached_assets/produser_risan_1762098258507.png",
+    "odah_produser": "/attached_assets/host_odah_1762096257881.png",
     
     // Producers - Magang/Interns
     "zakiya_produser": "/attached_assets/magang_zakiya_1762097040087.png",
@@ -286,7 +297,9 @@ function getColorForProgram(programName: string): string {
     "Rute Akhir Pekan": "#9C27B0", // Purple
     "Coffee Break": "#2196F3", // Blue
     "Song on the Week": "#E91E63", // Pink
+    "Afternoon Show": "#E91E63", // Pink (NEW)
     "Drive Time": "#00BCD4", // Cyan
+    "Drive Time Weekend": "#00BCD4", // Cyan (NEW)
     "MALMING (TAPPING)": "#FF5722", // Deep Orange
     "Weekend Seru": "#8BC34A", // Light Green
     "Shift Malam": "#FF9800", // Orange
@@ -315,7 +328,9 @@ function getDisplayProgramName(programName: string): string {
     "Rute Akhir Pekan": "rute AKHIR PEKAN",
     "Coffee Break": "coffee BREAK",
     "Song on the Week": "song ON THE week",
+    "Afternoon Show": "afternoon SHOW",
     "Drive Time": "drive TIME",
+    "Drive Time Weekend": "drive TIME weekend",
     "MALMING (TAPPING)": "MALMING (tapping)",
     "Weekend Seru": "weekend SERU",
     "Shift Malam": "shift MALAM",
@@ -734,18 +749,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     imageUrl: string;
   }
 
-  // Host mapping per program per day (updated from official schedule)
+  // Host mapping per program per day (updated from CSV file jadwal_tjradio_1762098305741.csv)
   const HOST_MAPPING: Record<string, Record<string, string>> = {
     "Good Morning Jakarta": {
       monday: "INDY & IRWAN", tuesday: "INDY & IRWAN", wednesday: "INDY & IRWAN",
       thursday: "INDY & IRWAN", friday: "INDY & IRWAN", saturday: "INDY & IRWAN", sunday: "INDY & IRWAN"
     },
     "Good Morning JKT Weekend": {
-      monday: "OT & ODAH", tuesday: "OT & ODAH", wednesday: "OT & ODAH",
-      thursday: "OT & ODAH", friday: "OT & ODAH", saturday: "OT & ODAH", sunday: "OT & ODAH"
+      monday: "OTESYECH & ODAH", tuesday: "OTESYECH & ODAH", wednesday: "OTESYECH & ODAH",
+      thursday: "OTESYECH & ODAH", friday: "OTESYECH & ODAH", saturday: "OTESYECH & ODAH", sunday: "OTESYECH & ODAH"
     },
     "Office Hour": {
-      monday: "RIO", tuesday: "ODAH", wednesday: "LUVI",
+      monday: "RIO", tuesday: "ODAH", wednesday: "ODAH",
       thursday: "LUVI", friday: "LUVI", saturday: "RIO", sunday: "RIO"
     },
     "Rute Akhir Pekan": {
@@ -753,28 +768,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       thursday: "RIO", friday: "RIO", saturday: "RIO", sunday: "RIO"
     },
     "Coffee Break": {
-      monday: "OT & RISAN", tuesday: "ABI & HATMA", wednesday: "ABI & HATMA",
-      thursday: "ABI & HATMA", friday: "OT & RISAN", saturday: "OT & RISAN", sunday: "OT & RISAN"
+      monday: "OTESYECH & RISAN", tuesday: "ABI & HATMA", wednesday: "ABI & HATMA",
+      thursday: "ABI & HATMA", friday: "OTESYECH & RISAN", saturday: "OTESYECH & RISAN", sunday: "OTESYECH & RISAN"
     },
     "Song on the Week": {
-      monday: "PUTRI & NAYLA", tuesday: "PUTRI & NAYLA", wednesday: "PUTRI & NAYLA",
-      thursday: "PUTRI & NAYLA", friday: "PUTRI & NAYLA", saturday: "PUTRI & NAYLA", sunday: "PUTRI & ABI"
+      monday: "-", tuesday: "-", wednesday: "-",
+      thursday: "-", friday: "-", saturday: "-", sunday: "-"
+    },
+    "Afternoon Show": {
+      monday: "PUTRI & HATMA", tuesday: "PUTRI & HATMA", wednesday: "PUTRI & HATMA",
+      thursday: "PUTRI & HATMA", friday: "PUTRI & HATMA", saturday: "PUTRI & HATMA", sunday: "PUTRI & ABI"
     },
     "Drive Time": {
       monday: "RENO & DANY", tuesday: "RENO & DANY", wednesday: "RENO & DANY",
-      thursday: "RENO & DANY", friday: "LUVI & SALSA", saturday: "NAYLA & SAKINAH", sunday: "NAYLA & SAKINAH"
+      thursday: "RENO & DANY", friday: "RENO & DANY", saturday: "RENO & DANY", sunday: "RENO & DANY"
+    },
+    "Drive Time Weekend": {
+      monday: "RISAN & NAYLA", tuesday: "RISAN & NAYLA", wednesday: "RISAN & NAYLA",
+      thursday: "RISAN & NAYLA", friday: "RISAN & NAYLA", saturday: "RISAN & NAYLA", sunday: "RISAN & NAYLA"
     },
     "MALMING (TAPPING)": {
       monday: "-", tuesday: "-", wednesday: "-",
-      thursday: "-", friday: "-", saturday: "TAPPING", sunday: "-"
+      thursday: "-", friday: "-", saturday: "-", sunday: "-"
     },
     "Weekend Seru": {
       monday: "-", tuesday: "-", wednesday: "-",
-      thursday: "-", friday: "-", saturday: "-", sunday: "WEEKEND SERU"
+      thursday: "-", friday: "-", saturday: "-", sunday: "-"
     },
     "Shift Malam": {
-      monday: "DENNY & EKO", tuesday: "MAZDJO & EKO", wednesday: "MO & DENNY",
-      thursday: "MAZDJO & EKO", friday: "MOSIDIK", saturday: "SHIFT MALAM", sunday: "MALAM WEEKEND"
+      monday: "DENNY & EKO", tuesday: "MAZDJO & EKO", wednesday: "MOSIDIK & DENNY",
+      thursday: "MAZDJO & EKO", friday: "MOSIDIK", saturday: "MAZJO & EKO", sunday: "MAZDJO & EKO"
     },
     "Night Flow": {
       monday: "Denny CH & Eko Kuntadhi", tuesday: "Denny CH & Eko Kuntadhi", wednesday: "Denny CH & Eko Kuntadhi",

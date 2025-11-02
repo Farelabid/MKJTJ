@@ -59,3 +59,22 @@ The dashboard's design is inspired by Spotify Analytics and SoundCloud Stats, fe
 - **UI Component Library**: Shadcn/ui.
 - **Styling Framework**: Tailwind CSS.
 - **Parsing Library**: Cheerio.
+
+## Recent Changes (November 2, 2025)
+### Major Schedule Update from CSV File
+- **Source**: Official schedule file `jadwal_tjradio_1762098305741.csv`
+- **New Weekend Programs**:
+  - "Afternoon Show" (Sabtu-Minggu 13:00-16:00): Putri & Hatma (Sabtu), Putri & Abi (Minggu)
+  - "Drive Time Weekend" (Sabtu-Minggu 16:00-20:00): Risan & Nayla
+  - "Song on the Week" reduced to 12:00-13:00 (music segment only, no presenters)
+- **Host Schedule Updates**:
+  - Office Hour: Rio (Sen), Odah (Sel-Rab), Luvi (Kam-Jum)
+  - Coffee Break: Otesyech & Risan (Sen, Jum), Abi & Hatma (Sel-Kam)
+  - Shift Malam: Updated per day (Denny & Eko, Mazdjo & Eko, Mosidik & Denny, Mosidik solo)
+- **Producer Schedule Updates**:
+  - Good Morning Jakarta: Audrey (Sen, Kam), Zakiya (Sel, Rab, Jum)
+  - Coffee Break: Nayla (Sen, Rab), Patricia (Sel, Kam, Jum)
+  - Afternoon Show: Patricia (Sabtu), Nayla (Minggu)
+  - Drive Time Weekend: Sakinah
+- **New Producer Photos**: Uploaded 5 professional photos (jhosua, luvi, nayla, patricia, risan) at 1762098258506-507
+- **Coverage Status**: Maintained 100% photo coverage for all 22 hosts and 14 crew members
