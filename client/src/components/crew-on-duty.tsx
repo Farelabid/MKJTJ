@@ -10,6 +10,10 @@ interface CrewOnDutyData {
     name: string;
     photoUrl: string;
   };
+  hosts: Array<{
+    name: string;
+    photoUrl: string;
+  }>;
   currentProgram: string;
   currentDay: string;
   currentShift: string;
@@ -64,13 +68,7 @@ export default function CrewOnDuty() {
     return `${day} ${month} ${year}`;
   };
 
-  const splitPresenters = (presenter: string) => {
-    const cleanPresenter = presenter.replace(/^presenters?:\s*/i, '').trim();
-    const parts = cleanPresenter.split(/\s*&\s*/);
-    return parts.length >= 2 ? [parts[0].trim(), parts[1].trim()] : [parts[0].trim(), ''];
-  };
-
-  const [host1, host2] = splitPresenters(programData.presenter);
+  const hosts = crewData.hosts || [];
 
   return (
     <div className="flex flex-col items-center justify-center w-full space-y-3">
@@ -119,35 +117,25 @@ export default function CrewOnDuty() {
           </div>
         </div>
 
-        {/* Host 1 */}
-        {host1 && (
-          <div className="flex flex-col items-center space-y-1">
-            <div className="w-20 h-28 rounded-lg overflow-hidden bg-gradient-to-br from-orange-500/20 to-orange-700/20 border-2 border-orange-500/30 flex items-center justify-center">
-              <p className="text-3xl font-bold text-orange-400">H1</p>
+        {/* Hosts - Dynamic based on API data */}
+        {hosts.map((host, index) => (
+          <div key={index} className="flex flex-col items-center space-y-1">
+            <div className="w-20 h-28 rounded-lg overflow-hidden bg-gradient-to-br from-orange-500/20 to-orange-700/20 border-2 border-orange-500/30">
+              <img
+                src={host.photoUrl}
+                alt={`Host ${host.name}`}
+                className="w-full h-full object-cover"
+                data-testid={`image-host${index + 1}`}
+              />
             </div>
             <div className="text-center">
-              <p className="text-xs font-bold text-orange-400" data-testid="text-host1-role">HOST</p>
-              <p className="text-[10px] text-muted-foreground font-semibold" data-testid="text-host1-name">
-                {host1}
+              <p className="text-xs font-bold text-orange-400" data-testid={`text-host${index + 1}-role`}>HOST</p>
+              <p className="text-[10px] text-muted-foreground font-semibold" data-testid={`text-host${index + 1}-name`}>
+                {host.name}
               </p>
             </div>
           </div>
-        )}
-
-        {/* Host 2 */}
-        {host2 && (
-          <div className="flex flex-col items-center space-y-1">
-            <div className="w-20 h-28 rounded-lg overflow-hidden bg-gradient-to-br from-orange-500/20 to-orange-700/20 border-2 border-orange-500/30 flex items-center justify-center">
-              <p className="text-3xl font-bold text-orange-400">H2</p>
-            </div>
-            <div className="text-center">
-              <p className="text-xs font-bold text-orange-400" data-testid="text-host2-role">HOST</p>
-              <p className="text-[10px] text-muted-foreground font-semibold" data-testid="text-host2-name">
-                {host2}
-              </p>
-            </div>
-          </div>
-        )}
+        ))}
       </div>
 
       {/* LIVE NOW Banner */}

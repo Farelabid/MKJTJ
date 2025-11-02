@@ -189,6 +189,34 @@ function getCrewPhotoPath(role: "operator" | "produser", name: string): string {
   return availablePhotos[key] || "/attached_assets/sementara_1762090833934.png";
 }
 
+function getHostPhotoPath(hostName: string): string {
+  const normalizedName = hostName.toLowerCase().trim();
+  
+  // Host photo mapping
+  const hostPhotos: Record<string, string> = {
+    "abi": "/attached_assets/host_abisaan_1762096185716.png",
+    "denny": "/attached_assets/host_dennychandra_1762096202310.png",
+    "dany": "/attached_assets/host_mcdanny_1762096221521.png",
+    "eko": "/attached_assets/host_ekokuntadhi_1762096202311.png",
+    "hatma": "/attached_assets/host_hatma_1762096202311.png",
+    "indy": "/attached_assets/host_indyrahmawati_1762096202311.png",
+    "irwan": "/attached_assets/host_irwanardian_1762096221521.png",
+    "luvi": "/attached_assets/host_luvi_1762096221521.png",
+    "mazdjo": "/attached_assets/host_mazdjopray_1762096221521.png",
+    "mazjo": "/attached_assets/host_mazdjopray_1762096221521.png",
+    "mo": "/attached_assets/host_mosidik_1762096221521.png",
+    "mosidik": "/attached_assets/host_mosidik_1762096221521.png",
+    "nayla": "/attached_assets/host_nayla_1762096257881.png",
+    "odah": "/attached_assets/host_odah_1762096257881.png",
+    "ot": "/attached_assets/host_otsyech_1762096257882.png",
+    "reno": "/attached_assets/host_reno_1762096257882.png",
+    "rio": "/attached_assets/host_rio_1762096257882.png",
+    "risan": "/attached_assets/host_risan_1762096272039.png",
+  };
+  
+  return hostPhotos[normalizedName] || "/attached_assets/sementara_1762090833934.png";
+}
+
 function getCurrentProgramWIB(): string | null {
   const now = new Date();
   const wibOffset = 7 * 60; // WIB is UTC+7
@@ -1313,6 +1341,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const operatorPhoto = getCrewPhotoPath("operator", operatorName);
       const producerPhoto = getCrewPhotoPath("produser", producerName);
       
+      // Get current program details to extract hosts
+      const program = getCurrentProgram();
+      const presenterText = program.presenter || "";
+      const hosts = presenterText.replace(/^presenters?:\s*/i, '').split(/\s*&\s*/).filter(h => h);
+      
       // Format names for display - fallback to "CREW" for staff without photos or Night Flow default
       const formatName = (name: string) => {
         if (name === "unknown" || name === "default" || name === "internship" || name === "ade" || name === "indira") {
@@ -1320,6 +1353,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         return name.toUpperCase();
       };
+      
+      // Get host photos
+      const hostsWithPhotos = hosts.map((hostName) => ({
+        name: hostName.trim().toUpperCase(),
+        photoUrl: getHostPhotoPath(hostName.trim()),
+      }));
       
       res.json({
         operator: {
@@ -1330,6 +1369,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           name: formatName(producerName),
           photoUrl: producerPhoto,
         },
+        hosts: hostsWithPhotos,
         currentProgram,
         operatorDay,
         producerDay,
