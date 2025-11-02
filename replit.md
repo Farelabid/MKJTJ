@@ -118,10 +118,14 @@ The dashboard's design is inspired by Spotify Analytics and SoundCloud Stats, fe
 - **Updated Producer Photo**: Audrey producer photo updated to professional version (produser_audrey_1762125589588.png)
 - **Radio Player in Footer** (Latest Update):
   - Auto-play TJ Radio Jakarta streaming player added to footer
-  - Stream URL: https://stream-eu-nc.arenastreaming.com:5450/
+  - Stream URL: https://stream-eu-nc.arenastreaming.com:5450/stream (Icecast mountpoint)
   - Features: Play/pause button, volume control with slider, mute toggle, external link to website
-  - Auto-play on page load (browser permission dependent)
+  - Auto-play on page load (browser permission dependent, shows toast if blocked)
   - Responsive design with gradient background (primary color theme)
   - Volume slider with custom styling (primary color, hover effects)
   - Player controls: Play/Pause ("Dengarkan Live"/"Jeda"), Volume (0-100%), Mute/Unmute
   - External link button to www.tjradiojakarta.com
+  - **State Management**: Uses audio element event listeners ('play', 'pause', 'ended') for automatic UI state synchronization
+  - **Accessibility**: Full ARIA support (aria-label, aria-pressed) for all controls
+  - **Bug Fixes**: Fixed mute/volume synchronization and UI state sync issues
+  - **Tested**: E2E tests confirm play/pause toggle, state sync, and accessibility compliance

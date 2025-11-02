@@ -237,11 +237,8 @@ export default function Dashboard() {
     if (audioRef.current) {
       if (isPlaying) {
         audioRef.current.pause();
-        setIsPlaying(false);
       } else {
-        audioRef.current.play().then(() => {
-          setIsPlaying(true);
-        }).catch((error) => {
+        audioRef.current.play().catch((error) => {
           console.error('Error playing audio:', error);
           toast({
             title: "Gagal Memutar",
@@ -278,6 +275,26 @@ export default function Dashboard() {
     }
   };
 
+  // Sync isPlaying state with audio element events
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const handlePlay = () => setIsPlaying(true);
+    const handlePause = () => setIsPlaying(false);
+    const handleEnded = () => setIsPlaying(false);
+
+    audio.addEventListener('play', handlePlay);
+    audio.addEventListener('pause', handlePause);
+    audio.addEventListener('ended', handleEnded);
+
+    return () => {
+      audio.removeEventListener('play', handlePlay);
+      audio.removeEventListener('pause', handlePause);
+      audio.removeEventListener('ended', handleEnded);
+    };
+  }, []);
+
   // Auto-play on component mount
   useEffect(() => {
     if (audioRef.current) {
@@ -286,13 +303,9 @@ export default function Dashboard() {
       const playPromise = audioRef.current.play();
       if (playPromise !== undefined) {
         playPromise
-          .then(() => {
-            setIsPlaying(true);
-          })
           .catch((error) => {
             // Auto-play was prevented by browser
             console.log('Auto-play prevented:', error);
-            setIsPlaying(false);
             // Show user-friendly notification
             toast({
               title: "Auto-play Diblokir",
@@ -827,6 +840,7 @@ export default function Dashboard() {
                     variant="ghost"
                     onClick={handleMuteToggle}
                     data-testid="button-mute-toggle"
+                    aria-label={isMuted || volume === 0 ? "Unmute" : "Mute"}
                     className="h-8 w-8"
                   >
                     {isMuted || volume === 0 ? (
@@ -844,6 +858,7 @@ export default function Dashboard() {
                     onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
                     className="w-20 h-1 bg-primary/20 rounded-lg appearance-none cursor-pointer slider"
                     data-testid="volume-slider"
+                    aria-label="Volume"
                   />
                 </div>
 
@@ -851,17 +866,19 @@ export default function Dashboard() {
                 <Button
                   onClick={handlePlayPause}
                   className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2"
-                  data-testid="button-play-pause"
+                  data-testid="button-radio-play-pause"
+                  aria-label={isPlaying ? "Pause radio" : "Play radio"}
+                  aria-pressed={isPlaying}
                 >
                   {isPlaying ? (
                     <>
                       <Pause className="h-4 w-4" />
-                      <span className="hidden sm:inline">Jeda</span>
+                      <span>Jeda</span>
                     </>
                   ) : (
                     <>
                       <Play className="h-4 w-4" />
-                      <span className="hidden sm:inline">Dengarkan Live</span>
+                      <span>Dengarkan Live</span>
                     </>
                   )}
                 </Button>
@@ -887,7 +904,7 @@ export default function Dashboard() {
               {/* Hidden Audio Element */}
               <audio
                 ref={audioRef}
-                src="https://stream-eu-nc.arenastreaming.com:5450/"
+                src="https://stream-eu-nc.arenastreaming.com:5450/stream"
                 preload="none"
                 data-testid="audio-player"
               />
