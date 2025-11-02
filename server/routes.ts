@@ -7,10 +7,33 @@ import path from "path";
 import { radioStatsSchema } from "@shared/schema";
 import { storage } from "./storage";
 
-// Background job interval (30 seconds for EMA tracking)
+// Background job interval (30 seconds for EMA tracking and stream health)
 const EMA_INTERVAL = 30 * 1000;
+const STREAM_HEALTH_INTERVAL = 30 * 1000; // Check stream health every 30 seconds
 
 let emaInterval: NodeJS.Timeout | null = null;
+let streamHealthInterval: NodeJS.Timeout | null = null;
+
+// Stream Health Monitoring
+interface StreamHealthMetrics {
+  lastResponseTime: number; // ms
+  lastCheckTime: Date;
+  successCount: number;
+  failureCount: number;
+  status: 'excellent' | 'good' | 'degraded' | 'offline' | 'initializing';
+  recentResponseTimes: number[]; // Last 10 response times
+  isInitialized: boolean;
+}
+
+const streamHealth: StreamHealthMetrics = {
+  lastResponseTime: 0,
+  lastCheckTime: new Date(),
+  successCount: 0,
+  failureCount: 0,
+  status: 'initializing',
+  recentResponseTimes: [],
+  isInitialized: false
+};
 
 // EMA Constants
 const ALPHA = 0.25; // EMA smoothing factor
@@ -620,6 +643,82 @@ async function calculateEMAListenerMinutes() {
   }
 }
 
+// Server-side stream health checker (runs independently of client traffic)
+// This performs a lightweight check to verify the Icecast server is accessible and responding
+async function checkStreamHealthIndependently() {
+  const startTime = Date.now();
+  try {
+    // Perform simple HTTP request to verify server accessibility
+    // Note: This checks server availability, not individual mount points
+    // A successful response indicates the streaming infrastructure is operational
+    const response = await axios.get("https://stream-eu-nc.arenastreaming.com:5450/", {
+      timeout: 5000,
+      maxRedirects: 0, // Don't follow redirects for faster response
+      validateStatus: (status) => status === 200, // Only accept HTTP 200
+    });
+    
+    // Verify response actually contains content (not just 200 with empty body)
+    const hasContent = response.data && response.data.length > 0;
+    
+    if (!hasContent) {
+      throw new Error("Server returned 200 but no content");
+    }
+    
+    // Track successful response
+    const responseTime = Date.now() - startTime;
+    streamHealth.lastResponseTime = responseTime;
+    streamHealth.lastCheckTime = new Date();
+    streamHealth.successCount++;
+    streamHealth.isInitialized = true;
+    
+    // Reset failure count on successful request (recovery)
+    if (streamHealth.failureCount > 0) {
+      streamHealth.failureCount = 0;
+    }
+    
+    // Add to recent response times (keep last 10)
+    streamHealth.recentResponseTimes.push(responseTime);
+    if (streamHealth.recentResponseTimes.length > 10) {
+      streamHealth.recentResponseTimes.shift();
+    }
+    
+    // Calculate average response time (guard against empty array)
+    const avgResponseTime = streamHealth.recentResponseTimes.length > 0
+      ? streamHealth.recentResponseTimes.reduce((a, b) => a + b, 0) / streamHealth.recentResponseTimes.length
+      : responseTime;
+    
+    // Determine health status based on response time
+    if (avgResponseTime < 300) {
+      streamHealth.status = 'excellent';
+    } else if (avgResponseTime < 1000) {
+      streamHealth.status = 'good';
+    } else if (avgResponseTime < 3000) {
+      streamHealth.status = 'degraded';
+    } else {
+      streamHealth.status = 'offline';
+    }
+    
+    console.log(`[StreamHealth] Check successful: ${responseTime}ms (avg: ${Math.round(avgResponseTime)}ms, status: ${streamHealth.status})`);
+  } catch (error) {
+    // Track failed response
+    const responseTime = Date.now() - startTime;
+    streamHealth.lastResponseTime = responseTime;
+    streamHealth.lastCheckTime = new Date();
+    streamHealth.failureCount++;
+    streamHealth.status = 'offline';
+    streamHealth.isInitialized = true;
+    
+    // On failure, keep last successful average or use current failed time
+    // Don't clear recentResponseTimes immediately to prevent NaN
+    if (streamHealth.failureCount > 3 && streamHealth.recentResponseTimes.length > 0) {
+      // Gradually phase out old good times by removing oldest
+      streamHealth.recentResponseTimes.shift();
+    }
+    
+    console.error(`[StreamHealth] Check failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Serve static files from attached_assets directory
   // This must be registered BEFORE Vite's catch-all route to prevent HTML being served for image requests
@@ -628,10 +727,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // API endpoint to fetch current radio statistics
   app.get("/api/radio-stats", async (req, res) => {
+    const startTime = Date.now();
     try {
       const response = await axios.get("https://stream-eu-nc.arenastreaming.com:5450/", {
         timeout: 10000,
       });
+      
+      // Track successful response
+      const responseTime = Date.now() - startTime;
+      streamHealth.lastResponseTime = responseTime;
+      streamHealth.lastCheckTime = new Date();
+      streamHealth.successCount++;
+      
+      // Reset failure count on successful request (recovery)
+      if (streamHealth.failureCount > 0) {
+        streamHealth.failureCount = 0;
+      }
+      
+      // Add to recent response times (keep last 10)
+      streamHealth.recentResponseTimes.push(responseTime);
+      if (streamHealth.recentResponseTimes.length > 10) {
+        streamHealth.recentResponseTimes.shift();
+      }
+      
+      // Calculate average response time
+      const avgResponseTime = streamHealth.recentResponseTimes.reduce((a, b) => a + b, 0) / streamHealth.recentResponseTimes.length;
+      
+      // Determine health status based on response time and success rate
+      // Excellent: < 300ms, Good: < 1000ms, Degraded: < 3000ms, Offline: > 3000ms or error
+      if (avgResponseTime < 300) {
+        streamHealth.status = 'excellent';
+      } else if (avgResponseTime < 1000) {
+        streamHealth.status = 'good';
+      } else if (avgResponseTime < 3000) {
+        streamHealth.status = 'degraded';
+      } else {
+        streamHealth.status = 'offline';
+      }
 
       const html = response.data;
       const $ = cheerio.load(html);
@@ -714,9 +846,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validatedStats = radioStatsSchema.parse(stats);
       res.json(validatedStats);
     } catch (error) {
+      // Track failed response
+      const responseTime = Date.now() - startTime;
+      streamHealth.lastResponseTime = responseTime;
+      streamHealth.lastCheckTime = new Date();
+      streamHealth.failureCount++;
+      streamHealth.status = 'offline';
+      
+      // Clear recent response times on consecutive failures to reflect actual health
+      if (streamHealth.failureCount > 2) {
+        streamHealth.recentResponseTimes = [];
+      }
+      
       console.error("Error fetching radio stats:", error);
       res.status(500).json({ 
         error: "Failed to fetch radio statistics",
+        message: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  // API endpoint to get stream health status
+  app.get("/api/stream-health", async (req, res) => {
+    try {
+      // Return current status (independently tracked by server-side job)
+      const totalRequests = streamHealth.successCount + streamHealth.failureCount;
+      const successRate = totalRequests > 0 ? (streamHealth.successCount / totalRequests) * 100 : 100;
+      
+      const avgResponseTime = streamHealth.recentResponseTimes.length > 0 
+        ? Math.round(streamHealth.recentResponseTimes.reduce((a, b) => a + b, 0) / streamHealth.recentResponseTimes.length)
+        : 0;
+      
+      res.json({
+        status: streamHealth.status,
+        lastResponseTime: streamHealth.lastResponseTime,
+        avgResponseTime,
+        successRate: Math.round(successRate),
+        lastCheckTime: streamHealth.lastCheckTime.toISOString(),
+        isInitialized: streamHealth.isInitialized,
+        totalRequests,
+        successCount: streamHealth.successCount,
+        failureCount: streamHealth.failureCount,
+      });
+    } catch (error) {
+      console.error("Error getting stream health:", error);
+      res.status(500).json({ 
+        error: "Failed to get stream health",
         message: error instanceof Error ? error.message : "Unknown error"
       });
     }
@@ -1620,6 +1795,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Schedule periodic EMA calculation every 30 seconds
   emaInterval = setInterval(calculateEMAListenerMinutes, EMA_INTERVAL);
   console.log(`[EMA] Background job started - calculating every ${EMA_INTERVAL / 1000} second(s)`);
+
+  // Start background job for stream health monitoring (every 30 seconds)
+  if (streamHealthInterval) {
+    clearInterval(streamHealthInterval);
+  }
+  
+  // Perform initial health check immediately
+  checkStreamHealthIndependently();
+  
+  // Schedule periodic health checks every 30 seconds
+  streamHealthInterval = setInterval(checkStreamHealthIndependently, STREAM_HEALTH_INTERVAL);
+  console.log(`[StreamHealth] Background job started - checking every ${STREAM_HEALTH_INTERVAL / 1000} second(s)`);
 
   return httpServer;
 }

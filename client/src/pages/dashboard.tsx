@@ -51,6 +51,24 @@ export default function Dashboard() {
     staleTime: 0, // Always fetch fresh data
   });
 
+  // Fetch stream health status (refresh every 30 seconds, synced with stats)
+  const { data: streamHealth, isLoading: isHealthLoading, error: healthError } = useQuery<{
+    status: 'excellent' | 'good' | 'degraded' | 'offline' | 'initializing';
+    lastResponseTime: number;
+    avgResponseTime: number;
+    successRate: number;
+    lastCheckTime: string;
+    isInitialized: boolean;
+    totalRequests: number;
+    successCount: number;
+    failureCount: number;
+  }>({
+    queryKey: ["/api/stream-health"],
+    refetchInterval: 30000, // Refresh every 30 seconds (synced with radio stats)
+    staleTime: 0,
+    retry: 2, // Retry failed requests twice
+  });
+
   // Fetch Jakarta weather data (refresh every 5 minutes)
   const { data: weather, isLoading: isWeatherLoading, error: weatherError } = useQuery<{
     temperature: number;
@@ -288,37 +306,74 @@ export default function Dashboard() {
               />
             </div>
 
-            {/* Widgets Container: Now Playing + Jakarta Weather */}
+            {/* Widgets Container: Stream Health + Jakarta Weather */}
             <div className="flex items-center gap-2">
-              {/* Now Playing Widget */}
-              <div className="flex items-center gap-2 bg-gradient-to-r from-purple-600/20 via-pink-600/20 to-purple-600/20 px-3 py-2 rounded-lg border border-purple-500/30 backdrop-blur-sm">
+              {/* Stream Health Widget */}
+              <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border backdrop-blur-sm ${
+                isHealthLoading || healthError || streamHealth?.status === 'initializing' ? 'bg-gradient-to-r from-gray-600/20 via-gray-500/20 to-gray-600/20 border-gray-500/30' :
+                streamHealth?.status === 'excellent' ? 'bg-gradient-to-r from-green-600/20 via-emerald-600/20 to-green-600/20 border-green-500/30' :
+                streamHealth?.status === 'good' ? 'bg-gradient-to-r from-blue-600/20 via-cyan-600/20 to-blue-600/20 border-blue-500/30' :
+                streamHealth?.status === 'degraded' ? 'bg-gradient-to-r from-yellow-600/20 via-amber-600/20 to-yellow-600/20 border-yellow-500/30' :
+                'bg-gradient-to-r from-red-600/20 via-rose-600/20 to-red-600/20 border-red-500/30'
+              }`}>
                 <div className="flex items-center gap-2">
-                  {/* Music Icon with Pulse Animation */}
-                  <div className="relative">
-                    <div className="absolute inset-0 bg-purple-500 rounded-full animate-ping opacity-75" />
-                    <div className="relative h-6 w-6 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
-                      <svg 
-                        xmlns="http://www.w3.org/2000/svg" 
-                        className="h-3.5 w-3.5 text-white" 
-                        viewBox="0 0 24 24" 
-                        fill="currentColor"
-                      >
-                        <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
-                      </svg>
+                  {/* Health Status Icon */}
+                  {isHealthLoading ? (
+                    <Skeleton className="h-6 w-6 rounded-full" />
+                  ) : (
+                    <div className="relative flex-shrink-0">
+                      {streamHealth?.status !== 'offline' && (
+                        <div className={`absolute inset-0 rounded-full animate-pulse opacity-50 ${
+                          streamHealth?.status === 'excellent' ? 'bg-green-500' :
+                          streamHealth?.status === 'good' ? 'bg-blue-500' :
+                          'bg-yellow-500'
+                        }`} />
+                      )}
+                      <div className={`relative h-6 w-6 rounded-full flex items-center justify-center ${
+                        streamHealth?.status === 'excellent' ? 'bg-gradient-to-br from-green-500 to-emerald-500' :
+                        streamHealth?.status === 'good' ? 'bg-gradient-to-br from-blue-500 to-cyan-500' :
+                        streamHealth?.status === 'degraded' ? 'bg-gradient-to-br from-yellow-500 to-amber-500' :
+                        'bg-gradient-to-br from-red-500 to-rose-500'
+                      }`}>
+                        <Signal className={`h-4 w-4 text-white ${
+                          streamHealth?.status === 'offline' ? 'animate-none' : 'animate-pulse'
+                        }`} />
+                      </div>
                     </div>
-                  </div>
+                  )}
                   
-                  {/* Now Playing Text */}
+                  {/* Stream Health Text */}
                   <div className="flex flex-col min-w-0">
-                    <span className="text-[9px] font-bold text-purple-400 uppercase tracking-wider">
-                      Now Playing
+                    <span className={`text-[9px] font-bold uppercase tracking-wider ${
+                      healthError || !streamHealth ? 'text-gray-400' :
+                      streamHealth?.status === 'excellent' ? 'text-green-400' :
+                      streamHealth?.status === 'good' ? 'text-blue-400' :
+                      streamHealth?.status === 'degraded' ? 'text-yellow-400' :
+                      'text-red-400'
+                    }`}>
+                      Stream Status
                     </span>
-                    {isLoading ? (
-                      <Skeleton className="h-3 w-32" />
-                    ) : (
-                      <span className="text-xs font-semibold text-foreground truncate max-w-[160px]" data-testid="text-current-song">
-                        {stats?.currentlyPlaying || "Tidak ada info"}
+                    {isHealthLoading ? (
+                      <Skeleton className="h-3 w-24" />
+                    ) : healthError ? (
+                      <span className="text-xs text-muted-foreground" data-testid="text-stream-error">
+                        Tidak tersedia
                       </span>
+                    ) : (
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-semibold text-foreground" data-testid="text-stream-status">
+                          {streamHealth?.status === 'initializing' ? 'Memuat...' :
+                           streamHealth?.status === 'excellent' ? 'Sempurna' :
+                           streamHealth?.status === 'good' ? 'Baik' :
+                           streamHealth?.status === 'degraded' ? 'Lambat' :
+                           'Offline'}
+                        </span>
+                        {streamHealth && streamHealth.avgResponseTime > 0 && streamHealth.status !== 'offline' && streamHealth.status !== 'initializing' && (
+                          <span className="text-[10px] text-muted-foreground" data-testid="text-response-time">
+                            {streamHealth.avgResponseTime}ms
+                          </span>
+                        )}
+                      </div>
                     )}
                   </div>
                 </div>
