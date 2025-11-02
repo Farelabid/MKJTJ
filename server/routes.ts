@@ -192,26 +192,33 @@ function getCrewPhotoPath(role: "operator" | "produser", name: string): string {
 function getHostPhotoPath(hostName: string): string {
   const normalizedName = hostName.toLowerCase().trim();
   
-  // Host photo mapping
+  // Host photo mapping - 19 unique hosts with photos
   const hostPhotos: Record<string, string> = {
+    // Main hosts from schedule
     "abi": "/attached_assets/host_abisaan_1762096185716.png",
+    "akbar": "/attached_assets/host_akbar_1762096185716.png",
+    "cak lontong": "/attached_assets/host_caklontong_1762096185716.png",
+    "caklontong": "/attached_assets/host_caklontong_1762096185716.png",
     "denny": "/attached_assets/host_dennychandra_1762096202310.png",
+    "denny ch": "/attached_assets/host_dennychandra_1762096202310.png",
     "dany": "/attached_assets/host_mcdanny_1762096221521.png",
     "eko": "/attached_assets/host_ekokuntadhi_1762096202311.png",
+    "eko kuntadhi": "/attached_assets/host_ekokuntadhi_1762096202311.png",
     "hatma": "/attached_assets/host_hatma_1762096202311.png",
     "indy": "/attached_assets/host_indyrahmawati_1762096202311.png",
     "irwan": "/attached_assets/host_irwanardian_1762096221521.png",
     "luvi": "/attached_assets/host_luvi_1762096221521.png",
     "mazdjo": "/attached_assets/host_mazdjopray_1762096221521.png",
     "mazjo": "/attached_assets/host_mazdjopray_1762096221521.png",
-    "mo": "/attached_assets/host_mosidik_1762096221521.png",
-    "mosidik": "/attached_assets/host_mosidik_1762096221521.png",
+    "mo": "/attached_assets/host_mosidik_1762096221522.png",
+    "mosidik": "/attached_assets/host_mosidik_1762096221522.png",
     "nayla": "/attached_assets/host_nayla_1762096257881.png",
     "odah": "/attached_assets/host_odah_1762096257881.png",
     "ot": "/attached_assets/host_otsyech_1762096257882.png",
     "reno": "/attached_assets/host_reno_1762096257882.png",
     "rio": "/attached_assets/host_rio_1762096257882.png",
     "risan": "/attached_assets/host_risan_1762096272039.png",
+    "yasser": "/attached_assets/host_yasser_1762096272039.png",
   };
   
   return hostPhotos[normalizedName] || "/attached_assets/sementara_1762090833934.png";
