@@ -1,24 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 
-interface CrewOnDutyData {
-  operator: {
-    name: string;
-    photoUrl: string;
-  };
-  producer: {
-    name: string;
-    photoUrl: string;
-  };
-  hosts: Array<{
-    name: string;
-    photoUrl: string;
-  }>;
-  currentProgram: string;
-  currentDay: string;
-  currentShift: string;
-}
-
 interface OnAirProgram {
   programTitle: string;
   presenter: string;
@@ -29,17 +11,12 @@ interface OnAirProgram {
 }
 
 export default function CrewOnDuty() {
-  const { data: crewData, isLoading: crewLoading } = useQuery<CrewOnDutyData>({
-    queryKey: ["/api/crew-on-duty"],
-    refetchInterval: 30000,
-  });
-
   const { data: programData, isLoading: programLoading } = useQuery<OnAirProgram>({
     queryKey: ["/api/on-air-program"],
     refetchInterval: 30000,
   });
 
-  if (crewLoading || programLoading || !crewData || !programData) {
+  if (programLoading || !programData) {
     return (
       <div className="flex flex-col items-center justify-center h-full space-y-4">
         <Skeleton className="h-12 w-64" />
@@ -53,6 +30,119 @@ export default function CrewOnDuty() {
       </div>
     );
   }
+
+  // Get current day of week
+  const getDayOfWeek = (): string => {
+    const now = new Date();
+    const wibOffset = 7 * 60;
+    const localOffset = now.getTimezoneOffset();
+    const wibTime = new Date(now.getTime() + (wibOffset + localOffset) * 60 * 1000);
+    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    return days[wibTime.getDay()];
+  };
+
+  // Producer schedule mapping using NEW professional photos
+  const getProducerPhoto = (): { name: string; photoUrl: string } => {
+    const day = getDayOfWeek();
+    const program = programData.programTitle;
+    
+    // Producer mapping based on CSV schedule
+    const producerSchedule: Record<string, Record<string, string>> = {
+      "Good Morning Jakarta": {
+        monday: "AUDREY", tuesday: "ZAKIYA", wednesday: "ZAKIYA", thursday: "AUDREY",
+        friday: "ZAKIYA", saturday: "ZAKIYA", sunday: "AUDREY"
+      },
+      "Good Morning JKT Weekend": {
+        monday: "ZAKIYA", tuesday: "ZAKIYA", wednesday: "ZAKIYA", thursday: "ZAKIYA",
+        friday: "ZAKIYA", saturday: "ZAKIYA", sunday: "AUDREY"
+      },
+      "Office Hour": {
+        monday: "RISAN", tuesday: "INDIRA", wednesday: "INDIRA", thursday: "RISAN",
+        friday: "RISAN", saturday: "INDIRA", sunday: "INDIRA"
+      },
+      "Coffee Break": {
+        monday: "NAYLA", tuesday: "PATRICIA", wednesday: "NAYLA", thursday: "PATRICIA",
+        friday: "PATRICIA", saturday: "PATRICIA", sunday: "PATRICIA"
+      },
+      "Afternoon Show": {
+        monday: "PATRICIA", tuesday: "PATRICIA", wednesday: "PATRICIA", thursday: "PATRICIA",
+        friday: "PATRICIA", saturday: "PATRICIA", sunday: "NAYLA"
+      },
+      "Drive Time": {
+        monday: "LUVI", tuesday: "LUVI", wednesday: "LUVI", thursday: "LUVI",
+        friday: "LUVI", saturday: "SAKINAH", sunday: "SAKINAH"
+      },
+      "Drive Time Weekend": {
+        monday: "SAKINAH", tuesday: "SAKINAH", wednesday: "SAKINAH", thursday: "SAKINAH",
+        friday: "SAKINAH", saturday: "SAKINAH", sunday: "SAKINAH"
+      },
+      "Shift Malam": {
+        monday: "JHOSUA", tuesday: "JHOSUA", wednesday: "JHOSUA", thursday: "JHOSUA",
+        friday: "JHOSUA", saturday: "JHOSUA", sunday: "JHOSUA"
+      }
+    };
+
+    // NEW Professional producer photos (uploaded today)
+    const producerPhotos: Record<string, string> = {
+      "JHOSUA": "/attached_assets/produser_jhosua_1762098258506.png",
+      "LUVI": "/attached_assets/produser_luvi_1762098258507.png",
+      "NAYLA": "/attached_assets/produser_nayla_1762098258507.png",
+      "PATRICIA": "/attached_assets/produser_patricia_1762098258507.png",
+      "RISAN": "/attached_assets/produser_risan_1762098258507.png",
+      "AUDREY": "/attached_assets/audrey_1760589432000.png",
+      "ZAKIYA": "/attached_assets/magang_zakiya_1762097040087.png",
+      "INDIRA": "/attached_assets/magang_indira_1762097040087.png",
+      "SAKINAH": "/attached_assets/magang_sakinanh_1762097040087.png",
+    };
+
+    const producerName = producerSchedule[program]?.[day] || "CREW";
+    const photoUrl = producerPhotos[producerName] || "/attached_assets/sementara_1762090833934.png";
+
+    return { name: producerName, photoUrl };
+  };
+
+  // Get host photos from program presenter
+  const getHostPhotos = (): Array<{ name: string; photoUrl: string }> => {
+    const presenterText = programData.presenter || "";
+    const hostNames = presenterText.replace(/^dengan\s+/i, '').split(/\s*&\s*/).filter(h => h);
+
+    const hostPhotoMapping: Record<string, string> = {
+      "ABI": "/attached_assets/host_abisaan_1762096185716.png",
+      "AKBAR": "/attached_assets/host_akbar_1762096185716.png",
+      "DENNY": "/attached_assets/host_dennychandra_1762096202310.png",
+      "DENNY CH": "/attached_assets/host_dennychandra_1762096202310.png",
+      "DANY": "/attached_assets/host_mcdanny_1762096221521.png",
+      "EKO": "/attached_assets/host_ekokuntadhi_1762096202311.png",
+      "EKO KUNTADHI": "/attached_assets/host_ekokuntadhi_1762096202311.png",
+      "HATMA": "/attached_assets/host_hatma_1762096202311.png",
+      "INDY": "/attached_assets/host_indyrahmawati_1762096202311.png",
+      "IRWAN": "/attached_assets/host_irwanardian_1762096221521.png",
+      "LUVI": "/attached_assets/host_luvi_1762096221521.png",
+      "MAZDJO": "/attached_assets/host_mazdjopray_1762096221521.png",
+      "MAZJO": "/attached_assets/host_mazdjopray_1762096221521.png",
+      "MOSIDIK": "/attached_assets/host_mosidik_1762096221522.png",
+      "NAYLA": "/attached_assets/host_nayla_1762096257881.png",
+      "ODAH": "/attached_assets/host_odah_1762096257881.png",
+      "OTESYECH": "/attached_assets/host_otsyech_1762096257882.png",
+      "OT": "/attached_assets/host_otsyech_1762096257882.png",
+      "PUTRI": "/attached_assets/magang_putri_1762097040087.png",
+      "RENO": "/attached_assets/host_reno_1762096257882.png",
+      "RIO": "/attached_assets/host_rio_1762096257882.png",
+      "RISAN": "/attached_assets/host_risan_1762096272039.png",
+      "YASSER": "/attached_assets/host_yasser_1762096272039.png",
+    };
+
+    return hostNames.map(name => {
+      const upperName = name.trim().toUpperCase();
+      return {
+        name: upperName,
+        photoUrl: hostPhotoMapping[upperName] || "/attached_assets/sementara_1762090833934.png"
+      };
+    });
+  };
+
+  const producer = getProducerPhoto();
+  const hosts = getHostPhotos();
 
   const formatDate = () => {
     const now = new Date();
@@ -68,8 +158,6 @@ export default function CrewOnDuty() {
     return `${day} ${month} ${year}`;
   };
 
-  const hosts = crewData.hosts || [];
-
   return (
     <div className="flex flex-col items-center justify-center w-full space-y-3">
       {/* Team Work Header */}
@@ -79,45 +167,27 @@ export default function CrewOnDuty() {
         </h2>
       </div>
 
-      {/* 4 Crew Photos in a Row */}
+      {/* 3 Crew Photos in a Row: Producer + 2 Hosts */}
       <div className="flex gap-3 items-end justify-center">
-        {/* Operator */}
+        {/* Producer - Using NEW professional photos */}
         <div className="flex flex-col items-center space-y-1">
-          <div className="w-20 h-28 rounded-lg overflow-hidden bg-gradient-to-br from-blue-500/20 to-blue-700/20 border-2 border-blue-500/30">
+          <div className="w-20 h-28 rounded-lg overflow-hidden bg-gradient-to-br from-orange-500/20 to-orange-700/20 border-2 border-orange-500/30">
             <img
-              src={crewData.operator.photoUrl}
-              alt={`Operator ${crewData.operator.name}`}
-              className="w-full h-full object-cover"
-              data-testid="image-operator"
-            />
-          </div>
-          <div className="text-center">
-            <p className="text-xs font-bold text-blue-400" data-testid="text-operator-role">OPERATOR</p>
-            <p className="text-[10px] text-muted-foreground font-semibold" data-testid="text-operator-name">
-              {crewData.operator.name}
-            </p>
-          </div>
-        </div>
-
-        {/* Producer */}
-        <div className="flex flex-col items-center space-y-1">
-          <div className="w-20 h-28 rounded-lg overflow-hidden bg-gradient-to-br from-yellow-500/20 to-yellow-700/20 border-2 border-yellow-500/30">
-            <img
-              src={crewData.producer.photoUrl}
-              alt={`Producer ${crewData.producer.name}`}
+              src={producer.photoUrl}
+              alt={`Producer ${producer.name}`}
               className="w-full h-full object-cover"
               data-testid="image-producer"
             />
           </div>
           <div className="text-center">
-            <p className="text-xs font-bold text-yellow-400" data-testid="text-producer-role">PRODUSER</p>
+            <p className="text-xs font-bold text-orange-400" data-testid="text-producer-role">PRODUSER</p>
             <p className="text-[10px] text-muted-foreground font-semibold" data-testid="text-producer-name">
-              {crewData.producer.name}
+              {producer.name}
             </p>
           </div>
         </div>
 
-        {/* Hosts - Dynamic based on API data */}
+        {/* Hosts - Dynamic based on program data */}
         {hosts.map((host, index) => (
           <div key={index} className="flex flex-col items-center space-y-1">
             <div className="w-20 h-28 rounded-lg overflow-hidden bg-gradient-to-br from-orange-500/20 to-orange-700/20 border-2 border-orange-500/30">
