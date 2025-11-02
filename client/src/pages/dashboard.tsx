@@ -144,12 +144,12 @@ export default function Dashboard() {
     return Math.min(Math.max(ratio, 0), 100);
   };
 
-  // Calculate needle angle based on current listeners (1K to 20K scale)
+  // Calculate needle angle based on current listeners (1K to 10K scale)
   const getNeedleAngle = () => {
     if (!stats) return -180; // Start position
     const listeners = stats.listenersCurrent;
     const minScale = 1000;  // 1K
-    const maxScale = 20000; // 20K
+    const maxScale = 10000; // 10K
     
     // Clamp listeners to scale range
     const clampedListeners = Math.min(Math.max(listeners, minScale), maxScale);
@@ -174,17 +174,6 @@ export default function Dashboard() {
     return ((diff / previousListeners) * 100);
   };
 
-  const getTrendIcon = () => {
-    if (trend === 'up') return <TrendingUp className="h-4 w-4" />;
-    if (trend === 'down') return <TrendingDown className="h-4 w-4" />;
-    return <Minus className="h-4 w-4" />;
-  };
-
-  const getTrendColor = () => {
-    if (trend === 'up') return 'text-[#C4F542]';
-    if (trend === 'down') return 'text-[#FF69B4]';
-    return 'text-muted-foreground';
-  };
 
   const formatDateTime = () => {
     const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
@@ -310,6 +299,11 @@ export default function Dashboard() {
                         <stop offset="75%" stopColor="#FF4500" />
                         <stop offset="100%" stopColor="#DC143C" />
                       </linearGradient>
+                      <linearGradient id="needleGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stopColor="#FF00FF" />
+                        <stop offset="50%" stopColor="#C71585" />
+                        <stop offset="100%" stopColor="#8B008B" />
+                      </linearGradient>
                       <filter id="glow">
                         <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
                         <feMerge>
@@ -336,23 +330,40 @@ export default function Dashboard() {
                       }}
                     />
                     
-                    {/* Scale Marks - 1.000 to 20.000 */}
-                    {[1, 3, 5, 7, 9, 11, 13, 15, 17, 20].map((num, index) => {
-                      // Map 1K-20K evenly across 200° arc
+                    {/* Scale Marks - 1.000 to 10K (500 increments) */}
+                    {[1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10].map((num, index) => {
+                      // Map 1K-10K evenly across 200° arc
                       const scaleMin = 1;
-                      const scaleMax = 20;
+                      const scaleMax = 10;
                       const percentage = ((num - scaleMin) / (scaleMax - scaleMin)) * 100;
                       const angle = -180 + (percentage * 200 / 100);
                       const radian = (angle * Math.PI) / 180;
-                      const x1 = 100 + 75 * Math.cos(radian);
-                      const y1 = 100 + 75 * Math.sin(radian);
-                      const x2 = 100 + 85 * Math.cos(radian);
-                      const y2 = 100 + 85 * Math.sin(radian);
-                      const textX = 100 + 92 * Math.cos(radian);
-                      const textY = 100 + 92 * Math.sin(radian);
+                      const x1 = 100 + 72 * Math.cos(radian);
+                      const y1 = 100 + 72 * Math.sin(radian);
+                      const x2 = 100 + 80 * Math.cos(radian);
+                      const y2 = 100 + 80 * Math.sin(radian);
+                      const textX = 100 + 90 * Math.cos(radian);
+                      const textY = 100 + 90 * Math.sin(radian);
                       
-                      // Format number with dots: 1000 → 1.000
-                      const formattedNum = (num * 1000).toLocaleString('id-ID');
+                      // Format number with dots: 1000 → 1.000, or use "10K" for 10000
+                      let formattedNum;
+                      if (num === 10) {
+                        formattedNum = '10K';
+                      } else {
+                        formattedNum = (num * 1000).toLocaleString('id-ID');
+                      }
+                      
+                      // Color gradient: yellow on left, orange-red on right
+                      let fillColor = '#FFD700'; // Yellow (left)
+                      if (num >= 5) {
+                        fillColor = '#FFA500'; // Orange (middle)
+                      }
+                      if (num >= 7) {
+                        fillColor = '#FF4500'; // Orange-red (right)
+                      }
+                      if (num >= 9) {
+                        fillColor = '#DC143C'; // Crimson (far right)
+                      }
                       
                       return (
                         <g key={num}>
@@ -361,15 +372,15 @@ export default function Dashboard() {
                             y1={y1}
                             x2={x2}
                             y2={y2}
-                            stroke="#666666"
-                            strokeWidth="1.5"
+                            stroke="#555555"
+                            strokeWidth="1"
                           />
                           <text
                             x={textX}
                             y={textY}
-                            fill="#888888"
-                            fontSize="9"
-                            fontWeight="600"
+                            fill={fillColor}
+                            fontSize="8"
+                            fontWeight="700"
                             textAnchor="middle"
                             dominantBaseline="middle"
                           >
@@ -379,16 +390,17 @@ export default function Dashboard() {
                       );
                     })}
                     
-                    {/* Needle */}
+                    {/* Needle - Purple/Magenta gradient */}
                     {stats && (
                       <line
                         x1="100"
                         y1="100"
                         x2="100"
-                        y2="30"
-                        stroke="#4A4A4A"
+                        y2="25"
+                        stroke="url(#needleGradient)"
                         strokeWidth="3"
                         strokeLinecap="round"
+                        filter="url(#glow)"
                         style={{
                           transform: `rotate(${getNeedleAngle()}deg)`,
                           transformOrigin: '50% 50%',
@@ -397,56 +409,54 @@ export default function Dashboard() {
                       />
                     )}
                     
-                    {/* Center Circle */}
-                    <circle cx="100" cy="100" r="5" fill="#4A4A4A" />
+                    {/* Center Circle - Purple */}
+                    <circle cx="100" cy="100" r="6" fill="#C71585" filter="url(#glow)" />
                   </svg>
                   
                   {/* Center Text Content */}
                   <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                    {/* Header */}
-                    <div className="flex items-center gap-2 mb-2 mt-8">
-                      <p className="text-xs font-bold text-[#C4F542] tracking-wider">
-                        PENDENGAR SAAT INI
-                      </p>
-                      <Radio className="h-4 w-4 text-[#FF69B4] animate-pulse" />
-                    </div>
+                    {/* "OVER" Label */}
+                    <p className="text-xs font-bold text-gray-400 tracking-wider mb-1 mt-4">
+                      OVER
+                    </p>
                     
-                    {/* Main Number */}
+                    {/* Main Number - Bright Yellow */}
                     <h2 
-                      className="text-5xl font-bold font-mono tracking-tight text-[#FF69B4] mb-1"
+                      className="text-5xl font-bold font-mono tracking-tight text-[#FFD700] mb-1"
                       style={{
-                        textShadow: '0 0 20px rgba(255, 105, 180, 0.8)'
+                        textShadow: '0 0 30px rgba(255, 215, 0, 0.9)'
                       }}
                       data-testid="text-listeners-current"
                     >
                       {stats?.listenersCurrent.toLocaleString()}
                     </h2>
                     
+                    {/* Subtitle */}
+                    <p className="text-[9px] font-medium text-gray-300 tracking-wide mb-2 px-2">
+                      PEOPLE ARE LISTENING<br/>TO US RIGHT NOW
+                    </p>
+                    
                     {/* Trend Indicator */}
                     {stats && previousListeners !== null && (
-                      <p className="text-xs text-muted-foreground mb-3">
-                        {getTrendPercentage() > 0 ? '+' : getTrendPercentage() < 0 ? '−' : ''} {Math.abs(getTrendPercentage()).toFixed(1)}% vs update terakhir
+                      <p className="text-xs font-semibold text-[#FFA500] mb-2">
+                        {getTrendPercentage() > 0 ? '+' : getTrendPercentage() < 0 ? '−' : ''}{Math.abs(getTrendPercentage()).toFixed(1)}% VS UPDATE TERAKHIR
                       </p>
                     )}
                     
-                    {/* Peak */}
+                    {/* Peak - Cyan */}
                     {stats && (
-                      <div className="space-y-1">
-                        <p className="text-sm">
-                          <span className="text-[#C4F542] font-bold">PEAK</span>
-                          {' '}
-                          <span 
-                            className="text-2xl font-bold font-mono text-[#C4F542]"
-                            style={{ textShadow: '0 0 15px rgba(196, 245, 66, 0.6)' }}
-                          >
-                            {stats.listenersPeak.toLocaleString()}
-                          </span>
+                      <div className="space-y-0.5">
+                        <p 
+                          className="text-2xl font-bold font-mono text-[#00FFFF]"
+                          style={{ textShadow: '0 0 20px rgba(0, 255, 255, 0.7)' }}
+                        >
+                          PEAK {stats.listenersPeak.toLocaleString()}
                         </p>
                         
-                        {/* Percentage */}
+                        {/* Percentage - Orange */}
                         <p 
-                          className="text-xl font-bold text-[#FF69B4]"
-                          style={{ textShadow: '0 0 15px rgba(255, 105, 180, 0.6)' }}
+                          className="text-sm font-bold text-[#FF6347]"
+                          style={{ textShadow: '0 0 10px rgba(255, 99, 71, 0.6)' }}
                         >
                           {getListenerRatio().toFixed(0)}% DARI PEAK
                         </p>
