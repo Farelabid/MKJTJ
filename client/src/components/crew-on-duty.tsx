@@ -140,7 +140,7 @@ export default function CrewOnDuty() {
 
     // Operator photos (updated with new professional photo for ADE)
     const operatorPhotos: Record<string, string> = {
-      "ARYO": "/attached_assets/opr_aryo_1760589447425.png",
+      "ARYO": "/attached_assets/opr_aryo_1762105125710.png",
       "AUDREY": "/attached_assets/opr_audrey_1760589447426.png",
       "JHOSUA": "/attached_assets/opr_jhosua_1760589447426.png",
       "RULLY": "/attached_assets/opr_rully_1760589447426.png",
