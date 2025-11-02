@@ -257,24 +257,45 @@ export default function Dashboard() {
               />
             </div>
 
-            <div className="flex items-center gap-2">
-              <div className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground">
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-1">
-                    <div className="h-2 w-2 rounded-full bg-status-online animate-pulse-slow" />
-                    <span className="font-medium">LIVE</span>
+            {/* Now Playing Widget */}
+            <div className="flex items-center gap-3 bg-gradient-to-r from-purple-600/20 via-pink-600/20 to-purple-600/20 px-4 py-2 rounded-lg border border-purple-500/30 backdrop-blur-sm">
+              <div className="flex items-center gap-2">
+                {/* Music Icon with Pulse Animation */}
+                <div className="relative">
+                  <div className="absolute inset-0 bg-purple-500 rounded-full animate-ping opacity-75" />
+                  <div className="relative h-8 w-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      className="h-5 w-5 text-white" 
+                      viewBox="0 0 24 24" 
+                      fill="currentColor"
+                    >
+                      <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+                    </svg>
                   </div>
-                  <span className="text-xs">•</span>
-                  <span>Refresh dalam {autoRefreshCountdown}s</span>
+                </div>
+                
+                {/* Now Playing Text */}
+                <div className="flex flex-col min-w-0">
+                  <span className="text-[10px] font-bold text-purple-400 uppercase tracking-wider">
+                    Now Playing
+                  </span>
+                  {isLoading ? (
+                    <Skeleton className="h-4 w-40" />
+                  ) : (
+                    <div className="flex items-center gap-2 overflow-hidden">
+                      <span className="text-sm font-semibold text-foreground truncate max-w-xs" data-testid="text-current-song">
+                        {stats?.currentlyPlaying || "Loading..."}
+                      </span>
+                      {/* Live Indicator */}
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        <div className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" />
+                        <span className="text-[10px] font-bold text-red-400">LIVE</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
-              <Link href="/admin">
-                <Button variant="ghost" size="icon" data-testid="button-admin">
-                  <Settings className="h-5 w-5" />
-                  <span className="sr-only">Admin Settings</span>
-                </Button>
-              </Link>
-              <ThemeToggle />
             </div>
           </div>
         </div>
