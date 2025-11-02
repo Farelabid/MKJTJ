@@ -241,9 +241,9 @@ export default function CrewOnDuty() {
 
       {/* 4 Crew Photos in a Row: Operator + Producer + 2 Hosts */}
       <div className="flex gap-3 items-end justify-center">
-        {/* Operator - Based on shift schedule */}
+        {/* Operator - Based on shift schedule (Light Blue) */}
         <div className="flex flex-col items-center space-y-1">
-          <div className="w-20 h-28 rounded-lg overflow-hidden bg-gradient-to-br from-blue-500/20 to-blue-700/20 border-2 border-blue-500/30">
+          <div className="w-20 h-28 rounded-lg overflow-hidden bg-gradient-to-br from-cyan-500/20 to-cyan-700/20 border-2 border-cyan-400">
             <img
               src={operator.photoUrl}
               alt={`Operator ${operator.name}`}
@@ -252,16 +252,16 @@ export default function CrewOnDuty() {
             />
           </div>
           <div className="text-center">
-            <p className="text-xs font-bold text-blue-400" data-testid="text-operator-role">OPERATOR</p>
+            <p className="text-xs font-bold text-cyan-400" data-testid="text-operator-role">OPERATOR</p>
             <p className="text-[10px] text-muted-foreground font-semibold" data-testid="text-operator-name">
               {operator.name}
             </p>
           </div>
         </div>
 
-        {/* Producer - Using NEW professional photos */}
+        {/* Producer - Using NEW professional photos (Orange) */}
         <div className="flex flex-col items-center space-y-1">
-          <div className="w-20 h-28 rounded-lg overflow-hidden bg-gradient-to-br from-orange-500/20 to-orange-700/20 border-2 border-orange-500/30">
+          <div className="w-20 h-28 rounded-lg overflow-hidden bg-gradient-to-br from-orange-500/20 to-orange-700/20 border-2 border-orange-500">
             <img
               src={producer.photoUrl}
               alt={`Producer ${producer.name}`}
@@ -277,10 +277,10 @@ export default function CrewOnDuty() {
           </div>
         </div>
 
-        {/* Hosts - Dynamic based on program data */}
+        {/* Hosts - Dynamic based on program data (Bright Green with Neon Glow) */}
         {hosts.map((host, index) => (
           <div key={index} className="flex flex-col items-center space-y-1">
-            <div className="w-20 h-28 rounded-lg overflow-hidden bg-gradient-to-br from-orange-500/20 to-orange-700/20 border-2 border-orange-500/30">
+            <div className="w-20 h-28 rounded-lg overflow-hidden bg-gradient-to-br from-lime-500/20 to-lime-700/20 border-2 border-lime-400 shadow-[0_0_10px_rgba(132,204,22,0.6)] animate-pulse">
               <img
                 src={host.photoUrl}
                 alt={`Host ${host.name}`}
@@ -289,7 +289,7 @@ export default function CrewOnDuty() {
               />
             </div>
             <div className="text-center">
-              <p className="text-xs font-bold text-orange-400" data-testid={`text-host${index + 1}-role`}>HOST</p>
+              <p className="text-xs font-bold text-lime-400" data-testid={`text-host${index + 1}-role`}>HOST</p>
               <p className="text-[10px] text-muted-foreground font-semibold" data-testid={`text-host${index + 1}-name`}>
                 {host.name}
               </p>
