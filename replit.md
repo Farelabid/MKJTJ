@@ -77,6 +77,7 @@ The dashboard's design is inspired by Spotify Analytics and SoundCloud Stats, fe
   - Afternoon Show: Patricia (Sabtu), Nayla (Minggu)
   - Drive Time Weekend: Sakinah
 - **New Producer Photos**: Uploaded 5 professional photos (jhosua, luvi, nayla, patricia, risan) at 1762098258506-507
+- **New Operator Photo**: Replaced ADE operator photo with new professional version (opr_ade_1762099159402.png)
 - **Team Work Widget Update**: 
   - Removed dependency on /api/crew-on-duty endpoint
   - Photos now retrieved directly from shift/program schedule mapping
@@ -84,4 +85,4 @@ The dashboard's design is inspired by Spotify Analytics and SoundCloud Stats, fe
   - Producer photos use NEW professional uploads (not crew uniforms)
   - All data calculated client-side based on current WIB time, shift, program, and day
   - Layout: 4 photos (Operator-blue + Producer-orange + 2 Hosts-orange)
-- **Coverage Status**: Maintained 100% photo coverage for all 22 hosts and 9 producers
+- **Coverage Status**: Maintained 100% photo coverage for all 22 hosts, 9 producers, and 6 operators

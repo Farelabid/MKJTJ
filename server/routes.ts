@@ -176,16 +176,16 @@ function getCurrentOperatorShift(): string | null {
 function getCrewPhotoPath(role: "operator" | "produser", name: string): string {
   const normalizedName = name.toLowerCase();
   
-  // Check if photo exists, otherwise return fallback (updated with new producer photos)
+  // Check if photo exists, otherwise return fallback (updated with new operator and producer photos)
   const availablePhotos: Record<string, string> = {
     // Operators (blue uniform)
     "aryo_operator": "/attached_assets/opr_aryo_1760589447425.png",
     "audrey_operator": "/attached_assets/opr_audrey_1760589447426.png",
     "jhosua_operator": "/attached_assets/opr_jhosua_1760589447426.png",
     "rully_operator": "/attached_assets/opr_rully_1760589447426.png",
+    "ade_operator": "/attached_assets/opr_ade_1762099159402.png",
     
     // Operators - Magang/Interns
-    "ade_operator": "/attached_assets/magang_nanda_1762097040087.png",
     "internship_operator": "/attached_assets/magang_farhan_1762097040086.png",
     
     // Producers (new professional photos)
