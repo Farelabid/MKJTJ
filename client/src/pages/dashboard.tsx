@@ -297,41 +297,44 @@ export default function Dashboard() {
                     data-testid="img-speedometer-background"
                   />
                   
-                  {/* Needle SVG Overlay - Triangle Pointer with Neon Effect */}
+                  {/* Needle SVG Overlay */}
                   <svg viewBox="0 0 200 200" className="absolute inset-0 w-full h-full pointer-events-none">
                     <defs>
-                      {/* Neon Glow Filter - Enhanced */}
-                      <filter id="neonGlow">
-                        <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                      <linearGradient id="needleGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stopColor="#FF00FF" />
+                        <stop offset="50%" stopColor="#C71585" />
+                        <stop offset="100%" stopColor="#8B008B" />
+                      </linearGradient>
+                      <filter id="glow">
+                        <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
                         <feMerge>
-                          <feMergeNode in="coloredBlur"/>
                           <feMergeNode in="coloredBlur"/>
                           <feMergeNode in="SourceGraphic"/>
                         </feMerge>
                       </filter>
                     </defs>
                     
-                    {/* Triangle Needle - Neon Pink/Magenta */}
+                    {/* Needle - Purple/Magenta gradient */}
                     {stats && (
-                      <g
+                      <line
+                        x1="100"
+                        y1="100"
+                        x2="100"
+                        y2="25"
+                        stroke="url(#needleGradient)"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        filter="url(#glow)"
                         style={{
                           transform: `rotate(${getNeedleAngle()}deg)`,
-                          transformOrigin: '100px 100px',
+                          transformOrigin: '50% 50%',
                           transition: 'transform 1s ease-out'
                         }}
-                      >
-                        {/* Triangle pointing outward */}
-                        <polygon
-                          points="100,35 90,50 110,50"
-                          fill="#FF00FF"
-                          filter="url(#neonGlow)"
-                          data-testid="speedometer-needle"
-                        />
-                      </g>
+                      />
                     )}
                     
-                    {/* Center Circle - Bright Pink */}
-                    <circle cx="100" cy="100" r="5" fill="#FF00FF" filter="url(#neonGlow)" />
+                    {/* Center Circle - Purple */}
+                    <circle cx="100" cy="100" r="6" fill="#C71585" filter="url(#glow)" />
                   </svg>
                   
                   {/* Center Text Content */}
