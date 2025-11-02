@@ -304,11 +304,11 @@ export default function Dashboard() {
                   <svg viewBox="0 0 200 200" className="w-full h-full">
                     <defs>
                       <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="#FF1493" />
-                        <stop offset="25%" stopColor="#FF69B4" />
-                        <stop offset="50%" stopColor="#FF69B4" />
-                        <stop offset="75%" stopColor="#FF1493" />
-                        <stop offset="100%" stopColor="#C71585" />
+                        <stop offset="0%" stopColor="#FFD700" />
+                        <stop offset="25%" stopColor="#FFA500" />
+                        <stop offset="50%" stopColor="#FF6347" />
+                        <stop offset="75%" stopColor="#FF4500" />
+                        <stop offset="100%" stopColor="#DC143C" />
                       </linearGradient>
                       <filter id="glow">
                         <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
@@ -319,7 +319,7 @@ export default function Dashboard() {
                       </filter>
                     </defs>
                     
-                    {/* Main Arc - Beautiful Pink gradient */}
+                    {/* Main Arc - Yellow to Red gradient */}
                     <circle
                       cx="100"
                       cy="100"
@@ -336,7 +336,7 @@ export default function Dashboard() {
                       }}
                     />
                     
-                    {/* Scale Marks - 1K to 20K */}
+                    {/* Scale Marks - 1.000 to 20.000 */}
                     {[1, 3, 5, 7, 9, 11, 13, 15, 17, 20].map((num, index) => {
                       // Map 1K-20K evenly across 200° arc
                       const scaleMin = 1;
@@ -351,6 +351,9 @@ export default function Dashboard() {
                       const textX = 100 + 92 * Math.cos(radian);
                       const textY = 100 + 92 * Math.sin(radian);
                       
+                      // Format number with dots: 1000 → 1.000
+                      const formattedNum = (num * 1000).toLocaleString('id-ID');
+                      
                       return (
                         <g key={num}>
                           <line
@@ -358,19 +361,19 @@ export default function Dashboard() {
                             y1={y1}
                             x2={x2}
                             y2={y2}
-                            stroke="#FF69B4"
-                            strokeWidth="2"
+                            stroke="#666666"
+                            strokeWidth="1.5"
                           />
                           <text
                             x={textX}
                             y={textY}
-                            fill="#FF69B4"
-                            fontSize="12"
-                            fontWeight="bold"
+                            fill="#888888"
+                            fontSize="9"
+                            fontWeight="600"
                             textAnchor="middle"
                             dominantBaseline="middle"
                           >
-                            {num}K
+                            {formattedNum}
                           </text>
                         </g>
                       );
