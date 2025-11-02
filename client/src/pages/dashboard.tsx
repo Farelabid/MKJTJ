@@ -345,11 +345,11 @@ export default function Dashboard() {
                       OVER
                     </p>
                     
-                    {/* Main Number - Bright Yellow */}
+                    {/* Main Number - Bright Yellow with Enhanced Glow */}
                     <h2 
                       className="text-5xl font-bold font-mono tracking-tight text-[#FFD700] mb-1"
                       style={{
-                        textShadow: '0 0 30px rgba(255, 215, 0, 0.9)'
+                        textShadow: '0 0 20px rgba(255, 215, 0, 1), 0 0 40px rgba(255, 215, 0, 0.8), 0 0 60px rgba(255, 215, 0, 0.6), 0 0 80px rgba(255, 215, 0, 0.4)'
                       }}
                       data-testid="text-listeners-current"
                     >
