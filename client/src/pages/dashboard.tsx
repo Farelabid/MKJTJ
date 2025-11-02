@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { RadioStats } from "@shared/schema";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Radio, Users, Signal, ExternalLink, RefreshCw, Copy, Check, Settings, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { Link } from "wouter";
 import { Card } from "@/components/ui/card";
@@ -44,12 +44,14 @@ export default function Dashboard() {
     }
   }, [stats]);
 
-  // Track listener trend
+  // Track listener trend - use ref to avoid updating before render
+  const prevListenersRef = useRef<number | null>(null);
+  
   useEffect(() => {
     if (stats && stats.listenersCurrent !== undefined) {
-      if (previousListeners !== null) {
-        const diff = stats.listenersCurrent - previousListeners;
-        const threshold = previousListeners * 0.05; // 5% change threshold
+      if (prevListenersRef.current !== null && prevListenersRef.current !== stats.listenersCurrent) {
+        const diff = stats.listenersCurrent - prevListenersRef.current;
+        const threshold = prevListenersRef.current * 0.05; // 5% change threshold
         
         if (diff > threshold) {
           setTrend('up');
@@ -58,8 +60,13 @@ export default function Dashboard() {
         } else {
           setTrend('stable');
         }
+        
+        // Update state for display
+        setPreviousListeners(prevListenersRef.current);
       }
-      setPreviousListeners(stats.listenersCurrent);
+      
+      // Update ref for next comparison
+      prevListenersRef.current = stats.listenersCurrent;
     }
   }, [stats?.listenersCurrent]);
 
@@ -393,7 +400,7 @@ export default function Dashboard() {
                     {/* Trend Indicator */}
                     {stats && previousListeners !== null && (
                       <p className="text-xs text-muted-foreground mb-3">
-                        − {Math.abs(getTrendPercentage()).toFixed(1)}% vs update terakhir
+                        {getTrendPercentage() > 0 ? '+' : getTrendPercentage() < 0 ? '−' : ''} {Math.abs(getTrendPercentage()).toFixed(1)}% vs update terakhir
                       </p>
                     )}
                     
