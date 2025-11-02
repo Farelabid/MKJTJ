@@ -122,7 +122,7 @@ export default function CrewOnDuty() {
       shift = 'shift3'; // 19:00-24:00 (and 00:00-05:00)
     }
     
-    // Operator schedule from uploaded image
+    // Operator schedule from uploaded image (with specific intern names)
     const operatorSchedule: Record<string, Record<string, string>> = {
       shift1: {
         monday: "ADE", tuesday: "RULLY", wednesday: "RULLY", thursday: "RULLY",
@@ -134,7 +134,7 @@ export default function CrewOnDuty() {
       },
       shift3: {
         monday: "ARYO", tuesday: "ARYO", wednesday: "ARYO", thursday: "ADE",
-        friday: "JHOSUA", saturday: "ARYO", sunday: "INTERNSHIP"
+        friday: "JHOSUA", saturday: "ARYO", sunday: "FARHAN"
       }
     };
 
@@ -145,7 +145,8 @@ export default function CrewOnDuty() {
       "JHOSUA": "/attached_assets/opr_jhosua_1760589447426.png",
       "RULLY": "/attached_assets/opr_rully_1760589447426.png",
       "ADE": "/attached_assets/opr_ade_1762099159402.png",
-      "INTERNSHIP": "/attached_assets/magang_farhan_1762097040086.png",
+      "FARHAN": "/attached_assets/magang_farhan_1762097040086.png",
+      "NANDA": "/attached_assets/magang_nanda_1762097040087.png",
     };
 
     const operatorName = operatorSchedule[shift]?.[day] || "CREW";

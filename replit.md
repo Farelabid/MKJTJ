@@ -82,6 +82,7 @@ The dashboard's design is inspired by Spotify Analytics and SoundCloud Stats, fe
   - Removed dependency on /api/crew-on-duty endpoint
   - Photos now retrieved directly from shift/program schedule mapping
   - Operator determined by 3 shifts: Shift 1 (05:00-12:00), Shift 2 (12:00-19:00), Shift 3 (19:00-24:00)
+  - Operator names displayed with actual person names (e.g., "FARHAN" for internship, not just "INTERNSHIP" label)
   - Producer photos use NEW professional uploads (not crew uniforms)
   - All data calculated client-side based on current WIB time, shift, program, and day
   - Layout: 4 photos (Operator-blue + Producer-orange + 2 Hosts-orange)
