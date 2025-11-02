@@ -144,6 +144,23 @@ export default function Dashboard() {
     return Math.min(Math.max(ratio, 0), 100);
   };
 
+  // Calculate needle angle based on current listeners (1K to 20K scale)
+  const getNeedleAngle = () => {
+    if (!stats) return -180; // Start position
+    const listeners = stats.listenersCurrent;
+    const minScale = 1000;  // 1K
+    const maxScale = 20000; // 20K
+    
+    // Clamp listeners to scale range
+    const clampedListeners = Math.min(Math.max(listeners, minScale), maxScale);
+    
+    // Calculate percentage within range (0-100%)
+    const percentage = ((clampedListeners - minScale) / (maxScale - minScale)) * 100;
+    
+    // Convert to angle (-180° to +20° = 200° total arc)
+    return -180 + (percentage * 200 / 100);
+  };
+
   const getRatioColor = () => {
     const ratio = getListenerRatio();
     if (ratio >= 80) return "hsl(var(--chart-3))";
@@ -287,10 +304,11 @@ export default function Dashboard() {
                   <svg viewBox="0 0 200 200" className="w-full h-full">
                     <defs>
                       <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="#FF69B4" />
+                        <stop offset="0%" stopColor="#FF1493" />
+                        <stop offset="25%" stopColor="#FF69B4" />
                         <stop offset="50%" stopColor="#FF69B4" />
-                        <stop offset="50%" stopColor="#C4F542" />
-                        <stop offset="100%" stopColor="#C4F542" />
+                        <stop offset="75%" stopColor="#FF1493" />
+                        <stop offset="100%" stopColor="#C71585" />
                       </linearGradient>
                       <filter id="glow">
                         <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
@@ -301,7 +319,7 @@ export default function Dashboard() {
                       </filter>
                     </defs>
                     
-                    {/* Main Arc - Pink to Yellow gradient */}
+                    {/* Main Arc - Beautiful Pink gradient */}
                     <circle
                       cx="100"
                       cy="100"
@@ -318,9 +336,13 @@ export default function Dashboard() {
                       }}
                     />
                     
-                    {/* Scale Marks */}
-                    {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => {
-                      const angle = -180 + (num * 200 / 9);
+                    {/* Scale Marks - 1K to 20K */}
+                    {[1, 3, 5, 7, 9, 11, 13, 15, 17, 20].map((num, index) => {
+                      // Map 1K-20K evenly across 200° arc
+                      const scaleMin = 1;
+                      const scaleMax = 20;
+                      const percentage = ((num - scaleMin) / (scaleMax - scaleMin)) * 100;
+                      const angle = -180 + (percentage * 200 / 100);
                       const radian = (angle * Math.PI) / 180;
                       const x1 = 100 + 75 * Math.cos(radian);
                       const y1 = 100 + 75 * Math.sin(radian);
@@ -336,19 +358,19 @@ export default function Dashboard() {
                             y1={y1}
                             x2={x2}
                             y2={y2}
-                            stroke={num <= 4 ? '#FF69B4' : '#C4F542'}
+                            stroke="#FF69B4"
                             strokeWidth="2"
                           />
                           <text
                             x={textX}
                             y={textY}
-                            fill={num <= 4 ? '#FF69B4' : '#C4F542'}
+                            fill="#FF69B4"
                             fontSize="12"
                             fontWeight="bold"
                             textAnchor="middle"
                             dominantBaseline="middle"
                           >
-                            {num}
+                            {num}K
                           </text>
                         </g>
                       );
@@ -365,7 +387,7 @@ export default function Dashboard() {
                         strokeWidth="3"
                         strokeLinecap="round"
                         style={{
-                          transform: `rotate(${-180 + (getListenerRatio() * 200 / 100)}deg)`,
+                          transform: `rotate(${getNeedleAngle()}deg)`,
                           transformOrigin: '50% 50%',
                           transition: 'transform 1s ease-out'
                         }}
