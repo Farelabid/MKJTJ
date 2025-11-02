@@ -79,9 +79,9 @@ export default function ThreeDayStats() {
           background: 'linear-gradient(135deg, rgba(255, 215, 0, 0.6), rgba(255, 152, 0, 0.6), rgba(244, 67, 54, 0.6))',
         }}
       >
-        <div className="relative bg-[#1a1a1a] backdrop-blur-sm rounded-xl p-5 h-full flex flex-col">
+        <div className="relative bg-[#1a1a1a] backdrop-blur-sm rounded-xl p-6 h-full flex flex-col">
           {/* Header */}
-          <div className="flex items-center gap-2 mb-3">
+          <div className="flex items-center gap-2 mb-5">
             <Calendar className="h-4 w-4 text-[#C4F542]" />
             <h3 className="text-[11px] font-bold tracking-wider">
               <span className="text-[#C4F542]">JUMLAH LISTENERS</span>{' '}
@@ -91,24 +91,24 @@ export default function ThreeDayStats() {
           </div>
           
           {/* Vertical Bars Chart */}
-          <div className="flex items-end justify-between gap-3 mb-3 px-1" style={{ height: '180px' }}>
+          <div className="flex items-end justify-between gap-2.5 mb-4" style={{ height: '200px' }}>
             {reversedStats.map((stat, index) => {
               const barHeightPercent = (stat.totalListeners / maxListeners) * 100;
-              const barHeightPx = (barHeightPercent / 100) * 140; // Max 140px for bars
+              const barHeightPx = (barHeightPercent / 100) * 160; // Max 160px for bars
               const barColor = barColors[index];
               
               return (
                 <div 
                   key={stat.date}
-                  className="flex-1 flex flex-col items-center"
+                  className="flex-1 flex flex-col items-center justify-end"
                   data-testid={`stat-day-${stat.date}`}
                   style={{ 
                     animation: `fadeInUp 0.6s ease-out ${index * 0.1}s both`
                   }}
                 >
-                  {/* Value Label at top */}
+                  {/* Value Label positioned just above bar */}
                   <div 
-                    className="text-base font-bold font-mono tabular-nums leading-none mb-1"
+                    className="text-lg font-bold font-mono tabular-nums leading-none mb-1.5"
                     style={{ 
                       color: barColor,
                       textShadow: `0 0 12px ${barColor}AA`
@@ -118,12 +118,9 @@ export default function ThreeDayStats() {
                     {formatNumber(stat.totalListeners)}
                   </div>
                   
-                  {/* Spacer to push bar to bottom with aligned baseline */}
-                  <div className="flex-1" style={{ minHeight: `${140 - barHeightPx}px` }} />
-                  
                   {/* Vertical Bar - grows from bottom */}
                   <div 
-                    className="w-full rounded-t-lg transition-all duration-1000 ease-out"
+                    className="w-full rounded-t-md transition-all duration-1000 ease-out"
                     style={{
                       height: `${barHeightPx}px`,
                       background: `linear-gradient(to top, ${barColor}, ${barColor}EE)`,
@@ -147,24 +144,24 @@ export default function ThreeDayStats() {
 
           {/* Record Program with Trophy Icon */}
           {data.recordProgram.name && (
-            <div className="pt-3 border-t border-border/20">
-              <div className="flex items-center justify-center gap-2 mb-2">
+            <div className="pt-4 border-t border-border/20">
+              <div className="flex items-center justify-center gap-2 mb-1.5">
                 <img 
                   src={juaraIcon} 
                   alt="Trophy" 
-                  className="h-6 w-6 animate-pulse"
+                  className="h-5 w-5 animate-pulse"
                   style={{
                     filter: 'drop-shadow(0 0 8px rgba(255, 215, 0, 0.8))'
                   }}
                 />
-                <div className="text-[9px] font-bold tracking-wider uppercase">
+                <div className="text-[9px] font-bold tracking-wider uppercase leading-none">
                   <span className="text-[#FF69B4]">PROGRAM FAVORITE</span>{' '}
                   <span className="text-[#C4F542]">TEMAN JAKARTA</span>{' '}
                   <span className="text-white">MINGGU INI</span>
                 </div>
               </div>
               <div 
-                className="text-center text-xl font-bold uppercase tracking-wide"
+                className="text-center text-2xl font-bold uppercase tracking-wide"
                 style={{
                   color: '#FF9800',
                   textShadow: '0 0 20px rgba(255, 152, 0, 0.8)'
