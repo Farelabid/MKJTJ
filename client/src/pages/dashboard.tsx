@@ -300,8 +300,8 @@ export default function Dashboard() {
                   backgroundSize: '300% 100%'
                 }}
               >
-                <div className="relative bg-card/95 backdrop-blur-sm rounded-xl p-6 shadow-[0_0_30px_rgba(255,105,180,0.3),0_0_60px_rgba(196,245,66,0.2)] h-full">
-                  <div className="text-center lg:text-left space-y-4">
+                <div className="relative bg-card/95 backdrop-blur-sm rounded-xl p-4 shadow-[0_0_30px_rgba(255,105,180,0.3),0_0_60px_rgba(196,245,66,0.2)] h-full">
+                  <div className="text-center lg:text-left space-y-2">
                     {/* Header with Animated Icons (Feature 2) */}
                     <div className="flex items-center justify-center lg:justify-start gap-2">
                       <div className="relative">
@@ -339,7 +339,7 @@ export default function Dashboard() {
                     )}
                     
                     {!isLoading && stats && (
-                      <div className="space-y-3">
+                      <div className="space-y-2">
                         {/* Trending Indicator (Feature 5) */}
                         {previousListeners !== null && (
                           <div className="flex items-center justify-center lg:justify-start gap-2">
