@@ -54,8 +54,11 @@ export default function ThreeDayStats() {
     return `${day} ${months[month - 1]}`;
   };
 
+  // Reverse data to show oldest to newest (left to right)
+  const reversedStats = [...data.dailyStats].reverse();
+  
   // Find max value for bar scaling
-  const maxListeners = Math.max(...data.dailyStats.map(s => s.totalListeners), 1);
+  const maxListeners = Math.max(...reversedStats.map(s => s.totalListeners), 1);
 
   // Gradient colors from yellow to red (6 colors for 6 bars)
   const barColors = [
@@ -78,7 +81,7 @@ export default function ThreeDayStats() {
       >
         <div className="relative bg-[#1a1a1a] backdrop-blur-sm rounded-xl p-5 h-full flex flex-col">
           {/* Header */}
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex items-center gap-2 mb-3">
             <Calendar className="h-4 w-4 text-[#C4F542]" />
             <h3 className="text-[11px] font-bold tracking-wider">
               <span className="text-[#C4F542]">JUMLAH LISTENERS</span>{' '}
@@ -88,8 +91,8 @@ export default function ThreeDayStats() {
           </div>
           
           {/* Vertical Bars Chart */}
-          <div className="flex-1 flex items-end justify-between gap-2 mb-4 px-2">
-            {data.dailyStats.map((stat, index) => {
+          <div className="flex-1 flex items-end justify-between gap-3 mb-4 px-1 min-h-[180px]">
+            {reversedStats.map((stat, index) => {
               const barHeight = (stat.totalListeners / maxListeners) * 100;
               const barColor = barColors[index];
               
@@ -104,10 +107,10 @@ export default function ThreeDayStats() {
                 >
                   {/* Value Label */}
                   <div 
-                    className="text-sm font-bold font-mono tabular-nums"
+                    className="text-base font-bold font-mono tabular-nums leading-none"
                     style={{ 
                       color: barColor,
-                      textShadow: `0 0 10px ${barColor}80`
+                      textShadow: `0 0 12px ${barColor}AA`
                     }}
                     data-testid={`text-listeners-${stat.date}`}
                   >
@@ -115,25 +118,23 @@ export default function ThreeDayStats() {
                   </div>
                   
                   {/* Vertical Bar */}
-                  <div className="w-full flex flex-col items-center">
+                  <div className="w-full flex-1 flex flex-col justify-end items-center">
                     <div 
                       className="w-full rounded-t-lg transition-all duration-1000 ease-out relative"
                       style={{
-                        height: `${Math.max(barHeight, 5)}%`,
-                        maxHeight: '140px',
-                        minHeight: '20px',
-                        background: `linear-gradient(to top, ${barColor}, ${barColor}DD)`,
-                        boxShadow: `0 0 15px ${barColor}60, inset 0 2px 8px rgba(255,255,255,0.2)`
+                        height: `${barHeight}%`,
+                        background: `linear-gradient(to top, ${barColor}, ${barColor}EE)`,
+                        boxShadow: `0 0 15px ${barColor}70, inset 0 2px 8px rgba(255,255,255,0.2)`
                       }}
                     />
                   </div>
                   
                   {/* Day Name & Date Labels */}
-                  <div className="flex flex-col items-center gap-0.5 mt-1">
-                    <div className="text-[9px] font-bold text-white uppercase tracking-wide">
+                  <div className="flex flex-col items-center gap-0.5 mt-2">
+                    <div className="text-[10px] font-bold text-white uppercase tracking-wide leading-none">
                       {formatShortDate(stat.date)}
                     </div>
-                    <div className="text-[8px] font-bold text-muted-foreground uppercase tracking-wide">
+                    <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wide leading-none">
                       {stat.dayName}
                     </div>
                   </div>
