@@ -14,10 +14,11 @@ The dashboard's design is inspired by Spotify Analytics and SoundCloud Stats, fe
 - **Typography**: Inter for UI elements, and JetBrains Mono for numeric data.
 - **Animations**: Minimal and purposeful, including counter animations, pulse indicators, and animated "LIVE" badges.
 - **Branding**: Official TJ Radio logo, modern neon "ON AIR" graphic, and program-specific presenter photos.
-- **Layout**: Responsive design for both desktop and mobile.
+- **Layout**: Desktop 3-column grid (Speedometer | Team Work | Weekly Statistics), responsive design for mobile.
 - **Information Display**: Real-time WIB clock and Indonesian date display. Program statistics include "Pendengar Saat Ini" (raw listeners × 11) and "TOTAL PENDENGAR" (estimated unique listeners based on program progress), with EMA smoothing for spike detection.
 - **Program Images**: Large aspect-video presenter photos for "Program Sedang On Air" and "Coming Up Next". Small 80×80px colorful rounded icons for all 6 programs in statistics lists.
 - **Badge Styling**: "LIVE Badge" for on-air programs (red background, dual animation) and "UPCOMING Badge" for next programs (teal background, static).
+- **Host Photos**: 19 unique host photos dynamically displayed in Team Work section based on current program schedule. Mapped hosts include: ABI, AKBAR, CAK LONTONG, DENNY/DENNY CH, DANY, EKO/EKO KUNTADHI, HATMA, INDY, IRWAN, LUVI, MAZDJO/MAZJO, MO/MOSIDIK, NAYLA, ODAH, OT, RENO, RIO, RISAN, YASSER. Missing: PUTRI (uses fallback).
 
 ### Technical Implementations
 - **Frontend**: React with TypeScript, Wouter for routing, TanStack Query for state management, Tailwind CSS and Shadcn/ui for styling, Recharts for historical data visualization.
@@ -36,7 +37,8 @@ The dashboard's design is inspired by Spotify Analytics and SoundCloud Stats, fe
 - **Speedometer Gauge**: Uses background image template (SPEEDOBACK_1762085711848.png) with pre-rendered yellow-to-red gradient arc and scale marks (1.000-10K). Overlays include: animated purple/magenta gradient needle with glow effect positioned based on current listener count, and center statistics showing "OVER" label, main number in bright yellow (#FFD700), subtitle "PEOPLE ARE LISTENING TO US RIGHT NOW", orange trend indicator (#FFA500) with +/− signs, cyan peak value (#00FFFF), and orange-red percentage from peak (#FF6347). Needle calculation: angle = -180° + ((listeners - 1000) / 9000) × 200°.
 - **Historical Data**: PostgreSQL database for snapshots, with time-series charts (24h, 7d, 30d views) and CSV export.
 - **3-Day Statistics Widget**: Aggregated listener totals for the last 3 days, with Indonesian date labels, formatted counts, and **weekly champion icon** (searches 7 days for highest program). Champion displays gold trophy icon with glow effect and pulse animation. Auto-refreshes every 30 seconds.
-- **Crew On Duty Widget**: Displays current on-duty staff (Operator and Producer) based on real-time shift and program schedules. Includes staff photos (military uniform theme) and fallbacks for staff without photos. Auto-refreshes every 30 seconds.
+- **Team Work Section**: Displays current team on duty with date header, 4 crew photos in a row (Operator with blue border, Producer with yellow border, Host 1 and Host 2 with orange borders), red LIVE NOW banner showing current program info (name, time, stats), and "Coming Up Next" program preview. Photos dynamically retrieved via /api/crew-on-duty endpoint based on real-time shift and program schedules. Includes fallbacks for staff without photos. Auto-refreshes every 30 seconds.
+- **Weekly Statistics Widget**: Displays 7-day bar chart of listener statistics with Indonesian date labels, formatted listener counts, and **Program Favorite** section featuring the program with highest listeners in the past 7 days (gold trophy icon with glow and pulse animation). Retrieved via /api/weekly-stats endpoint. Auto-refreshes every 30 seconds.
 - **Admin Dashboard**: Configures listener multiplier, stream URL, and alert thresholds.
 - **Alert System**: Configurable alert thresholds with real-time monitoring and history logging.
 - **Program On Air Integration**: Displays current program details (photo, name, presenters, air time, description) from a hardcoded schedule (web scraping fallback).
