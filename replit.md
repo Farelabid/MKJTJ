@@ -85,6 +85,6 @@ The dashboard's design is inspired by Spotify Analytics and SoundCloud Stats, fe
   - Producer photos use NEW professional uploads (not crew uniforms)
   - All data calculated client-side based on current WIB time, shift, program, and day
   - Layout: 4 photos (Operator-blue + Producer-orange + 2 Hosts-orange)
-  - Header updated: Orange gradient banner with "TJRADIO TODAY TEAM" (left) and full date with day name (right)
+  - Header updated: Orange gradient banner with "TJRADIO TODAY TEAM" (left, dark blue text) and 2-line date on right (day name on top, full date below, both in yellow)
   - Banner text updated: "ONAIR NOW" (white + yellow) replacing "LIVE NOW"
 - **Coverage Status**: Maintained 100% photo coverage for all 22 hosts, 9 producers, and 6 operators

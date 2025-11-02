@@ -198,7 +198,7 @@ export default function CrewOnDuty() {
   const producer = getProducerPhoto();
   const hosts = getHostPhotos();
 
-  const formatDate = () => {
+  const getDateInfo = () => {
     const now = new Date();
     const wibOffset = 7 * 60;
     const localOffset = now.getTimezoneOffset();
@@ -211,20 +211,30 @@ export default function CrewOnDuty() {
     const month = months[wibTime.getMonth()];
     const year = wibTime.getFullYear();
     
-    return `${dayName} ${day} ${month} ${year}`;
+    return {
+      dayName,
+      fullDate: `${day} ${month} ${year}`
+    };
   };
+
+  const dateInfo = getDateInfo();
 
   return (
     <div className="flex flex-col items-center justify-center w-full space-y-3">
       {/* Team Work Header */}
-      <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-2 rounded-md shadow-lg w-full">
+      <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-4 py-2 rounded-md shadow-lg w-full">
         <div className="flex items-center justify-between">
-          <h2 className="text-blue-900 font-black text-base tracking-wide" data-testid="text-team-work-header">
+          <h2 className="text-blue-900 font-black text-lg tracking-tight" data-testid="text-team-work-header">
             TJRADIO TODAY TEAM
           </h2>
-          <p className="text-yellow-300 font-bold text-xs tracking-wide" data-testid="text-team-work-date">
-            {formatDate()}
-          </p>
+          <div className="text-right" data-testid="text-team-work-date">
+            <p className="text-yellow-300 font-bold text-[11px] leading-tight tracking-wide">
+              {dateInfo.dayName}
+            </p>
+            <p className="text-yellow-300 font-bold text-xs leading-tight tracking-wide">
+              {dateInfo.fullDate}
+            </p>
+          </div>
         </div>
       </div>
 
