@@ -116,3 +116,12 @@ The dashboard's design is inspired by Spotify Analytics and SoundCloud Stats, fe
   - Features: Response time tracking, rolling average (last 10 checks), animated Signal icon with pulse effect
   - Monitors streaming server accessibility with content validation (HTTP 200 + data check)
 - **Updated Producer Photo**: Audrey producer photo updated to professional version (produser_audrey_1762125589588.png)
+- **Radio Player in Footer** (Latest Update):
+  - Auto-play TJ Radio Jakarta streaming player added to footer
+  - Stream URL: https://stream-eu-nc.arenastreaming.com:5450/
+  - Features: Play/pause button, volume control with slider, mute toggle, external link to website
+  - Auto-play on page load (browser permission dependent)
+  - Responsive design with gradient background (primary color theme)
+  - Volume slider with custom styling (primary color, hover effects)
+  - Player controls: Play/Pause ("Dengarkan Live"/"Jeda"), Volume (0-100%), Mute/Unmute
+  - External link button to www.tjradiojakarta.com

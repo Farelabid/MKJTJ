@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { RadioStats } from "@shared/schema";
 import { useState, useEffect, useRef } from "react";
-import { Radio, Users, Signal, ExternalLink, RefreshCw, Copy, Check, Settings, TrendingUp, TrendingDown, Minus, Sun, CloudSun, Cloud, CloudFog, CloudDrizzle, CloudRain, Snowflake, CloudRainWind, CloudSnow, CloudLightning, CloudHail, HelpCircle } from "lucide-react";
+import { Radio, Users, Signal, ExternalLink, RefreshCw, Copy, Check, Settings, TrendingUp, TrendingDown, Minus, Sun, CloudSun, Cloud, CloudFog, CloudDrizzle, CloudRain, Snowflake, CloudRainWind, CloudSnow, CloudLightning, CloudHail, HelpCircle, Play, Pause, Volume2, VolumeX } from "lucide-react";
 import { Link } from "wouter";
 import { getWeatherInfo, formatTemperature } from "@/lib/weatherUtils";
 import { Card } from "@/components/ui/card";
@@ -43,6 +43,13 @@ export default function Dashboard() {
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
   const [previousListeners, setPreviousListeners] = useState<number | null>(null);
   const [trend, setTrend] = useState<'up' | 'down' | 'stable'>('stable');
+  
+  // Audio player state
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const [volume, setVolume] = useState(0.7);
+  const audioRef = useRef<HTMLAudioElement>(null);
+  
   const { toast } = useToast();
 
   const { data: stats, isLoading, error, refetch } = useQuery<RadioStats>({
@@ -224,6 +231,77 @@ export default function Dashboard() {
     return ((diff / previousListeners) * 100);
   };
 
+
+  // Audio player controls
+  const handlePlayPause = () => {
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause();
+        setIsPlaying(false);
+      } else {
+        audioRef.current.play().then(() => {
+          setIsPlaying(true);
+        }).catch((error) => {
+          console.error('Error playing audio:', error);
+          toast({
+            title: "Gagal Memutar",
+            description: "Tidak dapat memutar stream. Silakan coba lagi.",
+            variant: "destructive",
+          });
+        });
+      }
+    }
+  };
+
+  const handleMuteToggle = () => {
+    if (audioRef.current) {
+      const newMutedState = !isMuted;
+      audioRef.current.muted = newMutedState;
+      setIsMuted(newMutedState);
+    }
+  };
+
+  const handleVolumeChange = (newVolume: number) => {
+    if (audioRef.current) {
+      audioRef.current.volume = newVolume;
+      setVolume(newVolume);
+      
+      // Synchronize muted state with volume
+      if (newVolume === 0) {
+        audioRef.current.muted = true;
+        setIsMuted(true);
+      } else {
+        // Unmute when volume is above 0
+        audioRef.current.muted = false;
+        setIsMuted(false);
+      }
+    }
+  };
+
+  // Auto-play on component mount
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = volume;
+      // Try to auto-play
+      const playPromise = audioRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            setIsPlaying(true);
+          })
+          .catch((error) => {
+            // Auto-play was prevented by browser
+            console.log('Auto-play prevented:', error);
+            setIsPlaying(false);
+            // Show user-friendly notification
+            toast({
+              title: "Auto-play Diblokir",
+              description: "Silakan klik tombol 'Dengarkan Live' untuk memutar radio.",
+            });
+          });
+      }
+    }
+  }, []);
 
   const formatDateTime = () => {
     const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
@@ -723,9 +801,100 @@ export default function Dashboard() {
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t mt-12">
+      {/* Footer with Radio Player */}
+      <footer className="border-t mt-12 bg-background">
         <div className="max-w-7xl mx-auto px-4 py-6">
+          {/* Radio Player */}
+          <div className="mb-6">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-lg bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20">
+              {/* Player Info */}
+              <div className="flex items-center gap-3">
+                <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary">
+                  <Radio className="h-6 w-6 text-primary-foreground" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-base">TJ Radio Jakarta</h3>
+                  <p className="text-xs text-muted-foreground">Streaming Langsung</p>
+                </div>
+              </div>
+
+              {/* Player Controls */}
+              <div className="flex items-center gap-3">
+                {/* Volume Control */}
+                <div className="hidden sm:flex items-center gap-2">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={handleMuteToggle}
+                    data-testid="button-mute-toggle"
+                    className="h-8 w-8"
+                  >
+                    {isMuted || volume === 0 ? (
+                      <VolumeX className="h-4 w-4" />
+                    ) : (
+                      <Volume2 className="h-4 w-4" />
+                    )}
+                  </Button>
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.01"
+                    value={isMuted ? 0 : volume}
+                    onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
+                    className="w-20 h-1 bg-primary/20 rounded-lg appearance-none cursor-pointer slider"
+                    data-testid="volume-slider"
+                  />
+                </div>
+
+                {/* Play/Pause Button */}
+                <Button
+                  onClick={handlePlayPause}
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2"
+                  data-testid="button-play-pause"
+                >
+                  {isPlaying ? (
+                    <>
+                      <Pause className="h-4 w-4" />
+                      <span className="hidden sm:inline">Jeda</span>
+                    </>
+                  ) : (
+                    <>
+                      <Play className="h-4 w-4" />
+                      <span className="hidden sm:inline">Dengarkan Live</span>
+                    </>
+                  )}
+                </Button>
+
+                {/* External Link */}
+                <Button
+                  asChild
+                  variant="outline"
+                  size="icon"
+                  data-testid="button-open-website"
+                  className="h-9 w-9"
+                >
+                  <a
+                    href="https://www.tjradiojakarta.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                </Button>
+              </div>
+
+              {/* Hidden Audio Element */}
+              <audio
+                ref={audioRef}
+                src="https://stream-eu-nc.arenastreaming.com:5450/"
+                preload="none"
+                data-testid="audio-player"
+              />
+            </div>
+          </div>
+
+          {/* Copyright */}
           <p className="text-sm text-center text-muted-foreground">
             Hanya untuk keperluan Internal, tidak untuk disebarkan. Hak Cipta dilindungi Undang-Undang. | Media Kawal Jakarta
           </p>
