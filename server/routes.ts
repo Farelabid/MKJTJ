@@ -174,6 +174,10 @@ function getCrewPhotoPath(role: "operator" | "produser", name: string): string {
     "jhosua_operator": "/attached_assets/opr_jhosua_1760589447426.png",
     "rully_operator": "/attached_assets/opr_rully_1760589447426.png",
     
+    // Operators - Magang/Interns
+    "ade_operator": "/attached_assets/magang_nanda_1762097040087.png",
+    "internship_operator": "/attached_assets/magang_farhan_1762097040086.png",
+    
     // Producers (green military uniform)
     "audrey_produser": "/attached_assets/audrey_1760589432000.png",
     "jhosua_produser": "/attached_assets/jhosua_1760589432001.png",
@@ -181,6 +185,12 @@ function getCrewPhotoPath(role: "operator" | "produser", name: string): string {
     "nayla_produser": "/attached_assets/nayla_1760589432001.png",
     "patricia_produser": "/attached_assets/patricia_1760589432001.png",
     "risan_produser": "/attached_assets/raisan_1760589432001.png",
+    
+    // Producers - Magang/Interns
+    "zakiya_produser": "/attached_assets/magang_zakiya_1762097040087.png",
+    "indira_produser": "/attached_assets/magang_indira_1762097040087.png",
+    "sakinah_produser": "/attached_assets/magang_sakinanh_1762097040087.png",
+    "opet_produser": "/attached_assets/magang_elsa_1762097040086.png",
   };
   
   const key = `${normalizedName}_${role}`;
@@ -192,7 +202,7 @@ function getCrewPhotoPath(role: "operator" | "produser", name: string): string {
 function getHostPhotoPath(hostName: string): string {
   const normalizedName = hostName.toLowerCase().trim();
   
-  // Host photo mapping - 19 unique hosts with photos
+  // Host photo mapping - 20 unique hosts with photos (including PUTRI)
   const hostPhotos: Record<string, string> = {
     // Main hosts from schedule
     "abi": "/attached_assets/host_abisaan_1762096185716.png",
@@ -215,6 +225,7 @@ function getHostPhotoPath(hostName: string): string {
     "nayla": "/attached_assets/host_nayla_1762096257881.png",
     "odah": "/attached_assets/host_odah_1762096257881.png",
     "ot": "/attached_assets/host_otsyech_1762096257882.png",
+    "putri": "/attached_assets/magang_putri_1762097040087.png",
     "reno": "/attached_assets/host_reno_1762096257882.png",
     "rio": "/attached_assets/host_rio_1762096257882.png",
     "risan": "/attached_assets/host_risan_1762096272039.png",
