@@ -204,21 +204,28 @@ export default function CrewOnDuty() {
     const localOffset = now.getTimezoneOffset();
     const wibTime = new Date(now.getTime() + (wibOffset + localOffset) * 60 * 1000);
     
+    const days = ['MINGGU', 'SENIN', 'SELASA', 'RABU', 'KAMIS', 'JUMAT', 'SABTU'];
+    const dayName = days[wibTime.getDay()];
     const day = String(wibTime.getDate()).padStart(2, '0');
     const months = ['JANUARI', 'FEBRUARI', 'MARET', 'APRIL', 'MEI', 'JUNI', 'JULI', 'AGUSTUS', 'SEPTEMBER', 'OKTOBER', 'NOVEMBER', 'DESEMBER'];
     const month = months[wibTime.getMonth()];
     const year = wibTime.getFullYear();
     
-    return `${day} ${month} ${year}`;
+    return `${dayName} ${day} ${month} ${year}`;
   };
 
   return (
     <div className="flex flex-col items-center justify-center w-full space-y-3">
       {/* Team Work Header */}
-      <div className="bg-gradient-to-r from-red-600 to-red-700 px-6 py-2 rounded-md shadow-lg">
-        <h2 className="text-white font-bold text-sm tracking-wide" data-testid="text-team-work-header">
-          TEAM WORK {formatDate()}
-        </h2>
+      <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-2 rounded-md shadow-lg w-full">
+        <div className="flex items-center justify-between">
+          <h2 className="text-blue-900 font-black text-base tracking-wide" data-testid="text-team-work-header">
+            TJRADIO TODAY TEAM
+          </h2>
+          <p className="text-yellow-300 font-bold text-xs tracking-wide" data-testid="text-team-work-date">
+            {formatDate()}
+          </p>
+        </div>
       </div>
 
       {/* 4 Crew Photos in a Row: Operator + Producer + 2 Hosts */}
@@ -280,7 +287,7 @@ export default function CrewOnDuty() {
         ))}
       </div>
 
-      {/* LIVE NOW Banner */}
+      {/* ONAIR NOW Banner */}
       <div className="w-full bg-gradient-to-r from-red-600 via-red-700 to-red-600 rounded-lg shadow-2xl overflow-hidden">
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
@@ -288,8 +295,8 @@ export default function CrewOnDuty() {
               <div className="absolute inset-0 bg-white rounded-full animate-ping opacity-75" />
               <div className="relative h-3 w-3 rounded-full bg-white" />
             </div>
-            <h3 className="text-white font-black text-2xl tracking-wider drop-shadow-lg" data-testid="text-live-now">
-              LIVE NOW
+            <h3 className="font-black text-2xl tracking-wider drop-shadow-lg" data-testid="text-live-now">
+              <span className="text-white">ONAIR</span> <span className="text-yellow-300">NOW</span>
             </h3>
           </div>
           <div className="text-right">
