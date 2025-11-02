@@ -1012,7 +1012,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // API endpoint for 3-day statistics
+  // API endpoint for 6-day statistics
   app.get("/api/three-day-stats", async (req, res) => {
     try {
       // Disable caching to always return fresh data
@@ -1023,9 +1023,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const today = getWIBDate();
       const [year, month, day] = today.split('-').map(Number);
       
-      // Calculate dates for last 3 days (yesterday, 2 days ago, 3 days ago)
+      // Helper function to get Indonesian day name
+      const getDayName = (dateStr: string): string => {
+        const [y, m, d] = dateStr.split('-').map(Number);
+        const date = new Date(y, m - 1, d);
+        const dayNames = ['MINGGU', 'SENIN', 'SELASA', 'RABU', 'KAMIS', 'JUMAT', 'SABTU'];
+        return dayNames[date.getDay()];
+      };
+      
+      // Calculate dates for last 6 days (yesterday, 2 days ago, ..., 6 days ago)
       const dates = [];
-      for (let i = 1; i <= 3; i++) {
+      for (let i = 1; i <= 6; i++) {
         // Create date in local timezone to avoid UTC conversion issues
         const date = new Date(year, month - 1, day);
         date.setDate(date.getDate() - i);
@@ -1035,7 +1043,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         dates.push(`${dateYear}-${dateMonth}-${dateDay}`);
       }
       
-      // Get program stats for the last 3 days
+      // Get program stats for the last 6 days
       const dailyStats = await Promise.all(
         dates.map(async (date) => {
           const stats = await storage.getAllProgramStatsForDate(date);
@@ -1049,6 +1057,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return {
             date,
             totalListeners,
+            dayName: getDayName(date),
             programs: stats,
           };
         })
@@ -1092,9 +1101,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Format response
       const response = {
-        dailyStats: dailyStats.map(({ date, totalListeners }) => ({
+        dailyStats: dailyStats.map(({ date, totalListeners, dayName }) => ({
           date,
           totalListeners,
+          dayName,
           formattedDate: formatDateIndonesian(date),
         })),
         recordProgram: {
@@ -1106,8 +1116,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(response);
     } catch (error) {
-      console.error("Error fetching 3-day stats:", error);
-      res.status(500).json({ error: "Failed to fetch 3-day statistics" });
+      console.error("Error fetching 6-day stats:", error);
+      res.status(500).json({ error: "Failed to fetch 6-day statistics" });
     }
   });
 
