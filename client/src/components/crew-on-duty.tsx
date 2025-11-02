@@ -109,7 +109,7 @@ export default function CrewOnDuty() {
       "NAYLA": "/attached_assets/produser_nayla_1762098258507.png",
       "PATRICIA": "/attached_assets/produser_patricia_1762098258507.png",
       "RISAN": "/attached_assets/produser_risan_1762098258507.png",
-      "AUDREY": "/attached_assets/audrey_1760589432000.png",
+      "AUDREY": "/attached_assets/produser_audrey_1762125589588.png",
       "ZAKIYA": "/attached_assets/magang_zakiya_1762097040087.png",
       "INDIRA": "/attached_assets/magang_indira_1762097040087.png",
       "SAKINAH": "/attached_assets/magang_sakinanh_1762097040087.png",

@@ -212,7 +212,7 @@ function getCrewPhotoPath(role: "operator" | "produser", name: string): string {
     "internship_operator": "/attached_assets/magang_farhan_1762097040086.png",
     
     // Producers (new professional photos)
-    "audrey_produser": "/attached_assets/audrey_1760589432000.png",
+    "audrey_produser": "/attached_assets/produser_audrey_1762125589588.png",
     "jhosua_produser": "/attached_assets/produser_jhosua_1762098258506.png",
     "luvi_produser": "/attached_assets/produser_luvi_1762098258507.png",
     "nayla_produser": "/attached_assets/produser_nayla_1762098258507.png",

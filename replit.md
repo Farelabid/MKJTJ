@@ -100,7 +100,7 @@ The dashboard's design is inspired by Spotify Analytics and SoundCloud Stats, fe
   - Host 2: virtual_host2_1762106064761.png
 - **Updated Operator Photo**: Aryo operator photo updated to professional version (opr_aryo_1762105125710.png)
 - **Coverage Status**: Maintained 100% photo coverage for all 22 hosts, 9 producers, 6 operators, and 4 virtual crew members
-- **Jakarta Weather Widget** (Latest Update):
+- **Jakarta Weather Widget**:
   - Replaced "Now Playing" widget with real-time Jakarta weather display in dashboard header
   - Backend endpoint: `/api/jakarta-weather` fetches data from Open-Meteo API (free, no API key)
   - Weather utility: `client/src/lib/weatherUtils.ts` maps weather codes to Indonesian descriptions and Lucide icons
@@ -108,3 +108,11 @@ The dashboard's design is inspired by Spotify Analytics and SoundCloud Stats, fe
   - Error handling: Validates API responses, displays "Data tidak tersedia" fallback on errors, retry logic (2 attempts)
   - Auto-refresh: Every 5 minutes (stale time: 4 minutes)
   - Supported conditions: Cerah, Cerah Berawan, Berawan, Berkabut, Gerimis, Hujan, Salju, Hujan Lebat, Petir, and more
+- **Stream Health Widget** (Latest Update):
+  - Replaced "Now Playing" widget with Stream Health indicator in dashboard header (next to Jakarta Weather)
+  - Server-side independent health checker runs every 30 seconds (background job)
+  - Color-coded status: Excellent (green <300ms), Good (blue <1000ms), Degraded (yellow <3000ms), Offline (red)
+  - Backend endpoint: `/api/stream-health` provides real-time connection quality metrics
+  - Features: Response time tracking, rolling average (last 10 checks), animated Signal icon with pulse effect
+  - Monitors streaming server accessibility with content validation (HTTP 200 + data check)
+- **Updated Producer Photo**: Audrey producer photo updated to professional version (produser_audrey_1762125589588.png)
