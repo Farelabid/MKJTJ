@@ -76,9 +76,9 @@ export default function ThreeDayStats() {
           backgroundSize: '300% 100%'
         }}
       >
-        <div className="relative bg-card/95 backdrop-blur-sm rounded-xl p-5 shadow-[0_0_30px_rgba(196,245,66,0.3),0_0_60px_rgba(255,105,180,0.2)] h-full">
+        <div className="relative bg-card/95 backdrop-blur-sm rounded-xl p-4 shadow-[0_0_30px_rgba(196,245,66,0.3),0_0_60px_rgba(255,105,180,0.2)] h-full">
           {/* Header with Animated Icon */}
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex items-center gap-2 mb-3">
             <div className="relative">
               <Calendar className="h-4 w-4 text-[#C4F542] animate-pulse" />
               <div className="absolute inset-0 animate-ping opacity-75">
@@ -94,7 +94,7 @@ export default function ThreeDayStats() {
           </div>
           
           {/* Daily stats with enhanced horizontal bars */}
-          <div className="space-y-3">
+          <div className="space-y-2">
             {data.dailyStats.map((stat, index) => {
               const barWidth = (stat.totalListeners / maxListeners) * 100;
               const isHighest = stat.totalListeners === maxListeners && maxListeners > 0;
@@ -142,7 +142,7 @@ export default function ThreeDayStats() {
 
           {/* Record program with Trophy Icon */}
           {data.recordProgram.name && (
-            <div className="mt-4 pt-3 border-t border-border/30">
+            <div className="mt-3 pt-2 border-t border-border/30">
               <div className="flex items-center gap-2 mb-1">
                 <div className="relative">
                   <Trophy className="h-3 w-3 text-[#FF69B4] animate-pulse" />
