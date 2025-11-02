@@ -89,4 +89,11 @@ The dashboard's design is inspired by Spotify Analytics and SoundCloud Stats, fe
   - Photo frame colors: Operator (cyan-400), Producer (orange-500), Host (lime-400 with shadow glow and pulse animation)
   - Header updated: Orange gradient banner with "TJRADIO TODAY TEAM" (left, dark blue text) and 2-line date on right (day name on top, full date below, both in yellow)
   - Banner text updated: "ONAIR NOW" (white + yellow) replacing "LIVE NOW"
-- **Coverage Status**: Maintained 100% photo coverage for all 22 hosts, 9 producers, and 6 operators
+- **3D Tilt Effect**: Producer photo now has exclusive 3D perspective animation (6s loop, rotateX/rotateY transforms) for visual spotlight
+- **Virtual Crew Shift (00:01-05:59 WIB)**: Special Night Flow crew photos automatically displayed during late-night hours:
+  - Operator: virtual_operator_1762106064761.png
+  - Producer: virtual_produser_1762106064761.png
+  - Host 1: virtual_host1_1762106064760.png
+  - Host 2: virtual_host2_1762106064761.png
+- **Updated Operator Photo**: Aryo operator photo updated to professional version (opr_aryo_1762105125710.png)
+- **Coverage Status**: Maintained 100% photo coverage for all 22 hosts, 9 producers, 6 operators, and 4 virtual crew members

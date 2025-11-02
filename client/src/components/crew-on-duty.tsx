@@ -41,8 +41,28 @@ export default function CrewOnDuty() {
     return days[wibTime.getDay()];
   };
 
+  // Check if current time is in virtual crew shift (00:01-05:59 WIB)
+  const isVirtualCrewTime = (): boolean => {
+    const now = new Date();
+    const wibOffset = 7 * 60;
+    const localOffset = now.getTimezoneOffset();
+    const wibTime = new Date(now.getTime() + (wibOffset + localOffset) * 60 * 1000);
+    const currentHour = wibTime.getHours();
+    
+    // Virtual crew active from 00:00-05:59 WIB (Night Flow program)
+    return currentHour >= 0 && currentHour < 6;
+  };
+
   // Producer schedule mapping using NEW professional photos
   const getProducerPhoto = (): { name: string; photoUrl: string } => {
+    // Virtual crew shift (00:01-05:59 WIB)
+    if (isVirtualCrewTime()) {
+      return {
+        name: "VIRTUAL",
+        photoUrl: "/attached_assets/virtual_produser_1762106064761.png"
+      };
+    }
+
     const day = getDayOfWeek();
     const program = programData.programTitle;
     
@@ -103,6 +123,14 @@ export default function CrewOnDuty() {
 
   // Get operator photo based on shift schedule
   const getOperatorPhoto = (): { name: string; photoUrl: string } => {
+    // Virtual crew shift (00:01-05:59 WIB)
+    if (isVirtualCrewTime()) {
+      return {
+        name: "VIRTUAL",
+        photoUrl: "/attached_assets/virtual_operator_1762106064761.png"
+      };
+    }
+
     const day = getDayOfWeek();
     
     // Get current time in WIB to determine shift
@@ -157,6 +185,20 @@ export default function CrewOnDuty() {
 
   // Get host photos from program presenter
   const getHostPhotos = (): Array<{ name: string; photoUrl: string }> => {
+    // Virtual crew shift (00:01-05:59 WIB) - Always return 2 virtual hosts
+    if (isVirtualCrewTime()) {
+      return [
+        {
+          name: "VIRTUAL 1",
+          photoUrl: "/attached_assets/virtual_host1_1762106064760.png"
+        },
+        {
+          name: "VIRTUAL 2",
+          photoUrl: "/attached_assets/virtual_host2_1762106064761.png"
+        }
+      ];
+    }
+
     const presenterText = programData.presenter || "";
     const hostNames = presenterText.replace(/^dengan\s+/i, '').split(/\s*&\s*/).filter(h => h);
 
