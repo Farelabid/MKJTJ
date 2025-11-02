@@ -361,7 +361,7 @@ export default function Dashboard() {
                         y1="100"
                         x2="100"
                         y2="30"
-                        stroke="#FF1744"
+                        stroke="#4A4A4A"
                         strokeWidth="3"
                         strokeLinecap="round"
                         style={{
@@ -373,7 +373,7 @@ export default function Dashboard() {
                     )}
                     
                     {/* Center Circle */}
-                    <circle cx="100" cy="100" r="5" fill="#FF1744" />
+                    <circle cx="100" cy="100" r="5" fill="#4A4A4A" />
                   </svg>
                   
                   {/* Center Text Content */}
