@@ -91,9 +91,10 @@ export default function ThreeDayStats() {
           </div>
           
           {/* Vertical Bars Chart */}
-          <div className="flex-1 flex items-end justify-between gap-3 mb-4 px-1 min-h-[180px]">
+          <div className="flex items-end justify-between gap-3 mb-4 px-1" style={{ height: '160px' }}>
             {reversedStats.map((stat, index) => {
-              const barHeight = (stat.totalListeners / maxListeners) * 100;
+              const barHeightPercent = (stat.totalListeners / maxListeners) * 100;
+              const barHeightPx = (barHeightPercent / 100) * 160; // 160px is container height
               const barColor = barColors[index];
               
               return (
@@ -102,12 +103,13 @@ export default function ThreeDayStats() {
                   className="flex-1 flex flex-col items-center gap-2"
                   data-testid={`stat-day-${stat.date}`}
                   style={{ 
-                    animation: `fadeInUp 0.6s ease-out ${index * 0.1}s both`
+                    animation: `fadeInUp 0.6s ease-out ${index * 0.1}s both`,
+                    height: '100%'
                   }}
                 >
                   {/* Value Label */}
                   <div 
-                    className="text-base font-bold font-mono tabular-nums leading-none"
+                    className="text-base font-bold font-mono tabular-nums leading-none mb-1"
                     style={{ 
                       color: barColor,
                       textShadow: `0 0 12px ${barColor}AA`
@@ -117,12 +119,12 @@ export default function ThreeDayStats() {
                     {formatNumber(stat.totalListeners)}
                   </div>
                   
-                  {/* Vertical Bar */}
+                  {/* Vertical Bar Container */}
                   <div className="w-full flex-1 flex flex-col justify-end items-center">
                     <div 
-                      className="w-full rounded-t-lg transition-all duration-1000 ease-out relative"
+                      className="w-full rounded-t-lg transition-all duration-1000 ease-out"
                       style={{
-                        height: `${barHeight}%`,
+                        height: `${barHeightPx}px`,
                         background: `linear-gradient(to top, ${barColor}, ${barColor}EE)`,
                         boxShadow: `0 0 15px ${barColor}70, inset 0 2px 8px rgba(255,255,255,0.2)`
                       }}
