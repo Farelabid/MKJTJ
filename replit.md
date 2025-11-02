@@ -15,7 +15,7 @@ The dashboard's design is inspired by Spotify Analytics and SoundCloud Stats, fe
 - **Animations**: Minimal and purposeful, including counter animations, pulse indicators, and animated "LIVE" badges.
 - **Branding**: Official TJ Radio logo, modern neon "ON AIR" graphic, and program-specific presenter photos.
 - **Layout**: Desktop 3-column grid (Speedometer | Team Work | Weekly Statistics), responsive design for mobile.
-- **Header Widget**: "Now Playing" widget displaying currently playing song from Icecast stream with purple/pink gradient background, animated music icon with pulse effect, and LIVE indicator. Replaces previous LIVE status, refresh countdown, settings, and theme toggle menu.
+- **Header Widget**: "Jakarta Weather" widget displaying real-time weather conditions with sky blue gradient background, animated weather icon (sun, cloud, rain, etc.), temperature in Celsius, and Indonesian weather description. Data fetched from Open-Meteo API (free, no API key required) with 5-minute auto-refresh. Error handling includes fallback message "Data tidak tersedia" when weather data is unavailable.
 - **Information Display**: Real-time WIB clock and Indonesian date display. Program statistics include "Pendengar Saat Ini" (raw listeners × 11) and "TOTAL PENDENGAR" (estimated unique listeners based on program progress), with EMA smoothing for spike detection.
 - **Program Images**: Large aspect-video presenter photos for "Program Sedang On Air" and "Coming Up Next". Small 80×80px colorful rounded icons for all 6 programs in statistics lists.
 - **Badge Styling**: "LIVE Badge" for on-air programs (red background, dual animation) and "UPCOMING Badge" for next programs (teal background, static).
@@ -98,3 +98,11 @@ The dashboard's design is inspired by Spotify Analytics and SoundCloud Stats, fe
   - Host 2: virtual_host2_1762106064761.png
 - **Updated Operator Photo**: Aryo operator photo updated to professional version (opr_aryo_1762105125710.png)
 - **Coverage Status**: Maintained 100% photo coverage for all 22 hosts, 9 producers, 6 operators, and 4 virtual crew members
+- **Jakarta Weather Widget** (Latest Update):
+  - Replaced "Now Playing" widget with real-time Jakarta weather display in dashboard header
+  - Backend endpoint: `/api/jakarta-weather` fetches data from Open-Meteo API (free, no API key)
+  - Weather utility: `client/src/lib/weatherUtils.ts` maps weather codes to Indonesian descriptions and Lucide icons
+  - Widget features: Sky blue gradient background, animated weather icon with pulse effect, temperature in °C, Indonesian weather condition
+  - Error handling: Validates API responses, displays "Data tidak tersedia" fallback on errors, retry logic (2 attempts)
+  - Auto-refresh: Every 5 minutes (stale time: 4 minutes)
+  - Supported conditions: Cerah, Cerah Berawan, Berawan, Berkabut, Gerimis, Hujan, Salju, Hujan Lebat, Petir, and more

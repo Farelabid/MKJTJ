@@ -722,6 +722,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // API endpoint to fetch Jakarta weather from Open-Meteo
+  app.get("/api/jakarta-weather", async (req, res) => {
+    try {
+      // Jakarta coordinates
+      const latitude = -6.2088;
+      const longitude = 106.8456;
+      
+      const response = await axios.get("https://api.open-meteo.com/v1/forecast", {
+        params: {
+          latitude,
+          longitude,
+          current_weather: true,
+          timezone: "Asia/Jakarta",
+        },
+        timeout: 10000,
+      });
+
+      // Guard against malformed responses
+      if (!response.data || !response.data.current_weather) {
+        throw new Error("Invalid weather data structure from Open-Meteo");
+      }
+
+      const weatherData = response.data.current_weather;
+      
+      // Validate required fields
+      if (typeof weatherData.temperature !== 'number' || typeof weatherData.weathercode !== 'number') {
+        throw new Error("Missing required weather fields");
+      }
+      
+      res.json({
+        temperature: weatherData.temperature,
+        windSpeed: weatherData.windspeed || 0,
+        windDirection: weatherData.winddirection || 0,
+        weatherCode: weatherData.weathercode,
+        time: weatherData.time || new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error("Error fetching Jakarta weather:", error);
+      res.status(500).json({ 
+        error: "Failed to fetch weather data",
+        message: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
   // API endpoint to get historical stats
   app.get("/api/stats-history", async (req, res) => {
     try {
