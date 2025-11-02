@@ -270,126 +270,159 @@ export default function Dashboard() {
         {/* Hero Statistics - Redesigned 3 Column Layout */}
         <section className="bg-card/30 backdrop-blur-sm rounded-lg p-6 lg:p-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-stretch">
-            {/* Left: Current Listeners & Peak - Enhanced with 6 Visual Features */}
-            <div className="relative flex flex-col">
-              {/* Background Pattern (Feature 6) */}
-              <div 
-                className="absolute inset-0 opacity-10 rounded-xl"
-                style={{
-                  backgroundImage: `repeating-linear-gradient(
-                    45deg,
-                    transparent,
-                    transparent 10px,
-                    rgba(196, 245, 66, 0.1) 10px,
-                    rgba(196, 245, 66, 0.1) 20px
-                  ), repeating-linear-gradient(
-                    -45deg,
-                    transparent,
-                    transparent 10px,
-                    rgba(255, 105, 180, 0.1) 10px,
-                    rgba(255, 105, 180, 0.1) 20px
-                  )`
-                }}
-              />
-              
-              {/* Card Container with Gradient Border & Glow (Feature 1) */}
-              <div 
-                className="relative rounded-xl p-[2px] animate-gradient-rotate h-full"
-                style={{
-                  background: 'linear-gradient(90deg, #FF69B4, #C4F542, #FF69B4, #C4F542)',
-                  backgroundSize: '300% 100%'
-                }}
-              >
-                <div className="relative bg-card/95 backdrop-blur-sm rounded-xl p-4 shadow-[0_0_30px_rgba(255,105,180,0.3),0_0_60px_rgba(196,245,66,0.2)] h-full">
-                  <div className="text-center lg:text-left space-y-2">
-                    {/* Header with Animated Icons (Feature 2) */}
-                    <div className="flex items-center justify-center lg:justify-start gap-2">
-                      <div className="relative">
-                        <Signal className="h-4 w-4 text-[#C4F542] animate-pulse" />
-                        <div className="absolute inset-0 animate-ping opacity-75">
-                          <Signal className="h-4 w-4 text-[#C4F542]" />
-                        </div>
-                      </div>
+            {/* Left: Speedometer Gauge */}
+            <div className="relative flex flex-col items-center justify-center p-4 bg-black/40 rounded-xl">
+              {isLoading ? (
+                <Skeleton className="h-80 w-80 rounded-full" />
+              ) : (
+                <div className="relative w-full max-w-sm aspect-square flex items-center justify-center">
+                  {/* Speedometer SVG */}
+                  <svg viewBox="0 0 200 200" className="w-full h-full">
+                    <defs>
+                      <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#FF69B4" />
+                        <stop offset="50%" stopColor="#FF69B4" />
+                        <stop offset="50%" stopColor="#C4F542" />
+                        <stop offset="100%" stopColor="#C4F542" />
+                      </linearGradient>
+                      <filter id="glow">
+                        <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                        <feMerge>
+                          <feMergeNode in="coloredBlur"/>
+                          <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                      </filter>
+                    </defs>
+                    
+                    {/* Main Arc - Pink to Yellow gradient */}
+                    <circle
+                      cx="100"
+                      cy="100"
+                      r="85"
+                      fill="none"
+                      stroke="url(#gaugeGradient)"
+                      strokeWidth="8"
+                      strokeDasharray="267 267"
+                      strokeDashoffset="67"
+                      filter="url(#glow)"
+                      style={{
+                        transform: 'rotate(-180deg)',
+                        transformOrigin: '50% 50%'
+                      }}
+                    />
+                    
+                    {/* Scale Marks */}
+                    {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => {
+                      const angle = -180 + (num * 200 / 9);
+                      const radian = (angle * Math.PI) / 180;
+                      const x1 = 100 + 75 * Math.cos(radian);
+                      const y1 = 100 + 75 * Math.sin(radian);
+                      const x2 = 100 + 85 * Math.cos(radian);
+                      const y2 = 100 + 85 * Math.sin(radian);
+                      const textX = 100 + 92 * Math.cos(radian);
+                      const textY = 100 + 92 * Math.sin(radian);
+                      
+                      return (
+                        <g key={num}>
+                          <line
+                            x1={x1}
+                            y1={y1}
+                            x2={x2}
+                            y2={y2}
+                            stroke={num <= 4 ? '#FF69B4' : '#C4F542'}
+                            strokeWidth="2"
+                          />
+                          <text
+                            x={textX}
+                            y={textY}
+                            fill={num <= 4 ? '#FF69B4' : '#C4F542'}
+                            fontSize="12"
+                            fontWeight="bold"
+                            textAnchor="middle"
+                            dominantBaseline="middle"
+                          >
+                            {num}
+                          </text>
+                        </g>
+                      );
+                    })}
+                    
+                    {/* Needle */}
+                    {stats && (
+                      <line
+                        x1="100"
+                        y1="100"
+                        x2="100"
+                        y2="30"
+                        stroke="#FF1744"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        style={{
+                          transform: `rotate(${-180 + (getListenerRatio() * 200 / 100)}deg)`,
+                          transformOrigin: '50% 50%',
+                          transition: 'transform 1s ease-out'
+                        }}
+                      />
+                    )}
+                    
+                    {/* Center Circle */}
+                    <circle cx="100" cy="100" r="5" fill="#FF1744" />
+                  </svg>
+                  
+                  {/* Center Text Content */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                    {/* Header */}
+                    <div className="flex items-center gap-2 mb-2 mt-8">
                       <p className="text-xs font-bold text-[#C4F542] tracking-wider">
                         PENDENGAR SAAT INI
                       </p>
-                      <div className="relative">
-                        <Radio className="h-4 w-4 text-[#FF69B4] animate-pulse" />
-                        <div className="absolute inset-0 animate-ping opacity-75" style={{ animationDelay: '0.5s' }}>
-                          <Radio className="h-4 w-4 text-[#FF69B4]" />
-                        </div>
-                      </div>
+                      <Radio className="h-4 w-4 text-[#FF69B4] animate-pulse" />
                     </div>
                     
-                    {isLoading ? (
-                      <Skeleton className="h-20 w-48 mx-auto lg:mx-0" />
-                    ) : (
-                      <div className="animate-counter-up">
-                        {/* Big Number with Glow Effect (Feature 3) */}
-                        <h2 
-                          className="text-5xl lg:text-6xl font-bold font-mono tracking-tight text-[#FF69B4]"
-                          style={{
-                            textShadow: '0 0 20px rgba(255, 105, 180, 0.6), 0 0 40px rgba(255, 105, 180, 0.4), 0 0 60px rgba(255, 105, 180, 0.2)'
-                          }}
-                          data-testid="text-listeners-current"
-                        >
-                          {stats?.listenersCurrent.toLocaleString()}
-                        </h2>
-                      </div>
+                    {/* Main Number */}
+                    <h2 
+                      className="text-5xl font-bold font-mono tracking-tight text-[#FF69B4] mb-1"
+                      style={{
+                        textShadow: '0 0 20px rgba(255, 105, 180, 0.8)'
+                      }}
+                      data-testid="text-listeners-current"
+                    >
+                      {stats?.listenersCurrent.toLocaleString()}
+                    </h2>
+                    
+                    {/* Trend Indicator */}
+                    {stats && previousListeners !== null && (
+                      <p className="text-xs text-muted-foreground mb-3">
+                        − {Math.abs(getTrendPercentage()).toFixed(1)}% vs update terakhir
+                      </p>
                     )}
                     
-                    {!isLoading && stats && (
-                      <div className="space-y-2">
-                        {/* Trending Indicator (Feature 5) */}
-                        {previousListeners !== null && (
-                          <div className="flex items-center justify-center lg:justify-start gap-2">
-                            <div className={`flex items-center gap-1 ${getTrendColor()}`}>
-                              {getTrendIcon()}
-                              <span className="text-sm font-bold">
-                                {Math.abs(getTrendPercentage()).toFixed(1)}%
-                              </span>
-                            </div>
-                            <span className="text-xs text-muted-foreground">
-                              vs update terakhir
-                            </span>
-                          </div>
-                        )}
+                    {/* Peak */}
+                    {stats && (
+                      <div className="space-y-1">
+                        <p className="text-sm">
+                          <span className="text-[#C4F542] font-bold">PEAK</span>
+                          {' '}
+                          <span 
+                            className="text-2xl font-bold font-mono text-[#C4F542]"
+                            style={{ textShadow: '0 0 15px rgba(196, 245, 66, 0.6)' }}
+                          >
+                            {stats.listenersPeak.toLocaleString()}
+                          </span>
+                        </p>
                         
-                        {/* Peak Stats */}
-                        <div className="text-left space-y-1">
-                          <div className="flex items-baseline gap-2">
-                            <span className="text-sm text-[#C4F542] font-bold">PEAK</span>
-                            <span className="text-2xl font-bold font-mono text-[#C4F542]" style={{
-                              textShadow: '0 0 15px rgba(196, 245, 66, 0.5)'
-                            }}>
-                              {stats.listenersPeak.toLocaleString()}
-                            </span>
-                          </div>
-                          
-                          {/* Progress Bar Visual (Feature 4) */}
-                          <div className="space-y-1">
-                            <div className="flex items-center justify-between text-xs">
-                              <span className="font-bold" style={{ color: getRatioColor() }}>
-                                {getListenerRatio().toFixed(0)}% DARI PEAK
-                              </span>
-                            </div>
-                            <div className="relative h-2 bg-background/50 rounded-full overflow-hidden">
-                              <div 
-                                className="absolute inset-y-0 left-0 rounded-full transition-all duration-1000 ease-out"
-                                style={{
-                                  width: `${getListenerRatio()}%`,
-                                  background: `linear-gradient(90deg, ${getRatioColor()}, ${getRatioColor()}99)`,
-                                  boxShadow: `0 0 10px ${getRatioColor()}`
-                                }}
-                              />
-                            </div>
-                          </div>
-                        </div>
+                        {/* Percentage */}
+                        <p 
+                          className="text-xl font-bold text-[#FF69B4]"
+                          style={{ textShadow: '0 0 15px rgba(255, 105, 180, 0.6)' }}
+                        >
+                          {getListenerRatio().toFixed(0)}% DARI PEAK
+                        </p>
                       </div>
                     )}
                   </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Center: Crew On Duty (Operator + Producer Photos) */}
