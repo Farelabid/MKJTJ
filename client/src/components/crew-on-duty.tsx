@@ -101,6 +101,59 @@ export default function CrewOnDuty() {
     return { name: producerName, photoUrl };
   };
 
+  // Get operator photo based on shift schedule
+  const getOperatorPhoto = (): { name: string; photoUrl: string } => {
+    const day = getDayOfWeek();
+    
+    // Get current time in WIB to determine shift
+    const now = new Date();
+    const wibOffset = 7 * 60;
+    const localOffset = now.getTimezoneOffset();
+    const wibTime = new Date(now.getTime() + (wibOffset + localOffset) * 60 * 1000);
+    const currentHour = wibTime.getHours();
+    
+    // Determine shift based on time
+    let shift: 'shift1' | 'shift2' | 'shift3';
+    if (currentHour >= 5 && currentHour < 12) {
+      shift = 'shift1'; // 05:00-12:00
+    } else if (currentHour >= 12 && currentHour < 19) {
+      shift = 'shift2'; // 12:00-19:00
+    } else {
+      shift = 'shift3'; // 19:00-24:00 (and 00:00-05:00)
+    }
+    
+    // Operator schedule from uploaded image
+    const operatorSchedule: Record<string, Record<string, string>> = {
+      shift1: {
+        monday: "ADE", tuesday: "RULLY", wednesday: "RULLY", thursday: "RULLY",
+        friday: "RULLY", saturday: "ADE", sunday: "ADE"
+      },
+      shift2: {
+        monday: "JHOSUA", tuesday: "JHOSUA", wednesday: "ADE", thursday: "JHOSUA",
+        friday: "ARYO", saturday: "RULLY", sunday: "JHOSUA"
+      },
+      shift3: {
+        monday: "ARYO", tuesday: "ARYO", wednesday: "ARYO", thursday: "ADE",
+        friday: "JHOSUA", saturday: "ARYO", sunday: "INTERNSHIP"
+      }
+    };
+
+    // Operator photos
+    const operatorPhotos: Record<string, string> = {
+      "ARYO": "/attached_assets/opr_aryo_1760589447425.png",
+      "AUDREY": "/attached_assets/opr_audrey_1760589447426.png",
+      "JHOSUA": "/attached_assets/opr_jhosua_1760589447426.png",
+      "RULLY": "/attached_assets/opr_rully_1760589447426.png",
+      "ADE": "/attached_assets/magang_nanda_1762097040087.png",
+      "INTERNSHIP": "/attached_assets/magang_farhan_1762097040086.png",
+    };
+
+    const operatorName = operatorSchedule[shift]?.[day] || "CREW";
+    const photoUrl = operatorPhotos[operatorName] || "/attached_assets/sementara_1762090833934.png";
+
+    return { name: operatorName, photoUrl };
+  };
+
   // Get host photos from program presenter
   const getHostPhotos = (): Array<{ name: string; photoUrl: string }> => {
     const presenterText = programData.presenter || "";
@@ -141,6 +194,7 @@ export default function CrewOnDuty() {
     });
   };
 
+  const operator = getOperatorPhoto();
   const producer = getProducerPhoto();
   const hosts = getHostPhotos();
 
@@ -167,8 +221,26 @@ export default function CrewOnDuty() {
         </h2>
       </div>
 
-      {/* 3 Crew Photos in a Row: Producer + 2 Hosts */}
+      {/* 4 Crew Photos in a Row: Operator + Producer + 2 Hosts */}
       <div className="flex gap-3 items-end justify-center">
+        {/* Operator - Based on shift schedule */}
+        <div className="flex flex-col items-center space-y-1">
+          <div className="w-20 h-28 rounded-lg overflow-hidden bg-gradient-to-br from-blue-500/20 to-blue-700/20 border-2 border-blue-500/30">
+            <img
+              src={operator.photoUrl}
+              alt={`Operator ${operator.name}`}
+              className="w-full h-full object-cover"
+              data-testid="image-operator"
+            />
+          </div>
+          <div className="text-center">
+            <p className="text-xs font-bold text-blue-400" data-testid="text-operator-role">OPERATOR</p>
+            <p className="text-[10px] text-muted-foreground font-semibold" data-testid="text-operator-name">
+              {operator.name}
+            </p>
+          </div>
+        </div>
+
         {/* Producer - Using NEW professional photos */}
         <div className="flex flex-col items-center space-y-1">
           <div className="w-20 h-28 rounded-lg overflow-hidden bg-gradient-to-br from-orange-500/20 to-orange-700/20 border-2 border-orange-500/30">

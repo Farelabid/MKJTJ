@@ -37,7 +37,7 @@ The dashboard's design is inspired by Spotify Analytics and SoundCloud Stats, fe
 - **Speedometer Gauge**: Uses background image template (SPEEDOBACK_1762085711848.png) with pre-rendered yellow-to-red gradient arc and scale marks (1.000-10K). Overlays include: animated purple/magenta gradient needle with glow effect positioned based on current listener count, and center statistics showing "OVER" label, main number in bright yellow (#FFD700), subtitle "PEOPLE ARE LISTENING TO US RIGHT NOW", orange trend indicator (#FFA500) with +/− signs, cyan peak value (#00FFFF), and orange-red percentage from peak (#FF6347). Needle calculation: angle = -180° + ((listeners - 1000) / 9000) × 200°.
 - **Historical Data**: PostgreSQL database for snapshots, with time-series charts (24h, 7d, 30d views) and CSV export.
 - **3-Day Statistics Widget**: Aggregated listener totals for the last 3 days, with Indonesian date labels, formatted counts, and **weekly champion icon** (searches 7 days for highest program). Champion displays gold trophy icon with glow effect and pulse animation. Auto-refreshes every 30 seconds.
-- **Team Work Section**: Displays current team on duty with date header, 3 crew photos in a row (Producer with orange border, Host 1 and Host 2 with orange borders), red LIVE NOW banner showing current program info (name, time, stats), and "Coming Up Next" program preview. **Photos retrieved directly from program schedule** (no longer using /api/crew-on-duty endpoint). Uses NEW professional producer photos uploaded Nov 2, 2025. Auto-refreshes every 30 seconds.
+- **Team Work Section**: Displays current team on duty with date header, 4 crew photos in a row (Operator with blue border, Producer with orange border, Host 1 and Host 2 with orange borders), red LIVE NOW banner showing current program info (name, time, stats), and "Coming Up Next" program preview. **Photos retrieved directly from program schedule** (no longer using /api/crew-on-duty endpoint). Operator determined by shift schedule (05:00-12:00, 12:00-19:00, 19:00-24:00). Uses NEW professional producer photos uploaded Nov 2, 2025. Auto-refreshes every 30 seconds.
 - **Weekly Statistics Widget**: Displays 7-day bar chart of listener statistics with Indonesian date labels, formatted listener counts, and **Program Favorite** section featuring the program with highest listeners in the past 7 days (gold trophy icon with glow and pulse animation). Retrieved via /api/weekly-stats endpoint. Auto-refreshes every 30 seconds.
 - **Admin Dashboard**: Configures listener multiplier, stream URL, and alert thresholds.
 - **Alert System**: Configurable alert thresholds with real-time monitoring and history logging.
@@ -78,9 +78,10 @@ The dashboard's design is inspired by Spotify Analytics and SoundCloud Stats, fe
   - Drive Time Weekend: Sakinah
 - **New Producer Photos**: Uploaded 5 professional photos (jhosua, luvi, nayla, patricia, risan) at 1762098258506-507
 - **Team Work Widget Update**: 
-  - Changed from 4 photos (Operator + Producer + 2 Hosts) to 3 photos (Producer + 2 Hosts)
   - Removed dependency on /api/crew-on-duty endpoint
-  - Photos now retrieved directly from program schedule mapping
+  - Photos now retrieved directly from shift/program schedule mapping
+  - Operator determined by 3 shifts: Shift 1 (05:00-12:00), Shift 2 (12:00-19:00), Shift 3 (19:00-24:00)
   - Producer photos use NEW professional uploads (not crew uniforms)
-  - All data calculated client-side based on current program and day
+  - All data calculated client-side based on current WIB time, shift, program, and day
+  - Layout: 4 photos (Operator-blue + Producer-orange + 2 Hosts-orange)
 - **Coverage Status**: Maintained 100% photo coverage for all 22 hosts and 9 producers
