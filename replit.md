@@ -33,8 +33,9 @@ The dashboard's design is inspired by Spotify Analytics and SoundCloud Stats, fe
 
 ### Feature Specifications
 - **Real-time Statistics**: Current listeners, peak listeners, and currently playing song with auto-refresh every 30 seconds.
+- **Speedometer Gauge**: Replaces "PENDENGAR SAAT INI" box with SVG gauge featuring gradient arc (pink to yellow), scale marks 0-9, animated dark gray needle (#4A4A4A), and center statistics showing current listeners, trend indicator with +/− signs, peak value, and percentage from peak.
 - **Historical Data**: PostgreSQL database for snapshots, with time-series charts (24h, 7d, 30d views) and CSV export.
-- **3-Day Statistics Widget**: Aggregated listener totals for the last 3 days, with Indonesian date labels, formatted counts, and record program display. Auto-refreshes every 30 seconds.
+- **3-Day Statistics Widget**: Aggregated listener totals for the last 3 days, with Indonesian date labels, formatted counts, and **weekly champion icon** (searches 7 days for highest program). Champion displays gold trophy icon with glow effect and pulse animation. Auto-refreshes every 30 seconds.
 - **Crew On Duty Widget**: Displays current on-duty staff (Operator and Producer) based on real-time shift and program schedules. Includes staff photos (military uniform theme) and fallbacks for staff without photos. Auto-refreshes every 30 seconds.
 - **Admin Dashboard**: Configures listener multiplier, stream URL, and alert thresholds.
 - **Alert System**: Configurable alert thresholds with real-time monitoring and history logging.

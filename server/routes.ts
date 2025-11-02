@@ -1054,14 +1054,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })
       );
       
-      // Find program with highest listeners across all 3 days
+      // Find program with highest listeners across WEEKLY (7 days) for champion
+      // Calculate dates for last 7 days
+      const weeklyDates = [];
+      for (let i = 1; i <= 7; i++) {
+        const date = new Date(year, month - 1, day);
+        date.setDate(date.getDate() - i);
+        const dateYear = date.getFullYear();
+        const dateMonth = String(date.getMonth() + 1).padStart(2, '0');
+        const dateDay = String(date.getDate()).padStart(2, '0');
+        weeklyDates.push(`${dateYear}-${dateMonth}-${dateDay}`);
+      }
+      
+      // Get all program stats for the last 7 days
+      const weeklyStats = await Promise.all(
+        weeklyDates.map(async (date) => {
+          return await storage.getAllProgramStatsForDate(date);
+        })
+      );
+      
+      // Find program with highest listeners across all 7 days
       let recordProgram = {
         name: "",
         listeners: 0,
       };
       
-      dailyStats.forEach(({ programs }) => {
-        programs.forEach((stat) => {
+      weeklyStats.forEach((dayStats) => {
+        dayStats.forEach((stat) => {
           if (stat.estimatedUniqueListeners > recordProgram.listeners) {
             recordProgram = {
               name: stat.programName,

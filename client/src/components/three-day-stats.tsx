@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { Calendar, Trophy, TrendingUp } from "lucide-react";
+import { Calendar, TrendingUp } from "lucide-react";
+import championIcon from "@assets/champion_1762078537198.png";
 
 interface DailyStat {
   date: string;
@@ -140,28 +141,37 @@ export default function ThreeDayStats() {
             })}
           </div>
 
-          {/* Record program with Trophy Icon */}
+          {/* Record program with Champion Icon */}
           {data.recordProgram.name && (
-            <div className="mt-3 pt-2 border-t border-border/30">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="relative">
-                  <Trophy className="h-3 w-3 text-[#FF69B4] animate-pulse" />
-                  <div className="absolute inset-0 animate-ping opacity-75" style={{ animationDelay: '0.5s' }}>
-                    <Trophy className="h-3 w-3 text-[#FF69B4]" />
+            <div className="mt-3 pt-3 border-t border-border/30">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <div className="text-[10px] font-bold text-[#FF69B4] tracking-wider">
+                      PROGRAM FAVORITE MINGGU INI
+                    </div>
+                  </div>
+                  <div 
+                    className="text-base font-bold uppercase tracking-wide text-[#FF69B4]"
+                    style={{
+                      textShadow: '0 0 15px rgba(255, 105, 180, 0.5)'
+                    }}
+                    data-testid="text-record-program"
+                  >
+                    {data.recordProgram.displayName}
                   </div>
                 </div>
-                <div className="text-[10px] font-bold text-muted-foreground tracking-wider">
-                  PROGRAM FAVORITE MINGGU INI
+                <div className="flex-shrink-0">
+                  <img 
+                    src={championIcon} 
+                    alt="Champion" 
+                    className="w-16 h-16 object-contain animate-pulse"
+                    style={{
+                      filter: 'drop-shadow(0 0 10px rgba(255, 215, 0, 0.6))',
+                      animationDuration: '2s'
+                    }}
+                  />
                 </div>
-              </div>
-              <div 
-                className="text-sm font-bold uppercase tracking-wide text-[#FF69B4]"
-                style={{
-                  textShadow: '0 0 15px rgba(255, 105, 180, 0.5)'
-                }}
-                data-testid="text-record-program"
-              >
-                {data.recordProgram.displayName}
               </div>
             </div>
           )}
