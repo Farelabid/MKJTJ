@@ -91,23 +91,22 @@ export default function ThreeDayStats() {
           </div>
           
           {/* Vertical Bars Chart */}
-          <div className="flex items-end justify-between gap-3 mb-4 px-1" style={{ height: '160px' }}>
+          <div className="flex items-end justify-between gap-3 mb-3 px-1" style={{ height: '180px' }}>
             {reversedStats.map((stat, index) => {
               const barHeightPercent = (stat.totalListeners / maxListeners) * 100;
-              const barHeightPx = (barHeightPercent / 100) * 160; // 160px is container height
+              const barHeightPx = (barHeightPercent / 100) * 140; // Max 140px for bars
               const barColor = barColors[index];
               
               return (
                 <div 
                   key={stat.date}
-                  className="flex-1 flex flex-col items-center gap-2"
+                  className="flex-1 flex flex-col items-center"
                   data-testid={`stat-day-${stat.date}`}
                   style={{ 
-                    animation: `fadeInUp 0.6s ease-out ${index * 0.1}s both`,
-                    height: '100%'
+                    animation: `fadeInUp 0.6s ease-out ${index * 0.1}s both`
                   }}
                 >
-                  {/* Value Label */}
+                  {/* Value Label at top */}
                   <div 
                     className="text-base font-bold font-mono tabular-nums leading-none mb-1"
                     style={{ 
@@ -119,19 +118,20 @@ export default function ThreeDayStats() {
                     {formatNumber(stat.totalListeners)}
                   </div>
                   
-                  {/* Vertical Bar Container */}
-                  <div className="w-full flex-1 flex flex-col justify-end items-center">
-                    <div 
-                      className="w-full rounded-t-lg transition-all duration-1000 ease-out"
-                      style={{
-                        height: `${barHeightPx}px`,
-                        background: `linear-gradient(to top, ${barColor}, ${barColor}EE)`,
-                        boxShadow: `0 0 15px ${barColor}70, inset 0 2px 8px rgba(255,255,255,0.2)`
-                      }}
-                    />
-                  </div>
+                  {/* Spacer to push bar to bottom with aligned baseline */}
+                  <div className="flex-1" style={{ minHeight: `${140 - barHeightPx}px` }} />
                   
-                  {/* Day Name & Date Labels */}
+                  {/* Vertical Bar - grows from bottom */}
+                  <div 
+                    className="w-full rounded-t-lg transition-all duration-1000 ease-out"
+                    style={{
+                      height: `${barHeightPx}px`,
+                      background: `linear-gradient(to top, ${barColor}, ${barColor}EE)`,
+                      boxShadow: `0 0 15px ${barColor}70, inset 0 2px 8px rgba(255,255,255,0.2)`
+                    }}
+                  />
+                  
+                  {/* Day Name & Date Labels at bottom */}
                   <div className="flex flex-col items-center gap-0.5 mt-2">
                     <div className="text-[10px] font-bold text-white uppercase tracking-wide leading-none">
                       {formatShortDate(stat.date)}
