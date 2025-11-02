@@ -15,6 +15,7 @@ import { OnAirProgram } from "@/components/on-air-program";
 import { ComingUpNext } from "@/components/coming-up-next";
 import ThreeDayStats from "@/components/three-day-stats";
 import CrewOnDuty from "@/components/crew-on-duty";
+import WeeklyStats from "@/components/weekly-stats";
 import { useToast } from "@/hooks/use-toast";
 import tjRadioLogo from "@assets/logo_official_tj_1760323825293.png";
 import sponsorHeaderImage from "@assets/back_header_1760419724787.png";
@@ -391,14 +392,14 @@ export default function Dashboard() {
               )}
             </div>
 
-            {/* Center: Crew On Duty (Operator + Producer Photos) */}
+            {/* Center: Team Work Section */}
             <div className="flex items-center justify-center">
               <CrewOnDuty />
             </div>
 
-            {/* Right: 3-Day Stats with Horizontal Bars */}
+            {/* Right: Weekly Stats with Bar Chart */}
             <div className="flex flex-col h-full">
-              <ThreeDayStats />
+              <WeeklyStats />
             </div>
           </div>
         </section>
