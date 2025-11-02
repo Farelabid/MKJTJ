@@ -15,7 +15,9 @@ The dashboard's design is inspired by Spotify Analytics and SoundCloud Stats, fe
 - **Animations**: Minimal and purposeful, including counter animations, pulse indicators, and animated "LIVE" badges.
 - **Branding**: Official TJ Radio logo, modern neon "ON AIR" graphic, and program-specific presenter photos.
 - **Layout**: Desktop 3-column grid (Speedometer | Team Work | Weekly Statistics), responsive design for mobile.
-- **Header Widget**: "Jakarta Weather" widget displaying real-time weather conditions with sky blue gradient background, animated weather icon (sun, cloud, rain, etc.), temperature in Celsius, and Indonesian weather description. Data fetched from Open-Meteo API (free, no API key required) with 5-minute auto-refresh. Error handling includes fallback message "Data tidak tersedia" when weather data is unavailable.
+- **Header Widgets**: Two compact widgets positioned side-by-side in the header:
+  - **Now Playing**: Purple/pink gradient widget displaying currently playing song from Icecast stream. Features animated music icon with pulse effect, auto-refresh every 30 seconds (synced with stats).
+  - **Cuaca Jakarta**: Sky blue gradient widget displaying real-time Jakarta weather with animated weather icon (sun, cloud, rain, etc.), temperature in Celsius, and Indonesian description. Data from Open-Meteo API (free, no key required), 5-minute auto-refresh with error fallback "Data tidak tersedia".
 - **Information Display**: Real-time WIB clock and Indonesian date display. Program statistics include "Pendengar Saat Ini" (raw listeners × 11) and "TOTAL PENDENGAR" (estimated unique listeners based on program progress), with EMA smoothing for spike detection.
 - **Program Images**: Large aspect-video presenter photos for "Program Sedang On Air" and "Coming Up Next". Small 80×80px colorful rounded icons for all 6 programs in statistics lists.
 - **Badge Styling**: "LIVE Badge" for on-air programs (red background, dual animation) and "UPCOMING Badge" for next programs (teal background, static).

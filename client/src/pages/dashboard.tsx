@@ -288,61 +288,98 @@ export default function Dashboard() {
               />
             </div>
 
-            {/* Jakarta Weather Widget */}
-            <div className="flex items-center gap-3 bg-gradient-to-r from-sky-600/20 via-blue-600/20 to-sky-600/20 px-4 py-2 rounded-lg border border-sky-500/30 backdrop-blur-sm">
-              <div className="flex items-center gap-2">
-                {/* Weather Icon with Animation */}
-                {isWeatherLoading ? (
-                  <Skeleton className="h-8 w-8 rounded-full" />
-                ) : weatherError ? (
-                  <div className="relative h-8 w-8 rounded-full bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center">
-                    <HelpCircle className="h-5 w-5 text-white" />
+            {/* Widgets Container: Now Playing + Jakarta Weather */}
+            <div className="flex items-center gap-2">
+              {/* Now Playing Widget */}
+              <div className="flex items-center gap-2 bg-gradient-to-r from-purple-600/20 via-pink-600/20 to-purple-600/20 px-3 py-2 rounded-lg border border-purple-500/30 backdrop-blur-sm">
+                <div className="flex items-center gap-2">
+                  {/* Music Icon with Pulse Animation */}
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-purple-500 rounded-full animate-ping opacity-75" />
+                    <div className="relative h-6 w-6 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
+                      <svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        className="h-3.5 w-3.5 text-white" 
+                        viewBox="0 0 24 24" 
+                        fill="currentColor"
+                      >
+                        <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+                      </svg>
+                    </div>
                   </div>
-                ) : weather ? (
-                  (() => {
-                    const weatherInfo = getWeatherInfo(weather.weatherCode);
-                    const IconComponent = weatherIcons[weatherInfo.icon as keyof typeof weatherIcons];
-                    return (
-                      <div className="relative">
-                        <div className="absolute inset-0 bg-sky-500 rounded-full animate-pulse opacity-50" />
-                        <div className="relative h-8 w-8 rounded-full bg-gradient-to-br from-sky-400 to-blue-500 flex items-center justify-center">
-                          <IconComponent className={`h-5 w-5 text-white`} />
-                        </div>
-                      </div>
-                    );
-                  })()
-                ) : (
-                  <Skeleton className="h-8 w-8 rounded-full" />
-                )}
-                
-                {/* Weather Info */}
-                <div className="flex flex-col min-w-0">
-                  <span className="text-[10px] font-bold text-sky-400 uppercase tracking-wider">
-                    Cuaca Jakarta
-                  </span>
-                  {isWeatherLoading ? (
-                    <Skeleton className="h-4 w-40" />
-                  ) : weatherError ? (
-                    <span className="text-sm text-muted-foreground" data-testid="text-weather-error">
-                      Data tidak tersedia
+                  
+                  {/* Now Playing Text */}
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-[9px] font-bold text-purple-400 uppercase tracking-wider">
+                      Now Playing
                     </span>
+                    {isLoading ? (
+                      <Skeleton className="h-3 w-32" />
+                    ) : (
+                      <span className="text-xs font-semibold text-foreground truncate max-w-[160px]" data-testid="text-current-song">
+                        {stats?.currentlyPlaying || "Tidak ada info"}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Jakarta Weather Widget */}
+              <div className="flex items-center gap-2 bg-gradient-to-r from-sky-600/20 via-blue-600/20 to-sky-600/20 px-3 py-2 rounded-lg border border-sky-500/30 backdrop-blur-sm">
+                <div className="flex items-center gap-2">
+                  {/* Weather Icon with Animation */}
+                  {isWeatherLoading ? (
+                    <Skeleton className="h-6 w-6 rounded-full" />
+                  ) : weatherError ? (
+                    <div className="relative h-6 w-6 rounded-full bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center flex-shrink-0">
+                      <HelpCircle className="h-4 w-4 text-white" />
+                    </div>
                   ) : weather ? (
                     (() => {
                       const weatherInfo = getWeatherInfo(weather.weatherCode);
+                      const IconComponent = weatherIcons[weatherInfo.icon as keyof typeof weatherIcons];
                       return (
-                        <div className="flex items-center gap-2 overflow-hidden">
-                          <span className="text-sm font-semibold text-foreground" data-testid="text-temperature">
-                            {formatTemperature(weather.temperature)}
-                          </span>
-                          <span className="text-xs text-muted-foreground truncate" data-testid="text-weather-condition">
-                            {weatherInfo.description}
-                          </span>
+                        <div className="relative flex-shrink-0">
+                          <div className="absolute inset-0 bg-sky-500 rounded-full animate-pulse opacity-50" />
+                          <div className="relative h-6 w-6 rounded-full bg-gradient-to-br from-sky-400 to-blue-500 flex items-center justify-center">
+                            <IconComponent className={`h-4 w-4 text-white`} />
+                          </div>
                         </div>
                       );
                     })()
                   ) : (
-                    <span className="text-sm text-muted-foreground">Loading...</span>
+                    <Skeleton className="h-6 w-6 rounded-full" />
                   )}
+                  
+                  {/* Weather Info */}
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-[9px] font-bold text-sky-400 uppercase tracking-wider">
+                      Cuaca Jakarta
+                    </span>
+                    {isWeatherLoading ? (
+                      <Skeleton className="h-3 w-24" />
+                    ) : weatherError ? (
+                      <span className="text-xs text-muted-foreground" data-testid="text-weather-error">
+                        Data tidak tersedia
+                      </span>
+                    ) : weather ? (
+                      (() => {
+                        const weatherInfo = getWeatherInfo(weather.weatherCode);
+                        return (
+                          <div className="flex items-center gap-1.5 overflow-hidden">
+                            <span className="text-xs font-semibold text-foreground" data-testid="text-temperature">
+                              {formatTemperature(weather.temperature)}
+                            </span>
+                            <span className="text-[10px] text-muted-foreground truncate" data-testid="text-weather-condition">
+                              {weatherInfo.description}
+                            </span>
+                          </div>
+                        );
+                      })()
+                    ) : (
+                      <span className="text-xs text-muted-foreground">Loading...</span>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
