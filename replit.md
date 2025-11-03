@@ -35,7 +35,12 @@ The dashboard's design is inspired by Spotify Analytics and SoundCloud Stats, wi
 
 ### Feature Specifications
 - **Real-time Statistics**: Current listeners, peak listeners, and currently playing song. **Auto-refresh interval: 20 seconds** for real-time listener data (radio-stats and stream-health), providing more frequent updates for live monitoring.
-- **Speedometer Gauge**: Custom gauge with a pre-rendered background, animated purple/magenta needle based on listener count, and neon-glow numerical display.
+- **Speedometer Gauge**: Custom gauge with pre-rendered background and triple-layer needle design for maximum visibility:
+    - **Needle Design**: Triple-layer structure (red outline 10px + black middle 7px + white core 4px with glow) for high contrast against yellow-to-red gauge background
+    - **Needle Components**: Large red triangle tip with white stroke, red center dot (8px radius) with white border as rotation anchor
+    - **Rotation**: SVG transform attribute with smooth 0.8s cubic-bezier animation, angle calculated based on listener count (-130° to +50° range)
+    - **Text Overlay**: Neon-glow numerical display with pointer-events passthrough for proper layering
+    - **No Center Obstruction**: Removed center circle to ensure full text readability
 - **Historical Data & Trend Analysis**: PostgreSQL-backed time-series line charts for "Pendengar Saat Ini" and "Peak" trends, with 6 duration options (1h to 30d). Includes average, maximum, and minimum statistics.
 - **3-Day Statistics Widget**: Aggregated listener totals for the last 3 days, with a weekly champion program icon.
 - **Team Work Section**: Displays current team (Operator, Producer, Hosts) with photos and roles, derived directly from the program schedule. Includes "ONAIR NOW" and "Coming Up Next" program details. Features professional producer photos and 3D tilt effect on the producer photo.

@@ -557,62 +557,9 @@ export default function Dashboard() {
                     data-testid="img-speedometer-background"
                   />
                   
-                  {/* Needle SVG Overlay */}
-                  <svg viewBox="0 0 200 200" className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 10 }}>
-                    <defs>
-                      <linearGradient id="needleGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" stopColor="#FF00FF" stopOpacity="1" />
-                        <stop offset="50%" stopColor="#C71585" stopOpacity="1" />
-                        <stop offset="100%" stopColor="#8B008B" stopOpacity="1" />
-                      </linearGradient>
-                      <filter id="needleGlow">
-                        <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-                        <feMerge>
-                          <feMergeNode in="coloredBlur"/>
-                          <feMergeNode in="SourceGraphic"/>
-                        </feMerge>
-                      </filter>
-                    </defs>
-                    
-                    {/* Needle Group - Rotates around center */}
-                    {stats && (
-                      <g
-                        style={{
-                          transform: `rotate(${getNeedleAngle()}deg)`,
-                          transformOrigin: '100px 100px',
-                          transformBox: 'fill-box',
-                          transition: 'transform 0.8s cubic-bezier(0.4, 0.0, 0.2, 1)'
-                        }}
-                      >
-                        {/* Main Needle - Thicker and more visible */}
-                        <line
-                          x1="100"
-                          y1="100"
-                          x2="100"
-                          y2="30"
-                          stroke="url(#needleGradient)"
-                          strokeWidth="6"
-                          strokeLinecap="round"
-                          filter="url(#needleGlow)"
-                          opacity="1"
-                        />
-                        
-                        {/* Needle Tip Triangle for emphasis */}
-                        <polygon
-                          points="100,25 95,35 105,35"
-                          fill="#FF00FF"
-                          filter="url(#needleGlow)"
-                          opacity="1"
-                        />
-                      </g>
-                    )}
-                    
-                    {/* Center Circle - Purple with stronger glow */}
-                    <circle cx="100" cy="100" r="8" fill="#C71585" stroke="#FF00FF" strokeWidth="2" filter="url(#needleGlow)" opacity="1" />
-                  </svg>
-                  
-                  {/* Center Text Content */}
-                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                  {/* Center Text Content - Z-index 5, pointer-events-none for text passthrough */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none" style={{ zIndex: 5 }}>
+
                     {/* "OVER" Label */}
                     <p className="text-xs font-bold text-gray-400 tracking-wider mb-1 mt-4">
                       OVER
@@ -661,6 +608,92 @@ export default function Dashboard() {
                       </div>
                     )}
                   </div>
+                  
+                  {/* Needle SVG Overlay - MAXIMUM VISIBILITY - WHITE WITH RED OUTLINE */}
+                  <svg viewBox="0 0 200 200" className="absolute inset-0 w-full h-full" style={{ zIndex: 999, pointerEvents: 'none' }}>
+                    <defs>
+                      <filter id="strongGlow">
+                        <feGaussianBlur stdDeviation="5" result="coloredBlur"/>
+                        <feMerge>
+                          <feMergeNode in="coloredBlur"/>
+                          <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                      </filter>
+                    </defs>
+                    
+                    {/* Needle Group - Rotates around center */}
+                    {stats && (
+                      <g
+                        transform={`rotate(${getNeedleAngle()}, 100, 100)`}
+                        style={{
+                          transition: 'transform 0.8s cubic-bezier(0.4, 0.0, 0.2, 1)'
+                        }}
+                        data-testid="speedometer-needle"
+                      >
+                        {/* Outer Red Outline - Very Thick */}
+                        <line
+                          data-testid="needle-red-outline"
+                          x1="100"
+                          y1="100"
+                          x2="100"
+                          y2="20"
+                          stroke="#FF0000"
+                          strokeWidth="10"
+                          strokeLinecap="round"
+                          opacity="0.9"
+                        />
+                        
+                        {/* Middle Black Layer */}
+                        <line
+                          data-testid="needle-black-middle"
+                          x1="100"
+                          y1="100"
+                          x2="100"
+                          y2="20"
+                          stroke="#000000"
+                          strokeWidth="7"
+                          strokeLinecap="round"
+                          opacity="0.95"
+                        />
+                        
+                        {/* Main Needle - BRIGHT WHITE - Maximum visibility! */}
+                        <line
+                          data-testid="needle-white-core"
+                          x1="100"
+                          y1="100"
+                          x2="100"
+                          y2="20"
+                          stroke="#FFFFFF"
+                          strokeWidth="4"
+                          strokeLinecap="round"
+                          filter="url(#strongGlow)"
+                          opacity="1"
+                        />
+                        
+                        {/* Needle Tip - Large RED Triangle */}
+                        <polygon
+                          data-testid="speedometer-needle-tip"
+                          points="100,15 90,28 110,28"
+                          fill="#FF0000"
+                          stroke="#FFFFFF"
+                          strokeWidth="2"
+                          opacity="1"
+                        />
+                        
+                        {/* Center Dot - RED with WHITE border */}
+                        <circle 
+                          data-testid="speedometer-center-dot"
+                          cx="100" 
+                          cy="100" 
+                          r="8" 
+                          fill="#FF0000" 
+                          stroke="#FFFFFF" 
+                          strokeWidth="3" 
+                          opacity="1" 
+                        />
+                      </g>
+                    )}
+                  </svg>
                 </div>
               )}
             </div>
