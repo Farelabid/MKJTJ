@@ -54,9 +54,6 @@ export function OnAirProgram() {
     refetchInterval: 30000,
   });
 
-  // Debug: log program data
-  console.log('[OnAirProgram] Data received:', program);
-
   return (
     <Card className="p-6 space-y-4">
       <div className="flex items-center justify-between">
@@ -107,16 +104,52 @@ export function OnAirProgram() {
               )}
             </div>
             
-            {/* TOTAL PENDENGAR Box */}
-            <div className="bg-gradient-to-r from-orange-900/30 to-red-900/30 border border-orange-700/50 rounded-lg p-3 mt-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-orange-300 uppercase tracking-wide">
+            {/* TOTAL PENDENGAR Box - 3D Effect */}
+            <div 
+              className="relative rounded-lg p-4 mt-3 overflow-hidden"
+              style={{
+                background: 'linear-gradient(135deg, rgba(234, 88, 12, 0.15) 0%, rgba(220, 38, 38, 0.15) 50%, rgba(153, 27, 27, 0.2) 100%)',
+                boxShadow: `
+                  0 2px 4px rgba(0, 0, 0, 0.3),
+                  0 4px 8px rgba(234, 88, 12, 0.2),
+                  0 8px 16px rgba(220, 38, 38, 0.15),
+                  inset 0 1px 2px rgba(251, 146, 60, 0.3),
+                  inset 0 -1px 2px rgba(0, 0, 0, 0.4)
+                `,
+                border: '1px solid rgba(251, 146, 60, 0.3)',
+                borderTop: '1px solid rgba(251, 191, 36, 0.5)',
+                borderBottom: '1px solid rgba(153, 27, 27, 0.6)',
+              }}
+            >
+              {/* Shine effect overlay */}
+              <div 
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%)',
+                }}
+              />
+              
+              <div className="relative flex items-center justify-between">
+                <span 
+                  className="text-xs font-bold text-orange-300 uppercase tracking-wider"
+                  style={{ 
+                    textShadow: '0 1px 3px rgba(0, 0, 0, 0.8), 0 0 8px rgba(251, 146, 60, 0.4)' 
+                  }}
+                >
                   Total Pendengar
                 </span>
                 <span 
-                  className="text-2xl font-bold text-orange-400" 
+                  className="text-3xl font-black text-orange-400" 
                   data-testid="text-total-listeners"
-                  style={{ textShadow: '0 0 10px rgba(251, 146, 60, 0.5)' }}
+                  style={{ 
+                    textShadow: `
+                      0 1px 2px rgba(0, 0, 0, 0.8),
+                      0 2px 8px rgba(251, 146, 60, 0.6),
+                      0 0 20px rgba(251, 146, 60, 0.4),
+                      0 4px 16px rgba(234, 88, 12, 0.5)
+                    `,
+                    letterSpacing: '0.02em',
+                  }}
                 >
                   {program.totalListeners !== undefined ? program.totalListeners.toLocaleString() : '0'}
                 </span>
