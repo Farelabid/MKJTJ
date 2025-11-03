@@ -209,7 +209,7 @@ export default function Dashboard() {
 
   // Calculate needle angle based on current listeners (1K to 10K scale)
   const getNeedleAngle = () => {
-    if (!stats) return -180; // Start position
+    if (!stats) return -130; // Start position at 1K
     const listeners = stats.listenersCurrent;
     const minScale = 1000;  // 1K
     const maxScale = 10000; // 10K
@@ -220,8 +220,8 @@ export default function Dashboard() {
     // Calculate percentage within range (0-100%)
     const percentage = ((clampedListeners - minScale) / (maxScale - minScale)) * 100;
     
-    // Convert to angle (-180° to +20° = 200° total arc)
-    return -180 + (percentage * 200 / 100);
+    // Convert to angle: -130° (1K) to +50° (10K) = 180° total arc
+    return -130 + (percentage * 180 / 100);
   };
 
   const getRatioColor = () => {
@@ -609,18 +609,8 @@ export default function Dashboard() {
                     )}
                   </div>
                   
-                  {/* Needle SVG Overlay - MAXIMUM VISIBILITY - WHITE WITH RED OUTLINE */}
-                  <svg viewBox="0 0 200 200" className="absolute inset-0 w-full h-full" style={{ zIndex: 999, pointerEvents: 'none' }}>
-                    <defs>
-                      <filter id="strongGlow">
-                        <feGaussianBlur stdDeviation="5" result="coloredBlur"/>
-                        <feMerge>
-                          <feMergeNode in="coloredBlur"/>
-                          <feMergeNode in="SourceGraphic"/>
-                        </feMerge>
-                      </filter>
-                    </defs>
-                    
+                  {/* Needle SVG - Simple white semi-transparent, below text */}
+                  <svg viewBox="0 0 200 200" className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 1 }}>
                     {/* Needle Group - Rotates around center */}
                     {stats && (
                       <g
@@ -630,66 +620,17 @@ export default function Dashboard() {
                         }}
                         data-testid="speedometer-needle"
                       >
-                        {/* Outer Red Outline - Very Thick */}
+                        {/* Simple white needle - thin and semi-transparent */}
                         <line
-                          data-testid="needle-red-outline"
+                          data-testid="needle-line"
                           x1="100"
                           y1="100"
                           x2="100"
-                          y2="20"
-                          stroke="#FF0000"
-                          strokeWidth="10"
-                          strokeLinecap="round"
-                          opacity="0.9"
-                        />
-                        
-                        {/* Middle Black Layer */}
-                        <line
-                          data-testid="needle-black-middle"
-                          x1="100"
-                          y1="100"
-                          x2="100"
-                          y2="20"
-                          stroke="#000000"
-                          strokeWidth="7"
-                          strokeLinecap="round"
-                          opacity="0.95"
-                        />
-                        
-                        {/* Main Needle - BRIGHT WHITE - Maximum visibility! */}
-                        <line
-                          data-testid="needle-white-core"
-                          x1="100"
-                          y1="100"
-                          x2="100"
-                          y2="20"
-                          stroke="#FFFFFF"
-                          strokeWidth="4"
-                          strokeLinecap="round"
-                          filter="url(#strongGlow)"
-                          opacity="1"
-                        />
-                        
-                        {/* Needle Tip - Large RED Triangle */}
-                        <polygon
-                          data-testid="speedometer-needle-tip"
-                          points="100,15 90,28 110,28"
-                          fill="#FF0000"
+                          y2="25"
                           stroke="#FFFFFF"
                           strokeWidth="2"
-                          opacity="1"
-                        />
-                        
-                        {/* Center Dot - RED with WHITE border */}
-                        <circle 
-                          data-testid="speedometer-center-dot"
-                          cx="100" 
-                          cy="100" 
-                          r="8" 
-                          fill="#FF0000" 
-                          stroke="#FFFFFF" 
-                          strokeWidth="3" 
-                          opacity="1" 
+                          strokeLinecap="round"
+                          opacity="0.4"
                         />
                       </g>
                     )}
