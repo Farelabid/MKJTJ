@@ -34,7 +34,7 @@ The dashboard's design is inspired by Spotify Analytics and SoundCloud Stats, wi
     - EMA smoothing (α=0.25) applied for spike detection, resetting at midnight or program change.
 
 ### Feature Specifications
-- **Real-time Statistics**: Current listeners, peak listeners, and currently playing song, auto-refreshing every 30 seconds.
+- **Real-time Statistics**: Current listeners, peak listeners, and currently playing song. **Auto-refresh interval: 20 seconds** for real-time listener data (radio-stats and stream-health), providing more frequent updates for live monitoring.
 - **Speedometer Gauge**: Custom gauge with a pre-rendered background, animated purple/magenta needle based on listener count, and neon-glow numerical display.
 - **Historical Data & Trend Analysis**: PostgreSQL-backed time-series line charts for "Pendengar Saat Ini" and "Peak" trends, with 6 duration options (1h to 30d). Includes average, maximum, and minimum statistics.
 - **3-Day Statistics Widget**: Aggregated listener totals for the last 3 days, with a weekly champion program icon.

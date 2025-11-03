@@ -38,7 +38,7 @@ const weatherIcons = {
 };
 
 export default function Dashboard() {
-  const [autoRefreshCountdown, setAutoRefreshCountdown] = useState(30);
+  const [autoRefreshCountdown, setAutoRefreshCountdown] = useState(20);
   const [copied, setCopied] = useState(false);
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
   const [previousListeners, setPreviousListeners] = useState<number | null>(null);
@@ -54,11 +54,11 @@ export default function Dashboard() {
 
   const { data: stats, isLoading, error, refetch } = useQuery<RadioStats>({
     queryKey: ["/api/radio-stats"],
-    refetchInterval: 30000,
+    refetchInterval: 20000, // Refresh every 20 seconds for real-time data
     staleTime: 0, // Always fetch fresh data
   });
 
-  // Fetch stream health status (refresh every 30 seconds, synced with stats)
+  // Fetch stream health status (refresh every 20 seconds, synced with stats)
   const { data: streamHealth, isLoading: isHealthLoading, error: healthError } = useQuery<{
     status: 'excellent' | 'good' | 'degraded' | 'offline' | 'initializing';
     lastResponseTime: number;
@@ -71,7 +71,7 @@ export default function Dashboard() {
     failureCount: number;
   }>({
     queryKey: ["/api/stream-health"],
-    refetchInterval: 30000, // Refresh every 30 seconds (synced with radio stats)
+    refetchInterval: 20000, // Refresh every 20 seconds (synced with radio stats)
     staleTime: 0,
     retry: 2, // Retry failed requests twice
   });
@@ -131,7 +131,7 @@ export default function Dashboard() {
     const timer = setInterval(() => {
       setAutoRefreshCountdown((prev) => {
         if (prev <= 1) {
-          return 30;
+          return 20;
         }
         return prev - 1;
       });
@@ -150,7 +150,7 @@ export default function Dashboard() {
 
   const handleManualRefresh = () => {
     refetch();
-    setAutoRefreshCountdown(30);
+    setAutoRefreshCountdown(20);
     toast({
       title: "Data Diperbarui",
       description: "Statistik radio telah diperbarui",
