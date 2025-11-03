@@ -7,32 +7,40 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { TrendingUp, Calendar } from "lucide-react";
 import { useState } from "react";
 
-type TimeRange = "24h" | "7d" | "30d";
+type TimeRange = "1h" | "6h" | "12h" | "24h" | "7d" | "30d";
 
 export function HistoricalChart() {
   const [timeRange, setTimeRange] = useState<TimeRange>("24h");
 
-  const hours = timeRange === "24h" ? 24 : timeRange === "7d" ? 168 : 720;
-
   const { data: history, isLoading } = useQuery<StatsHistory[]>({
-    queryKey: ["/api/stats-history", hours],
+    queryKey: ["/api/stats-history", timeRange],
     queryFn: async () => {
-      const response = await fetch(`/api/stats-history?hours=${hours}`);
+      const response = await fetch(`/api/stats-history?duration=${timeRange}`);
       if (!response.ok) throw new Error("Failed to fetch history");
       return response.json();
     },
     refetchInterval: 60000, // Refresh every minute
   });
 
-  const chartData = history?.map((stat) => ({
-    time: new Date(stat.timestamp).toLocaleTimeString("id-ID", {
+  // Format time labels based on duration
+  const formatTimeLabel = (timestamp: string | Date) => {
+    const date = timestamp instanceof Date ? timestamp : new Date(timestamp);
+    const options: Intl.DateTimeFormatOptions = {
       hour: "2-digit",
       minute: "2-digit",
-      ...(timeRange !== "24h" && {
-        day: "2-digit",
-        month: "short",
-      }),
-    }),
+    };
+    
+    // For longer durations, include date
+    if (timeRange === "7d" || timeRange === "30d") {
+      options.day = "2-digit";
+      options.month = "short";
+    }
+    
+    return date.toLocaleTimeString("id-ID", options);
+  };
+
+  const chartData = history?.map((stat) => ({
+    time: formatTimeLabel(stat.timestamp),
     current: stat.listenersCurrent,
     peak: stat.listenersPeak,
     raw: stat.listenersRaw,
@@ -56,12 +64,36 @@ export function HistoricalChart() {
 
   return (
     <Card className="p-6 space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-2">
           <TrendingUp className="h-5 w-5 text-primary" />
           <h3 className="text-lg font-semibold">Tren Pendengar Historis</h3>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button
+            variant={timeRange === "1h" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setTimeRange("1h")}
+            data-testid="button-1h"
+          >
+            1 Jam
+          </Button>
+          <Button
+            variant={timeRange === "6h" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setTimeRange("6h")}
+            data-testid="button-6h"
+          >
+            6 Jam
+          </Button>
+          <Button
+            variant={timeRange === "12h" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setTimeRange("12h")}
+            data-testid="button-12h"
+          >
+            12 Jam
+          </Button>
           <Button
             variant={timeRange === "24h" ? "default" : "outline"}
             size="sm"

@@ -942,10 +942,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // API endpoint to get historical stats
+  // API endpoint to get historical stats with flexible duration
   app.get("/api/stats-history", async (req, res) => {
     try {
-      const hours = req.query.hours ? parseInt(req.query.hours as string) : 24;
+      const duration = req.query.duration as string || '24h';
+      
+      // Parse duration parameter (1h, 6h, 12h, 24h, 7d, 30d)
+      let hours: number;
+      if (duration.endsWith('h')) {
+        hours = parseInt(duration);
+      } else if (duration.endsWith('d')) {
+        hours = parseInt(duration) * 24;
+      } else {
+        hours = 24; // default
+      }
+      
       const history = await storage.getRecentStats(hours);
       res.json(history);
     } catch (error) {
