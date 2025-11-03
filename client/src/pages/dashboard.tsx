@@ -565,16 +565,75 @@ export default function Dashboard() {
                       OVER
                     </p>
                     
-                    {/* Main Number - Bright Yellow with Enhanced Glow + Pulse Animation */}
-                    <h2 
-                      className="text-5xl font-bold font-mono tracking-tight text-[#FFD700] mb-1"
-                      style={{
-                        animation: 'neonGlowPulse 2.5s ease-in-out infinite'
-                      }}
-                      data-testid="text-listeners-current"
-                    >
-                      {animatedListeners.toLocaleString()}
-                    </h2>
+                    {/* Mechanical Flip Counter - Vintage Odometer Style */}
+                    <div className="flex items-center justify-center gap-0.5 mb-1" data-testid="text-listeners-current">
+                      {(() => {
+                        const value = animatedListeners;
+                        const digits = Math.floor(value).toString().split('');
+                        const paddedDigits = digits.length < 5 ? '0'.repeat(5 - digits.length).split('').concat(digits) : digits;
+                        
+                        return paddedDigits.map((digit, index) => (
+                          <div
+                            key={index}
+                            className="relative"
+                            style={{
+                              width: '38px',
+                              height: '52px',
+                              background: 'linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 50%, #000000 100%)',
+                              borderRadius: '4px',
+                              boxShadow: `
+                                inset 0 2px 4px rgba(0, 0, 0, 0.8),
+                                inset 0 -1px 2px rgba(255, 255, 255, 0.1),
+                                0 2px 4px rgba(0, 0, 0, 0.5),
+                                0 0 8px rgba(255, 215, 0, 0.2)
+                              `,
+                              border: '1px solid #2a2a2a',
+                              overflow: 'hidden',
+                            }}
+                          >
+                            {/* Horizontal split line */}
+                            <div
+                              className="absolute left-0 right-0"
+                              style={{
+                                top: '50%',
+                                height: '1px',
+                                background: '#333',
+                                boxShadow: '0 0 2px rgba(0, 0, 0, 0.8)',
+                                zIndex: 2,
+                              }}
+                            />
+                            
+                            {/* Digit */}
+                            <div
+                              className="absolute inset-0 flex items-center justify-center font-mono font-black"
+                              style={{
+                                fontSize: '34px',
+                                color: '#FFD700',
+                                textShadow: `
+                                  0 0 10px rgba(255, 215, 0, 0.9),
+                                  0 0 20px rgba(255, 215, 0, 0.7),
+                                  0 0 30px rgba(255, 215, 0, 0.5),
+                                  0 2px 4px rgba(0, 0, 0, 0.8)
+                                `,
+                                letterSpacing: '-0.05em',
+                                animation: 'neonGlowPulse 2.5s ease-in-out infinite',
+                              }}
+                            >
+                              {digit}
+                            </div>
+                            
+                            {/* Top reflection */}
+                            <div
+                              className="absolute top-0 left-0 right-0 pointer-events-none"
+                              style={{
+                                height: '40%',
+                                background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, transparent 100%)',
+                              }}
+                            />
+                          </div>
+                        ));
+                      })()}
+                    </div>
                     
                     {/* Subtitle */}
                     <p className="text-[9px] font-medium text-gray-300 tracking-wide mb-2 px-2">
