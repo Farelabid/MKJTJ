@@ -18,6 +18,7 @@ import ThreeDayStats from "@/components/three-day-stats";
 import CrewOnDuty from "@/components/crew-on-duty";
 import WeeklyStats from "@/components/weekly-stats";
 import { useToast } from "@/hooks/use-toast";
+import { useCounterAnimation } from "@/hooks/use-counter-animation";
 import tjRadioLogo from "@assets/logo_official_tj_1760323825293.png";
 import sponsorHeaderImage from "@assets/back_header_1760419724787.png";
 
@@ -56,6 +57,11 @@ export default function Dashboard() {
     queryKey: ["/api/radio-stats"],
     refetchInterval: 20000, // Refresh every 20 seconds for real-time data
     staleTime: 0, // Always fetch fresh data
+  });
+
+  // Animated counter for smooth number transitions
+  const animatedListeners = useCounterAnimation(stats?.listenersCurrent || 0, {
+    duration: 800, // 0.8 second animation
   });
 
   // Fetch stream health status (refresh every 20 seconds, synced with stats)
@@ -568,7 +574,7 @@ export default function Dashboard() {
                       </filter>
                     </defs>
                     
-                    {/* Needle - Purple/Magenta gradient */}
+                    {/* Needle - Purple/Magenta gradient with smooth animation */}
                     {stats && (
                       <line
                         x1="100"
@@ -582,7 +588,7 @@ export default function Dashboard() {
                         style={{
                           transform: `rotate(${getNeedleAngle()}deg)`,
                           transformOrigin: '50% 50%',
-                          transition: 'transform 1s ease-out'
+                          transition: 'transform 0.8s cubic-bezier(0.4, 0.0, 0.2, 1)'
                         }}
                       />
                     )}
@@ -598,15 +604,15 @@ export default function Dashboard() {
                       OVER
                     </p>
                     
-                    {/* Main Number - Bright Yellow with Enhanced Glow */}
+                    {/* Main Number - Bright Yellow with Enhanced Glow + Pulse Animation */}
                     <h2 
                       className="text-5xl font-bold font-mono tracking-tight text-[#FFD700] mb-1"
                       style={{
-                        textShadow: '0 0 20px rgba(255, 215, 0, 1), 0 0 40px rgba(255, 215, 0, 0.8), 0 0 60px rgba(255, 215, 0, 0.6), 0 0 80px rgba(255, 215, 0, 0.4)'
+                        animation: 'neonGlowPulse 2.5s ease-in-out infinite'
                       }}
                       data-testid="text-listeners-current"
                     >
-                      {stats?.listenersCurrent.toLocaleString()}
+                      {animatedListeners.toLocaleString()}
                     </h2>
                     
                     {/* Subtitle */}
