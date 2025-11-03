@@ -558,15 +558,15 @@ export default function Dashboard() {
                   />
                   
                   {/* Needle SVG Overlay */}
-                  <svg viewBox="0 0 200 200" className="absolute inset-0 w-full h-full pointer-events-none">
+                  <svg viewBox="0 0 200 200" className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 10 }}>
                     <defs>
                       <linearGradient id="needleGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" stopColor="#FF00FF" />
-                        <stop offset="50%" stopColor="#C71585" />
-                        <stop offset="100%" stopColor="#8B008B" />
+                        <stop offset="0%" stopColor="#FF00FF" stopOpacity="1" />
+                        <stop offset="50%" stopColor="#C71585" stopOpacity="1" />
+                        <stop offset="100%" stopColor="#8B008B" stopOpacity="1" />
                       </linearGradient>
-                      <filter id="glow">
-                        <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                      <filter id="needleGlow">
+                        <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
                         <feMerge>
                           <feMergeNode in="coloredBlur"/>
                           <feMergeNode in="SourceGraphic"/>
@@ -574,27 +574,41 @@ export default function Dashboard() {
                       </filter>
                     </defs>
                     
-                    {/* Needle - Purple/Magenta gradient with smooth animation */}
+                    {/* Needle Group - Rotates around center */}
                     {stats && (
-                      <line
-                        x1="100"
-                        y1="100"
-                        x2="100"
-                        y2="25"
-                        stroke="url(#needleGradient)"
-                        strokeWidth="3"
-                        strokeLinecap="round"
-                        filter="url(#glow)"
+                      <g
                         style={{
                           transform: `rotate(${getNeedleAngle()}deg)`,
-                          transformOrigin: '50% 50%',
+                          transformOrigin: '100px 100px',
+                          transformBox: 'fill-box',
                           transition: 'transform 0.8s cubic-bezier(0.4, 0.0, 0.2, 1)'
                         }}
-                      />
+                      >
+                        {/* Main Needle - Thicker and more visible */}
+                        <line
+                          x1="100"
+                          y1="100"
+                          x2="100"
+                          y2="30"
+                          stroke="url(#needleGradient)"
+                          strokeWidth="6"
+                          strokeLinecap="round"
+                          filter="url(#needleGlow)"
+                          opacity="1"
+                        />
+                        
+                        {/* Needle Tip Triangle for emphasis */}
+                        <polygon
+                          points="100,25 95,35 105,35"
+                          fill="#FF00FF"
+                          filter="url(#needleGlow)"
+                          opacity="1"
+                        />
+                      </g>
                     )}
                     
-                    {/* Center Circle - Purple */}
-                    <circle cx="100" cy="100" r="6" fill="#C71585" filter="url(#glow)" />
+                    {/* Center Circle - Purple with stronger glow */}
+                    <circle cx="100" cy="100" r="8" fill="#C71585" stroke="#FF00FF" strokeWidth="2" filter="url(#needleGlow)" opacity="1" />
                   </svg>
                   
                   {/* Center Text Content */}
