@@ -54,6 +54,9 @@ export function OnAirProgram() {
     refetchInterval: 30000,
   });
 
+  // Debug: log program data
+  console.log('[OnAirProgram] Data received:', program);
+
   return (
     <Card className="p-6 space-y-4">
       <div className="flex items-center justify-between">
@@ -105,22 +108,20 @@ export function OnAirProgram() {
             </div>
             
             {/* TOTAL PENDENGAR Box */}
-            {program.totalListeners !== undefined && (
-              <div className="bg-gradient-to-r from-orange-900/30 to-red-900/30 border border-orange-700/50 rounded-lg p-3 mt-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-orange-300 uppercase tracking-wide">
-                    Total Pendengar
-                  </span>
-                  <span 
-                    className="text-2xl font-bold text-orange-400" 
-                    data-testid="text-total-listeners"
-                    style={{ textShadow: '0 0 10px rgba(251, 146, 60, 0.5)' }}
-                  >
-                    {program.totalListeners.toLocaleString()}
-                  </span>
-                </div>
+            <div className="bg-gradient-to-r from-orange-900/30 to-red-900/30 border border-orange-700/50 rounded-lg p-3 mt-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-orange-300 uppercase tracking-wide">
+                  Total Pendengar
+                </span>
+                <span 
+                  className="text-2xl font-bold text-orange-400" 
+                  data-testid="text-total-listeners"
+                  style={{ textShadow: '0 0 10px rgba(251, 146, 60, 0.5)' }}
+                >
+                  {program.totalListeners !== undefined ? program.totalListeners.toLocaleString() : '0'}
+                </span>
               </div>
-            )}
+            </div>
             
             {program.description && (
               <p className="text-sm text-muted-foreground leading-relaxed" data-testid="text-program-description">
