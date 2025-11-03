@@ -104,7 +104,7 @@ export function OnAirProgram() {
               )}
             </div>
             
-            {/* TOTAL PENDENGAR Box - 3D Effect */}
+            {/* TOTAL PENDENGAR Box - Vintage Flip Counter Style */}
             <div 
               className="relative rounded-lg p-4 mt-3 overflow-hidden"
               style={{
@@ -129,30 +129,82 @@ export function OnAirProgram() {
                 }}
               />
               
-              <div className="relative flex items-center justify-between">
+              <div className="relative space-y-3">
                 <span 
-                  className="text-xs font-bold text-orange-300 uppercase tracking-wider"
+                  className="block text-xs font-bold text-orange-300 uppercase tracking-wider text-center"
                   style={{ 
                     textShadow: '0 1px 3px rgba(0, 0, 0, 0.8), 0 0 8px rgba(251, 146, 60, 0.4)' 
                   }}
                 >
                   Total Pendengar
                 </span>
-                <span 
-                  className="text-3xl font-black text-orange-400" 
-                  data-testid="text-total-listeners"
-                  style={{ 
-                    textShadow: `
-                      0 1px 2px rgba(0, 0, 0, 0.8),
-                      0 2px 8px rgba(251, 146, 60, 0.6),
-                      0 0 20px rgba(251, 146, 60, 0.4),
-                      0 4px 16px rgba(234, 88, 12, 0.5)
-                    `,
-                    letterSpacing: '0.02em',
-                  }}
-                >
-                  {program.totalListeners !== undefined ? program.totalListeners.toLocaleString() : '0'}
-                </span>
+                
+                {/* Mechanical Flip Counter */}
+                <div className="flex items-center justify-center gap-1" data-testid="text-total-listeners">
+                  {(() => {
+                    const value = program.totalListeners !== undefined ? program.totalListeners : 0;
+                    const digits = value.toLocaleString('en-US').replace(/,/g, '').split('');
+                    const paddedDigits = digits.length < 6 ? '0'.repeat(6 - digits.length).split('').concat(digits) : digits;
+                    
+                    return paddedDigits.map((digit, index) => (
+                      <div
+                        key={index}
+                        className="relative"
+                        style={{
+                          width: '32px',
+                          height: '44px',
+                          background: 'linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 50%, #000000 100%)',
+                          borderRadius: '4px',
+                          boxShadow: `
+                            inset 0 2px 4px rgba(0, 0, 0, 0.8),
+                            inset 0 -1px 2px rgba(255, 255, 255, 0.1),
+                            0 1px 2px rgba(0, 0, 0, 0.5)
+                          `,
+                          border: '1px solid #2a2a2a',
+                          overflow: 'hidden',
+                        }}
+                      >
+                        {/* Horizontal split line */}
+                        <div
+                          className="absolute left-0 right-0"
+                          style={{
+                            top: '50%',
+                            height: '1px',
+                            background: '#333',
+                            boxShadow: '0 0 2px rgba(0, 0, 0, 0.8)',
+                            zIndex: 2,
+                          }}
+                        />
+                        
+                        {/* Digit */}
+                        <div
+                          className="absolute inset-0 flex items-center justify-center font-mono font-bold"
+                          style={{
+                            fontSize: '28px',
+                            color: '#FFD700',
+                            textShadow: `
+                              0 0 8px rgba(255, 215, 0, 0.8),
+                              0 0 12px rgba(255, 215, 0, 0.6),
+                              0 1px 2px rgba(0, 0, 0, 0.8)
+                            `,
+                            letterSpacing: '-0.05em',
+                          }}
+                        >
+                          {digit}
+                        </div>
+                        
+                        {/* Top reflection */}
+                        <div
+                          className="absolute top-0 left-0 right-0 pointer-events-none"
+                          style={{
+                            height: '40%',
+                            background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, transparent 100%)',
+                          }}
+                        />
+                      </div>
+                    ));
+                  })()}
+                </div>
               </div>
             </div>
             
