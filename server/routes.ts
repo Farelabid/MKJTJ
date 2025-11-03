@@ -1232,7 +1232,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const currentProgram = getCurrentProgram();
       const formattedTimeRange = formatTimeRange(currentProgram);
 
-      console.log(`[OnAir] Using schedule: ${currentProgram.title} (${formattedTimeRange})`);
+      // Get program stats to fetch estimatedUniqueListeners (TOTAL PENDENGAR)
+      const wibDate = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' });
+      const programStats = await storage.getProgramStats(currentProgram.title, wibDate);
+      
+      const totalListeners = programStats?.estimatedUniqueListeners || 0;
+
+      console.log(`[OnAir] Using schedule: ${currentProgram.title} (${formattedTimeRange}), Total Listeners: ${totalListeners}`);
       
       res.json({
         programTitle: currentProgram.title,
@@ -1241,7 +1247,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         description: currentProgram.description,
         imageUrl: currentProgram.imageUrl,
         status: "LIVE",
-        source: "schedule" // Always use schedule (reliable)
+        source: "schedule", // Always use schedule (reliable)
+        totalListeners, // TOTAL PENDENGAR (estimated unique listeners)
       });
     } catch (error) {
       console.error("Error determining on-air program:", error);
