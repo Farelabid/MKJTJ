@@ -202,11 +202,11 @@ function getCrewPhotoPath(role: "operator" | "produser", name: string): string {
   // Check if photo exists, otherwise return fallback (updated with new operator and producer photos)
   const availablePhotos: Record<string, string> = {
     // Operators (professional photos)
-    "aryo_operator": "/attached_assets/opr_aryo_1762105125710.png",
-    "audrey_operator": "/attached_assets/opr_audrey_1760589447426.png",
-    "jhosua_operator": "/attached_assets/opr_jhosua_1762172967887.png",
+    "aryo_operator": "/attached_assets/opr_aryo_1762221266168.png",
+    "audrey_operator": "/attached_assets/opr_audrey_1762221266169.png",
+    "jhosua_operator": "/attached_assets/opr_jhosua_1762221266169.png",
     "rully_operator": "/attached_assets/opr_rully_1762221104892.png",
-    "ade_operator": "/attached_assets/opr_ade_1762099159402.png",
+    "ade_operator": "/attached_assets/opr_ade_1762221266168.png",
     
     // Operators - Magang/Interns
     "internship_operator": "/attached_assets/magang_farhan_1762097040086.png",
