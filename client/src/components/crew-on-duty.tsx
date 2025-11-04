@@ -166,12 +166,12 @@ export default function CrewOnDuty() {
       }
     };
 
-    // Operator photos (updated with new professional photo for ADE and JHOSUA)
+    // Operator photos (updated with new professional photo for ADE, JHOSUA, and RULLY)
     const operatorPhotos: Record<string, string> = {
       "ARYO": "/attached_assets/opr_aryo_1762105125710.png",
       "AUDREY": "/attached_assets/opr_audrey_1760589447426.png",
       "JHOSUA": "/attached_assets/opr_jhosua_1762172967887.png",
-      "RULLY": "/attached_assets/opr_rully_1760589447426.png",
+      "RULLY": "/attached_assets/opr_rully_1762221104892.png",
       "ADE": "/attached_assets/opr_ade_1762099159402.png",
       "FARHAN": "/attached_assets/magang_farhan_1762097040086.png",
       "NANDA": "/attached_assets/magang_nanda_1762097040087.png",

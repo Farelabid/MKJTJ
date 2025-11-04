@@ -205,7 +205,7 @@ function getCrewPhotoPath(role: "operator" | "produser", name: string): string {
     "aryo_operator": "/attached_assets/opr_aryo_1762105125710.png",
     "audrey_operator": "/attached_assets/opr_audrey_1760589447426.png",
     "jhosua_operator": "/attached_assets/opr_jhosua_1762172967887.png",
-    "rully_operator": "/attached_assets/opr_rully_1760589447426.png",
+    "rully_operator": "/attached_assets/opr_rully_1762221104892.png",
     "ade_operator": "/attached_assets/opr_ade_1762099159402.png",
     
     // Operators - Magang/Interns
