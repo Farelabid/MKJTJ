@@ -10,6 +10,7 @@ import goodmorningjktweekendImg from "@assets/goodmorningjktweekend_176255634441
 import nightflowImg from "@assets/icon_nightflow_1760416515822.png";
 import odahoteImg from "@assets/icon_odahote_1760416515822.png";
 import officehourImg from "@assets/icon_officehour_1760416515822.png";
+import ruteakhirpekanImg from "@assets/RUTEakhirpekan_1762557284729.png";
 import shiftmalamImg from "@assets/icon_shiftmalam_1760416515822.png";
 
 interface ProgramListenersData {
@@ -44,6 +45,7 @@ const getProgramImage = (programName: string, currentDate: Date): string => {
     'Drive Time': drivetimeImg,
     'Shift Malam': shiftmalamImg,
     'Good Morning JKT Weekend': goodmorningjktweekendImg,
+    'Rute Akhir Pekan': ruteakhirpekanImg,
   };
   
   return imageMap[programName] || '';
@@ -70,6 +72,7 @@ const getProgramNameParts = (displayName: string) => {
     'Coffee Break': { first: 'coffee', rest: 'BREAK' },
     'Drive Time': { first: 'drive', rest: 'TIME' },
     'Shift Malam': { first: 'shift', rest: 'MALAM' },
+    'Rute Akhir Pekan': { first: 'rute', rest: 'AKHIR PEKAN' },
   };
   
   return nameMap[displayName] || { first: words[0].toLowerCase(), rest: words.slice(1).join(' ').toUpperCase() };
