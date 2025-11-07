@@ -6,6 +6,7 @@ import { Radio } from "lucide-react";
 import coffeebreakImg from "@assets/coffeebreak_1760412189349.png";
 import drivetimeImg from "@assets/drivetime_1760412189350.png";
 import goodmorningjakartaImg from "@assets/goodmorningjakarta_1760412189350.png";
+import goodmorningjktweekendImg from "@assets/goodmorningjktweekend_1762556344419.png";
 import nightflowImg from "@assets/nightflow_1760412189350.png";
 import odahoteImg from "@assets/odahote_1760412189350.png";
 import officehourImg from "@assets/officehour_1760412189350.png";
@@ -42,6 +43,7 @@ const getProgramImage = (programTitle: string): string => {
     'Coffee Break': coffeebreakImg,
     'Drive Time': drivetimeImg,
     'Shift Malam': shiftmalamImg,
+    'Good Morning JKT Weekend': goodmorningjktweekendImg,
     'Yesterday Hit': fallbackImage, // Use fallback for Yesterday Hit
   };
   

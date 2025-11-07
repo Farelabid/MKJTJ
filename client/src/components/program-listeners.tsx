@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import coffeebreakImg from "@assets/icon_coffeebrak_1760416515821.png";
 import drivetimeImg from "@assets/icon_drivetime_1760416515821.png";
 import goodmorningjakartaImg from "@assets/icon_goodmorningjakarta_1760416515821.png";
+import goodmorningjktweekendImg from "@assets/goodmorningjktweekend_1762556344419.png";
 import nightflowImg from "@assets/icon_nightflow_1760416515822.png";
 import odahoteImg from "@assets/icon_odahote_1760416515822.png";
 import officehourImg from "@assets/icon_officehour_1760416515822.png";
@@ -42,6 +43,7 @@ const getProgramImage = (programName: string, currentDate: Date): string => {
     'Coffee Break': coffeebreakImg,
     'Drive Time': drivetimeImg,
     'Shift Malam': shiftmalamImg,
+    'Good Morning JKT Weekend': goodmorningjktweekendImg,
   };
   
   return imageMap[programName] || '';
@@ -63,6 +65,7 @@ const getProgramNameParts = (displayName: string) => {
   const nameMap: Record<string, { first: string; rest: string }> = {
     'Night Flow': { first: 'night', rest: 'FLOW' },
     'Good Morning Jakarta': { first: 'good', rest: 'MORNING JAKARTA' },
+    'Good Morning JKT Weekend': { first: 'good', rest: 'MORNING JKT WEEKEND' },
     'Office Hour': { first: 'office', rest: 'HOUR' },
     'Coffee Break': { first: 'coffee', rest: 'BREAK' },
     'Drive Time': { first: 'drive', rest: 'TIME' },
