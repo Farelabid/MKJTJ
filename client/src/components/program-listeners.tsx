@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Radio } from "lucide-react";
 import { useState, useEffect } from "react";
+import afternoonshowImg from "@assets/afternoonSHOW_1762558579002.png";
 import coffeebreakImg from "@assets/icon_coffeebrak_1760416515821.png";
 import drivetimeImg from "@assets/icon_drivetime_1760416515821.png";
 import goodmorningjakartaImg from "@assets/icon_goodmorningjakarta_1760416515821.png";
@@ -48,6 +49,7 @@ const getProgramImage = (programName: string, currentDate: Date): string => {
     'Good Morning JKT Weekend': goodmorningjktweekendImg,
     'Rute Akhir Pekan': ruteakhirpekanImg,
     'Song on the Week': songontheweekImg,
+    'Afternoon Show': afternoonshowImg,
   };
   
   return imageMap[programName] || '';
@@ -76,6 +78,7 @@ const getProgramNameParts = (displayName: string) => {
     'Shift Malam': { first: 'shift', rest: 'MALAM' },
     'Rute Akhir Pekan': { first: 'rute', rest: 'AKHIR PEKAN' },
     'Song on the Week': { first: 'song', rest: 'ON THE WEEK' },
+    'Afternoon Show': { first: 'afternoon', rest: 'SHOW' },
   };
   
   return nameMap[displayName] || { first: words[0].toLowerCase(), rest: words.slice(1).join(' ').toUpperCase() };

@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Radio, Clock } from "lucide-react";
+import afternoonshowImg from "@assets/afternoonSHOW_1762558579002.png";
 import coffeebreakImg from "@assets/coffeebreak_1760412189349.png";
 import drivetimeImg from "@assets/drivetime_1760412189350.png";
 import goodmorningjakartaImg from "@assets/goodmorningjakarta_1760412189350.png";
@@ -47,6 +48,7 @@ const getProgramImage = (programTitle: string): string => {
     'Good Morning JKT Weekend': goodmorningjktweekendImg,
     'Rute Akhir Pekan': ruteakhirpekanImg,
     'Song on the Week': songontheweekImg,
+    'Afternoon Show': afternoonshowImg,
     'Yesterday Hit': fallbackImage,
   };
   
