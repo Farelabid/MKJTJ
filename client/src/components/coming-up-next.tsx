@@ -160,22 +160,23 @@ export function ComingUpNext() {
         </div>
       ) : program ? (
         <div className="space-y-4">
-          {/* Program Image - Always show with program-specific image */}
+          {/* Program Video Background */}
           <div className="relative aspect-video w-full overflow-hidden rounded-md bg-muted">
-            <img 
-              src={getProgramImage(program.programTitle)}
-              alt={program.programTitle}
+            <video 
+              src="/attached_assets/looplogo_1762589395286.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
               className="object-cover w-full h-full rounded-md"
-              data-testid="img-coming-up-next"
+              data-testid="video-coming-up-next"
             />
             
-            {/* Dark gradient overlay for AI-generated images */}
-            {needsTextOverlay(program.programTitle) && (
-              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
-            )}
+            {/* Dark gradient overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/30" />
             
-            {/* Host photos and text overlay for AI-generated images */}
-            {needsTextOverlay(program.programTitle) && program.presenter && program.presenter !== '-' && (() => {
+            {/* Host photos and text overlay - Always show */}
+            {program.presenter && program.presenter !== '-' && (() => {
               const hostPhotos = getHostPhotos(program.presenter);
               return (
                 <div className="absolute bottom-0 left-0 right-0 p-4">
