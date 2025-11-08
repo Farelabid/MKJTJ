@@ -11,7 +11,7 @@ import goodmorningjktweekendImg from "@assets/goodmorningjktweekend_176255634441
 import nightflowImg from "@assets/icon_nightflow_1760416515822.png";
 import odahoteImg from "@assets/icon_odahote_1760416515822.png";
 import officehourImg from "@assets/icon_officehour_1760416515822.png";
-import ruteakhirpekanImg from "@assets/RUTEakhirpekan_1762557284729.png";
+import ruteakhirpekanImg from "@assets/RUTEakhirpekanABI_1762562261257.png";
 import shiftmalamImg from "@assets/icon_shiftmalam_1760416515822.png";
 import songontheweekImg from "@assets/songontheweek_1762558103431.png";
 
