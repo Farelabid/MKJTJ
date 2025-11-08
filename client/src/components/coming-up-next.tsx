@@ -19,6 +19,27 @@ import drivetimeweekendImg from "@assets/stock_images/radio_broadcasting_s_e7e9f
 import malmingImg from "@assets/stock_images/nightclub_party_ligh_7185d5df.jpg";
 import weekendseruImg from "@assets/stock_images/weekend_fun_celebrat_a8745fc7.jpg";
 
+// Host photos
+import hostRisan from "@assets/host_risan_1762096272039.png";
+import hostNayla from "@assets/host_nayla_1762096257881.png";
+import hostAbisaan from "@assets/host_abisaan_1762096185716.png";
+import hostAkbar from "@assets/host_akbar_1762096185716.png";
+import hostDenny from "@assets/host_dennychandra_1762096202310.png";
+import hostDany from "@assets/host_mcdanny_1762096221521.png";
+import hostEko from "@assets/host_ekokuntadhi_1762096202311.png";
+import hostHatma from "@assets/host_hatma_1762096202311.png";
+import hostIndy from "@assets/host_indyrahmawati_1762096202311.png";
+import hostIrwan from "@assets/host_irwanardian_1762096221521.png";
+import hostLuvi from "@assets/host_luvi_1762096221521.png";
+import hostMazdjo from "@assets/host_mazdjopray_1762096221521.png";
+import hostMosidik from "@assets/host_mosidik_1762096221522.png";
+import hostOdah from "@assets/host_odah_1762096257881.png";
+import hostOtesyech from "@assets/host_otsyech_1762096257882.png";
+import hostReno from "@assets/host_reno_1762096257882.png";
+import hostRio from "@assets/host_rio_1762096257882.png";
+import hostYasser from "@assets/host_yasser_1762096272039.png";
+import hostPutri from "@assets/magang_putri_1762097040087.png";
+
 interface ComingUpNextProgram {
   programTitle: string;
   presenter: string;
@@ -72,6 +93,47 @@ const needsTextOverlay = (programTitle: string): boolean => {
   return aiGeneratedPrograms.includes(programTitle);
 };
 
+// Get host photos from presenter string
+const getHostPhotos = (presenterText: string): string[] => {
+  const hostPhotoMapping: Record<string, string> = {
+    "ABI": hostAbisaan,
+    "AKBAR": hostAkbar,
+    "DENNY": hostDenny,
+    "DENNY CH": hostDenny,
+    "DANY": hostDany,
+    "EKO": hostEko,
+    "EKO KUNTADHI": hostEko,
+    "HATMA": hostHatma,
+    "INDY": hostIndy,
+    "IRWAN": hostIrwan,
+    "LUVI": hostLuvi,
+    "MAZDJO": hostMazdjo,
+    "MAZJO": hostMazdjo,
+    "MOSIDIK": hostMosidik,
+    "NAYLA": hostNayla,
+    "ODAH": hostOdah,
+    "OTESYECH": hostOtesyech,
+    "OT": hostOtesyech,
+    "PUTRI": hostPutri,
+    "RENO": hostReno,
+    "RIO": hostRio,
+    "RISAN": hostRisan,
+    "YASSER": hostYasser,
+  };
+
+  const hostNames = presenterText
+    .replace(/^(dengan|bersama dengan)\s+/i, '')
+    .split(/\s*&\s*/)
+    .filter(h => h);
+
+  return hostNames
+    .map(name => {
+      const upperName = name.trim().toUpperCase();
+      return hostPhotoMapping[upperName];
+    })
+    .filter(photo => photo !== undefined);
+};
+
 export function ComingUpNext() {
   const { data: program, isLoading } = useQuery<ComingUpNextProgram>({
     queryKey: ["/api/coming-up-next"],
@@ -108,19 +170,46 @@ export function ComingUpNext() {
               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
             )}
             
-            {/* Text overlay for AI-generated images */}
-            {needsTextOverlay(program.programTitle) && (
-              <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
-                <h3 className="text-2xl font-bold mb-1" data-testid="text-overlay-title">
-                  {program.programTitle}
-                </h3>
-                {program.presenter && program.presenter !== '-' && (
-                  <p className="text-sm text-white/90" data-testid="text-overlay-presenter">
-                    dengan {program.presenter}
-                  </p>
-                )}
-              </div>
-            )}
+            {/* Host photos and text overlay for AI-generated images */}
+            {needsTextOverlay(program.programTitle) && program.presenter && program.presenter !== '-' && (() => {
+              const hostPhotos = getHostPhotos(program.presenter);
+              return (
+                <div className="absolute bottom-0 left-0 right-0 p-4">
+                  <div className="flex items-end gap-3">
+                    {/* Host Photos */}
+                    {hostPhotos.length > 0 && (
+                      <div className="flex gap-2">
+                        {hostPhotos.map((photo, index) => (
+                          <div 
+                            key={index}
+                            className="relative w-20 h-20"
+                          >
+                            <img 
+                              src={photo} 
+                              alt={`Host ${index + 1}`}
+                              className="w-full h-full object-cover rounded-full border-4 border-white/80 shadow-2xl bg-muted"
+                              data-testid={`img-host-${index}`}
+                            />
+                            {/* Glow effect */}
+                            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/20 to-transparent pointer-events-none" />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    
+                    {/* Text Info */}
+                    <div className="flex-1 text-white pb-1">
+                      <h3 className="text-2xl font-bold mb-0.5 drop-shadow-lg" data-testid="text-overlay-title">
+                        {program.programTitle}
+                      </h3>
+                      <p className="text-sm text-white/90 drop-shadow-md" data-testid="text-overlay-presenter">
+                        {program.presenter}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
             
             <div className="absolute top-1 left-1">
               <Badge variant="secondary" className="bg-teal-600 text-white" data-testid="badge-upcoming-status">

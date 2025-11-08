@@ -20,12 +20,16 @@ The dashboard's design is inspired by Spotify Analytics and SoundCloud Stats, wi
     - **Cuaca Jakarta**: Sky blue gradient widget showing real-time Jakarta weather with animated icon, temperature (°C), and Indonesian description from Open-Meteo API.
 - **Information Display**: Real-time WIB clock and Indonesian date. Program statistics include "Pendengar Saat Ini" (raw listeners × 11) and "TOTAL PENDENGAR" (estimated unique listeners via EMA smoothing and program progress).
 - **Program Images**: Large presenter photos for "Program Sedang On Air" and "Coming Up Next"; small, colorful rounded icons for programs in statistics lists.
-  - **AI-Generated Images with Text Overlay (Nov 8, 2025)**: Programs without official presenter photos use contextual AI-generated stock images with dark gradient overlay and program information text:
-    - **Drive Time Weekend**: Radio broadcasting studio at sunset with text "Drive Time Weekend - bersama dengan RISAN & NAYLA"
-    - **MALMING (TAPPING)**: Nightclub party lights with text "MALMING (TAPPING) - dengan [presenter]"
-    - **Weekend Seru**: Weekend celebration atmosphere with text "Weekend Seru - dengan [presenter]"
-    - **Yesterday Hit**: Generic radio DJ image with text overlay
-  - Text overlay format: Program name (bold, 2xl) + "bersama dengan [presenter]" (white/90 opacity) on dark gradient (black/90 to transparent)
+  - **AI-Generated Images with Host Photo Overlay (Nov 8, 2025)**: Programs without official presenter photos use contextual AI-generated stock images with dark gradient overlay, circular host photos, and program information:
+    - **Drive Time Weekend**: Radio broadcasting studio at sunset with circular photos of RISAN & NAYLA + text overlay
+    - **MALMING (TAPPING)**: Nightclub party lights with host photos + text overlay
+    - **Weekend Seru**: Weekend celebration atmosphere with host photos + text overlay
+    - **Yesterday Hit**: Generic radio DJ image with host photos + text overlay
+  - Host photo overlay format: 
+    - Circular host photos (80x80px) with 4px white border and shadow effect
+    - Positioned at bottom-left of background image
+    - Program name (bold, 2xl) + presenter text (white/90 opacity)
+    - Dark gradient overlay (black/90 to transparent) for text readability
 - **Badge Styling**: "LIVE Badge" (red, dual animation) and "UPCOMING Badge" (teal, static).
 - **Host Photos**: 22 unique host photos dynamically displayed in the Team Work section based on schedule.
 
