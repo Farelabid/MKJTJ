@@ -15,6 +15,9 @@ import ruteakhirpekanImg from "@assets/RUTEakhirpekanABI_1762562261257.png";
 import shiftmalamImg from "@assets/shiftmalam_1760412189350.png";
 import songontheweekImg from "@assets/songontheweek_1762558103431.png";
 import fallbackImage from "@assets/stock_images/radio_dj_broadcastin_492e4d9b.jpg";
+import drivetimeweekendImg from "@assets/stock_images/radio_broadcasting_s_e7e9f80e.jpg";
+import malmingImg from "@assets/stock_images/nightclub_party_ligh_7185d5df.jpg";
+import weekendseruImg from "@assets/stock_images/weekend_fun_celebrat_a8745fc7.jpg";
 
 interface OnAirProgram {
   programTitle: string;
@@ -50,10 +53,24 @@ const getProgramImage = (programTitle: string): string => {
     'Rute Akhir Pekan': ruteakhirpekanImg,
     'Song on the Week': songontheweekImg,
     'Afternoon Show': afternoonshowImg,
-    'Yesterday Hit': fallbackImage, // Use fallback for Yesterday Hit
+    'Drive Time Weekend': drivetimeweekendImg,
+    'MALMING (TAPPING)': malmingImg,
+    'Weekend Seru': weekendseruImg,
+    'Yesterday Hit': fallbackImage,
   };
   
   return imageMap[programTitle] || fallbackImage;
+};
+
+// Check if program needs text overlay (AI-generated image)
+const needsTextOverlay = (programTitle: string): boolean => {
+  const aiGeneratedPrograms = [
+    'Drive Time Weekend',
+    'MALMING (TAPPING)',
+    'Weekend Seru',
+    'Yesterday Hit',
+  ];
+  return aiGeneratedPrograms.includes(programTitle);
 };
 
 export function OnAirProgram() {
@@ -86,6 +103,26 @@ export function OnAirProgram() {
               className="object-cover w-full h-full rounded-md"
               data-testid="img-on-air-program"
             />
+            
+            {/* Dark gradient overlay for AI-generated images */}
+            {needsTextOverlay(program.programTitle) && (
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+            )}
+            
+            {/* Text overlay for AI-generated images */}
+            {needsTextOverlay(program.programTitle) && (
+              <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
+                <h3 className="text-2xl font-bold mb-1" data-testid="text-overlay-title">
+                  {program.programTitle}
+                </h3>
+                {program.presenter && program.presenter !== '-' && (
+                  <p className="text-sm text-white/90" data-testid="text-overlay-presenter">
+                    bersama dengan {program.presenter}
+                  </p>
+                )}
+              </div>
+            )}
+            
             <div className="absolute top-1 left-1">
               <Badge variant="destructive" className="bg-red-600 text-white animate-pulse" data-testid="badge-live-status">
                 <div className="absolute -inset-1 bg-red-600 rounded-full animate-ping opacity-75" />
