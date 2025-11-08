@@ -52,6 +52,9 @@ interface OnAirProgram {
 
 // Function to get program image based on program name and current date
 const getProgramImage = (programTitle: string): string => {
+  // Normalize title: trim whitespace and convert to lowercase
+  const normalizedTitle = programTitle.trim().toLowerCase();
+  
   // Get current date in WIB timezone
   const now = new Date();
   const wibOffset = 7 * 60; // WIB = UTC+7
@@ -60,38 +63,39 @@ const getProgramImage = (programTitle: string): string => {
   const dayOfWeek = wibTime.getDay(); // 0 = Sunday, 6 = Saturday
   
   // For Good Morning Jakarta: use odahote on Sat/Sun, goodmorningjakarta on Mon-Fri
-  if (programTitle === 'Good Morning Jakarta') {
+  if (normalizedTitle === 'good morning jakarta') {
     return (dayOfWeek === 0 || dayOfWeek === 6) ? odahoteImg : goodmorningjakartaImg;
   }
   
   const imageMap: Record<string, string> = {
-    'Night Flow': nightflowImg,
-    'Office Hour': officehourImg,
-    'Coffee Break': coffeebreakImg,
-    'Drive Time': drivetimeImg,
-    'Shift Malam': shiftmalamImg,
-    'Good Morning JKT Weekend': goodmorningjktweekendImg,
-    'Rute Akhir Pekan': ruteakhirpekanImg,
-    'Song on the Week': songontheweekImg,
-    'Afternoon Show': afternoonshowImg,
-    'Drive Time Weekend': drivetimeweekendImg,
-    'MALMING (TAPPING)': malmingImg,
-    'Weekend Seru': weekendseruImg,
-    'Yesterday Hit': fallbackImage,
+    'night flow': nightflowImg,
+    'office hour': officehourImg,
+    'coffee break': coffeebreakImg,
+    'drive time': drivetimeImg,
+    'shift malam': shiftmalamImg,
+    'good morning jkt weekend': goodmorningjktweekendImg,
+    'rute akhir pekan': ruteakhirpekanImg,
+    'song on the week': songontheweekImg,
+    'afternoon show': afternoonshowImg,
+    'drive time weekend': drivetimeweekendImg,
+    'malming (tapping)': malmingImg,
+    'weekend seru': weekendseruImg,
+    'yesterday hit': fallbackImage,
   };
   
-  return imageMap[programTitle] || fallbackImage;
+  return imageMap[normalizedTitle] || fallbackImage;
 };
 
 // Check if program needs text overlay (AI-generated image)
 const needsTextOverlay = (programTitle: string): boolean => {
+  const normalizedTitle = programTitle.trim().toLowerCase();
   const aiGeneratedPrograms = [
-    'Drive Time Weekend',
-    'MALMING (TAPPING)',
-    'Weekend Seru',
-    'Yesterday Hit',
+    'drive time weekend',
+    'malming (tapping)',
+    'weekend seru',
+    'yesterday hit',
   ];
-  return aiGeneratedPrograms.includes(programTitle);
+  return aiGeneratedPrograms.includes(normalizedTitle);
 };
 
 // Get host photos from presenter string
@@ -183,14 +187,14 @@ export function OnAirProgram() {
                         {hostPhotos.map((photo, index) => (
                           <div 
                             key={index}
-                            className="relative w-28 h-28"
+                            className="relative size-28 aspect-square overflow-hidden rounded-full border-[3px] border-white/90 shadow-2xl bg-muted"
                           >
                             <img 
                               src={photo} 
                               alt={`Host ${index + 1}`}
-                              className="w-full h-full object-cover rounded-full border-4 border-white/90 shadow-2xl bg-muted"
+                              className="size-full object-cover"
                               data-testid={`img-host-${index}`}
-                              style={{ objectPosition: 'center 20%' }}
+                              style={{ objectPosition: '50% 25%' }}
                             />
                             {/* Glow effect */}
                             <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/20 to-transparent pointer-events-none" />
