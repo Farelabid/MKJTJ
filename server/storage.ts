@@ -99,13 +99,18 @@ export class DatabaseStorage implements IStorage {
 
   async getRecentStats(hours: number): Promise<StatsHistory[]> {
     const startDate = new Date();
-    startDate.setHours(startDate.getHours() - hours);
+    // Use setTime() instead of setHours() to properly handle decimal hours
+    startDate.setTime(startDate.getTime() - hours * 60 * 60 * 1000);
+    
+    console.log(`[Storage] getRecentStats: Querying with cutoff ${startDate.toISOString()}`);
     
     const results = await db
       .select()
       .from(statsHistory)
       .where(gte(statsHistory.timestamp, startDate))
       .orderBy(desc(statsHistory.timestamp));
+    
+    console.log(`[Storage] getRecentStats: Found ${results.length} results`);
     
     return results;
   }
@@ -310,8 +315,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getRecentSnapshots(programName: string, date: string, minutes: number): Promise<MinuteSnapshot[]> {
-    const cutoff = new Date();
-    cutoff.setMinutes(cutoff.getMinutes() - minutes);
+    // Calculate cutoff in WIB timezone to match stored timestamps
+    const now = new Date();
+    const wibOffset = 7 * 60; // WIB = UTC+7
+    const localOffset = now.getTimezoneOffset();
+    const wibNow = new Date(now.getTime() + (wibOffset + localOffset) * 60 * 1000);
+    const cutoff = new Date(wibNow.getTime() - minutes * 60 * 1000);
     
     const snapshots = await db
       .select()

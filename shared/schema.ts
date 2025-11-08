@@ -133,7 +133,8 @@ export type ProgramStats = typeof programStats.$inferSelect;
 
 export const insertMinuteSnapshotSchema = createInsertSchema(minuteSnapshots).omit({
   id: true,
-  timestamp: true,
+}).extend({
+  timestamp: z.date().optional(), // Make timestamp optional - can be provided or use defaultNow()
 });
 
 export type InsertMinuteSnapshot = z.infer<typeof insertMinuteSnapshotSchema>;

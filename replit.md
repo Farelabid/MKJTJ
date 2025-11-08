@@ -52,7 +52,8 @@ The dashboard's design is inspired by Spotify Analytics and SoundCloud Stats, wi
 - **Footer**: Internal use disclaimer and copyright, with an auto-playing TJ Radio Jakarta streaming player.
 
 ### System Design Choices
-- **Database Schema**: `stats_history`, `configuration`, `alert_thresholds`, and `alert_history`.
+- **Database Schema**: `stats_history`, `configuration`, `alert_thresholds`, `alert_history`, `program_stats`, and `minute_snapshots`.
+- **Timezone Handling (Critical Fix Nov 8, 2025)**: All timestamps in `minute_snapshots` table are stored in WIB timezone (UTC+7) to match the `date` field. This ensures proper data retrieval for EMA calculations. Both `saveMinuteSnapshot` and `getRecentSnapshots` use WIB timezone calculations.
 - **Data Flow**: Frontend requests `/api/radio-stats` and `/api/on-air-program`; backend fetches from Icecast and scrapes the website.
 - **Error Handling**: Comprehensive error handling and loading states.
 

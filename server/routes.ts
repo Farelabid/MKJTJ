@@ -311,6 +311,15 @@ function getWIBDate(): string {
   return `${year}-${month}-${day}`;
 }
 
+// Helper function to get current timestamp in WIB timezone
+// Returns a Date object with WIB time instead of UTC (for database storage)
+function getCurrentTimeInWIB(): Date {
+  const now = new Date();
+  const wibOffset = 7 * 60; // WIB = UTC+7
+  const localOffset = now.getTimezoneOffset();
+  return new Date(now.getTime() + (wibOffset + localOffset) * 60 * 1000);
+}
+
 function getColorForProgram(programName: string): string {
   const colors: Record<string, string> = {
     "Night Flow": "#4CAF50", // Green
@@ -494,9 +503,11 @@ async function calculateEMAListenerMinutes() {
     // Get latest snapshot to get raw listeners (N)
     const recentStats = await storage.getRecentStats(0.05); // Last ~3 minutes
     if (recentStats.length === 0) {
-      console.log(`[EMA] No snapshots available yet`);
+      console.log(`[EMA] No snapshots available yet for program: ${currentProgram}`);
       return;
     }
+    
+    console.log(`[EMA] ${currentProgram}: Found ${recentStats.length} recent stats, latest: ${recentStats[0].listenersRaw} listeners`);
     
     const N = recentStats[0].listenersRaw; // Raw listeners from Icecast
     
@@ -546,8 +557,9 @@ async function calculateEMAListenerMinutes() {
     // Calculate smoothed listeners (Nhat)
     state.Nhat = ema(state.Nhat, Nc, ALPHA);
     
-    // Save 30-second snapshot to database
+    // Save 30-second snapshot to database with WIB timestamp
     await storage.saveMinuteSnapshot({
+      timestamp: getCurrentTimeInWIB(), // Explicitly use WIB timezone
       programName: currentProgram,
       date: wibDate,
       rawListeners: N,
@@ -573,8 +585,8 @@ async function calculateEMAListenerMinutes() {
       }
     }
     
-    // Get program schedule
-    const programSchedule = PROGRAM_SCHEDULES.find(p => p.name === currentProgram);
+    // Get program schedule (use dynamic schedule based on current day)
+    const programSchedule = getProgramSchedules().find(p => p.name === currentProgram);
     if (!programSchedule) {
       console.error(`[EMA] Program schedule not found for: ${currentProgram}`);
       return;
