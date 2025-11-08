@@ -15,8 +15,8 @@ import ruteakhirpekanImg from "@assets/RUTEakhirpekanABI_1762562261257.png";
 import shiftmalamImg from "@assets/shiftmalam_1760412189350.png";
 import songontheweekImg from "@assets/songontheweek_1762558103431.png";
 import fallbackImage from "@assets/stock_images/radio_dj_broadcastin_492e4d9b.jpg";
-import drivetimeweekendImg from "@assets/stock_images/radio_broadcasting_s_e7e9f80e.jpg";
-import malmingImg from "@assets/stock_images/nightclub_party_ligh_7185d5df.jpg";
+import drivetimeweekendImg from "@assets/stock_images/bright_colorful_radi_aeda6156.jpg";
+import malmingImg from "@assets/stock_images/vibrant_modern_radio_b18dfee5.jpg";
 import weekendseruImg from "@assets/stock_images/weekend_fun_celebrat_a8745fc7.jpg";
 
 // Host photos
@@ -183,13 +183,14 @@ export function OnAirProgram() {
                         {hostPhotos.map((photo, index) => (
                           <div 
                             key={index}
-                            className="relative w-20 h-20"
+                            className="relative w-28 h-28"
                           >
                             <img 
                               src={photo} 
                               alt={`Host ${index + 1}`}
-                              className="w-full h-full object-cover rounded-full border-4 border-white/80 shadow-2xl bg-muted"
+                              className="w-full h-full object-cover rounded-full border-4 border-white/90 shadow-2xl bg-muted"
                               data-testid={`img-host-${index}`}
+                              style={{ objectPosition: 'center 20%' }}
                             />
                             {/* Glow effect */}
                             <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/20 to-transparent pointer-events-none" />
