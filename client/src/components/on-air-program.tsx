@@ -86,16 +86,23 @@ const getProgramImage = (programTitle: string): string => {
   return imageMap[normalizedTitle] || fallbackImage;
 };
 
-// Check if program needs text overlay (AI-generated image)
+// Check if program needs text overlay (AI-generated image or video background)
 const needsTextOverlay = (programTitle: string): boolean => {
   const normalizedTitle = programTitle.trim().toLowerCase();
-  const aiGeneratedPrograms = [
+  const programsWithOverlay = [
     'drive time weekend',
     'malming (tapping)',
     'weekend seru',
     'yesterday hit',
+    'afternoon show', // Video background program
   ];
-  return aiGeneratedPrograms.includes(normalizedTitle);
+  return programsWithOverlay.includes(normalizedTitle);
+};
+
+// Check if program uses video background
+const usesVideoBackground = (programTitle: string): boolean => {
+  const normalizedTitle = programTitle.trim().toLowerCase();
+  return normalizedTitle === 'afternoon show';
 };
 
 // Get host photos from presenter string
@@ -161,18 +168,32 @@ export function OnAirProgram() {
         </div>
       ) : program ? (
         <div className="space-y-4">
-          {/* Program Image - Always show with program-specific image */}
+          {/* Program Image/Video - Always show with program-specific media */}
           <div className="relative aspect-video w-full overflow-hidden rounded-md bg-muted">
-            <img 
-              src={getProgramImage(program.programTitle)}
-              alt={program.programTitle}
-              className="object-cover w-full h-full rounded-md"
-              data-testid="img-on-air-program"
-            />
+            {usesVideoBackground(program.programTitle) ? (
+              /* Video Background for Afternoon Show */
+              <video 
+                src="/attached_assets/afternoonShow_1762590789847.mp4"
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="object-cover w-full h-full rounded-md"
+                data-testid="video-on-air-program"
+              />
+            ) : (
+              /* Image for all other programs */
+              <img 
+                src={getProgramImage(program.programTitle)}
+                alt={program.programTitle}
+                className="object-cover w-full h-full rounded-md"
+                data-testid="img-on-air-program"
+              />
+            )}
             
-            {/* Dark gradient overlay for AI-generated images */}
+            {/* Dark gradient overlay for programs with overlay */}
             {needsTextOverlay(program.programTitle) && (
-              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/30" />
             )}
             
             {/* Host photos and text overlay for AI-generated images */}

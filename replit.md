@@ -19,19 +19,24 @@ The dashboard's design is inspired by Spotify Analytics and SoundCloud Stats, wi
     - **Stream Status**: Color-coded health indicator (green, blue, yellow, red) based on response time from Icecast, with animated signal icon and dynamic backgrounds. Displays status in Indonesian.
     - **Cuaca Jakarta**: Sky blue gradient widget showing real-time Jakarta weather with animated icon, temperature (°C), and Indonesian description from Open-Meteo API.
 - **Information Display**: Real-time WIB clock and Indonesian date. Program statistics include "Pendengar Saat Ini" (raw listeners × 11) and "TOTAL PENDENGAR" (estimated unique listeners via EMA smoothing and program progress).
-- **Program Images**: Large presenter photos for "Program Sedang On Air" and "Coming Up Next"; small, colorful rounded icons for programs in statistics lists.
+- **Program Images & Videos**: Large presenter photos/videos for "Program Sedang On Air" and "Coming Up Next"; small, colorful rounded icons for programs in statistics lists.
+  - **Video Backgrounds (Nov 8, 2025)**: Specific programs use looping video backgrounds instead of static images:
+    - **Coming Up Next** section: `looplogo_1762589395286.mp4` (24MB loop video) - Always displays for next program
+    - **Program Sedang On Air - Afternoon Show**: `afternoonShow_1762590789847.mp4` (17MB loop video) - Shows during Afternoon Show (13:00-16:00 WIB)
+    - Video settings: autoPlay, loop, muted, playsInline with dark gradient overlay
   - **AI-Generated Images with Host Photo Overlay (Nov 8, 2025)**: Programs without official presenter photos use contextual AI-generated stock images with dark gradient overlay, circular host photos, and program information:
     - **Drive Time Weekend**: Radio broadcasting studio at sunset with circular photos of RISAN & NAYLA + text overlay
     - **MALMING (TAPPING)**: Nightclub party lights with host photos + text overlay
     - **Weekend Seru**: Weekend celebration atmosphere with host photos + text overlay
     - **Yesterday Hit**: Generic radio DJ image with host photos + text overlay
-  - Host photo overlay format: 
-    - Circular host photos (80x80px) with 4px white border and shadow effect
-    - Positioned at bottom-left of background image
+  - Host photo overlay format (applies to both video and AI-generated backgrounds): 
+    - Circular host photos (112x112px) with 3px white/90 border and shadow-2xl effect
+    - Positioned at bottom-left of background media
     - Program name (bold, 2xl) + presenter text (white/90 opacity)
-    - Dark gradient overlay (black/90 to transparent) for text readability
+    - Dark gradient overlay (black/90 via black/50 to black/30) for text readability
+    - Object-position: 50% 25% for proper host photo cropping
 - **Badge Styling**: "LIVE Badge" (red, dual animation) and "UPCOMING Badge" (teal, static).
-- **Host Photos**: 22 unique host photos dynamically displayed in the Team Work section based on schedule.
+- **Host Photos**: 22 unique host photos (112x112px circular avatars) dynamically displayed in the Team Work section based on schedule and overlaid on video/AI-generated backgrounds.
 
 ### Technical Implementations
 - **Frontend**: React with TypeScript, Wouter for routing, TanStack Query for state management, Tailwind CSS and Shadcn/ui for styling, Recharts for data visualization.
