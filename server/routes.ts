@@ -376,13 +376,27 @@ async function saveStatsSnapshot() {
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      // Fetch from both Icecast and IndoStreamServer in parallel
-      const [icecastResponse, indoStreamStats] = await Promise.all([
+      // Fetch from both Icecast and IndoStreamServer in parallel with graceful degradation
+      const [icecastResult, indoStreamResult] = await Promise.allSettled([
         axios.get("https://stream-eu-nc.arenastreaming.com:5450/", {
           timeout: 10000,
         }),
         fetchIndoStreamStats(),
       ]);
+      
+      // Extract Icecast response (required - retry if unavailable)
+      if (icecastResult.status === 'rejected') {
+        throw new Error(`Icecast unavailable: ${icecastResult.reason}`);
+      }
+      const icecastResponse = icecastResult.value;
+      
+      // Extract IndoStream stats (optional - degrade gracefully if unavailable)
+      let indoStreamStats = null;
+      if (indoStreamResult.status === 'fulfilled') {
+        indoStreamStats = indoStreamResult.value;
+      } else {
+        console.warn("[Snapshot] IndoStream unavailable, using Icecast only:", indoStreamResult.reason);
+      }
 
       const html = icecastResponse.data;
       const $ = cheerio.load(html);
@@ -780,13 +794,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/radio-stats", async (req, res) => {
     const startTime = Date.now();
     try {
-      // Fetch from both Icecast and IndoStreamServer in parallel
-      const [icecastResponse, indoStreamStats] = await Promise.all([
+      // Fetch from both Icecast and IndoStreamServer in parallel with graceful degradation
+      const [icecastResult, indoStreamResult] = await Promise.allSettled([
         axios.get("https://stream-eu-nc.arenastreaming.com:5450/", {
           timeout: 10000,
         }),
         fetchIndoStreamStats(),
       ]);
+      
+      // Extract Icecast response (required - fail if unavailable)
+      if (icecastResult.status === 'rejected') {
+        throw new Error(`Icecast unavailable: ${icecastResult.reason}`);
+      }
+      const icecastResponse = icecastResult.value;
+      
+      // Extract IndoStream stats (optional - degrade gracefully if unavailable)
+      let indoStreamStats = null;
+      if (indoStreamResult.status === 'fulfilled') {
+        indoStreamStats = indoStreamResult.value;
+      } else {
+        console.warn("[RadioStats] IndoStream unavailable, using Icecast only:", indoStreamResult.reason);
+      }
       
       // Track successful response
       const responseTime = Date.now() - startTime;
@@ -883,7 +911,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const listenersRaw = listenersRawIcecast + listenersRawIndoStream;
       const listenersPeakRaw = Math.max(listenersPeakRawIcecast, listenersPeakRawIndoStream);
       
-      console.log(`[RadioStats] Combined: Icecast=${listenersRawIcecast} + IndoStream=${listenersRawIndoStream} = Total=${listenersRaw}`);
+      if (indoStreamStats) {
+        console.log(`[RadioStats] Combined: Icecast=${listenersRawIcecast} + IndoStream=${listenersRawIndoStream} = Total=${listenersRaw}`);
+      } else {
+        console.log(`[RadioStats] Icecast only: ${listenersRawIcecast} listeners (IndoStream unavailable)`);
+      }
 
       // Get multiplier from config (default 11 to match program analytics)
       const multiplierConfig = await storage.getConfig('listener_multiplier');
