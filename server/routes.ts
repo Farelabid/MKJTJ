@@ -652,9 +652,9 @@ async function calculateEMAListenerMinutes() {
     // 1. "PENDENGAR SAAT INI" for display = raw listeners (N) × 11
     const avgConcurrentListeners = Math.round(N * DEVICE_TO_LISTENER_MULTIPLIER);
     
-    // 2. "TOTAL PENDENGAR" (estimated unique) = PENDENGAR SAAT INI × 6 × percentage progress
-    // Formula: (N × 11) × 6 × progress% = N × 66 × progress%
-    const estimatedUniqueListeners = Math.round(avgConcurrentListeners * 6 * (progress / 100));
+    // 2. "TOTAL PENDENGAR" (estimated unique) = PENDENGAR SAAT INI × 12 × percentage progress
+    // Formula: (N × 11) × 12 × progress% = N × 132 × progress%
+    const estimatedUniqueListeners = Math.round(avgConcurrentListeners * 12 * (progress / 100));
     
     // Update program stats in database (all values rounded to integers)
     await storage.updateProgramStats(currentProgram, wibDate, {
@@ -673,7 +673,7 @@ async function calculateEMAListenerMinutes() {
     
     state.lastN = N;
     
-    console.log(`[EMA] ${currentProgram}: N=${N}, Nhat=${state.Nhat.toFixed(1)}, Current=${avgConcurrentListeners} (N×11), Total=${estimatedUniqueListeners} (Current×6×${progress.toFixed(1)}%)`);
+    console.log(`[EMA] ${currentProgram}: N=${N}, Nhat=${state.Nhat.toFixed(1)}, Current=${avgConcurrentListeners} (N×11), Total=${estimatedUniqueListeners} (Current×12×${progress.toFixed(1)}%)`);
     
   } catch (error) {
     console.error(`[EMA] Error calculating EMA:`, error);
