@@ -41,11 +41,15 @@ The dashboard's design is inspired by Spotify Analytics and SoundCloud Stats, wi
 ### Technical Implementations
 - **Frontend**: React with TypeScript, Wouter for routing, TanStack Query for state management, Tailwind CSS and Shadcn/ui for styling, Recharts for data visualization.
 - **Backend**: Express.js, PostgreSQL (Neon) with Drizzle ORM, Cheerio for HTML parsing (Icecast stats + tjradiojakarta.com/live program info), Axios for HTTP requests, Zod for schema validation.
-- **Data Sources**: Icecast server (listener statistics) and tjradiojakarta.com/live (current program information via web scraping).
+- **Data Sources**: 
+    - **Primary Streaming Server**: Icecast (`https://stream-eu-nc.arenastreaming.com:5450/`) - Main listener statistics via HTML parsing
+    - **Backup Streaming Server**: IndoStreamServer (`https://live1.indostreamserver.com:8012/`) - Backup listener statistics via Shoutcast format (port 8012, endpoint `/7.html`)
+    - **Program Information**: tjradiojakarta.com/live (current program information via web scraping)
+    - **Dual-Server Integration (Nov 11, 2025)**: Listener counts are automatically combined from both Icecast and IndoStreamServer in parallel for redundancy and accuracy. Credentials stored securely in environment variables (INDOSTREAM_USERNAME, INDOSTREAM_PASSWORD).
 - **Background Jobs**: Interval-based snapshots for historical data and alert threshold checks.
 - **Metrics Calculation**:
-    - "PENDENGAR SAAT INI" = Raw listeners (N) × 11.
-    - "TOTAL PENDENGAR" = (N × 11) × 6 × program progress percentage.
+    - "PENDENGAR SAAT INI" = (Icecast listeners + IndoStream listeners) × 11.
+    - "TOTAL PENDENGAR" = (Combined listeners × 11) × 6 × program progress percentage.
     - EMA smoothing (α=0.25) applied for spike detection, resetting at midnight or program change.
 
 ### Feature Specifications
@@ -75,7 +79,8 @@ The dashboard's design is inspired by Spotify Analytics and SoundCloud Stats, wi
 ## External Dependencies
 - **Database**: PostgreSQL (Neon).
 - **ORM**: Drizzle ORM.
-- **Streaming Server**: Icecast (`https://stream-eu-nc.arenastreaming.com:5450/`).
+- **Primary Streaming Server**: Icecast (`https://stream-eu-nc.arenastreaming.com:5450/`).
+- **Backup Streaming Server**: IndoStreamServer (`https://live1.indostreamserver.com:8012/` - Shoutcast format).
 - **HTTP Client**: Axios.
 - **Charting Library**: Recharts.
 - **UI Component Library**: Shadcn/ui.

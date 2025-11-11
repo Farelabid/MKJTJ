@@ -376,16 +376,20 @@ async function saveStatsSnapshot() {
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      const response = await axios.get("https://stream-eu-nc.arenastreaming.com:5450/", {
-        timeout: 10000,
-      });
+      // Fetch from both Icecast and IndoStreamServer in parallel
+      const [icecastResponse, indoStreamStats] = await Promise.all([
+        axios.get("https://stream-eu-nc.arenastreaming.com:5450/", {
+          timeout: 10000,
+        }),
+        fetchIndoStreamStats(),
+      ]);
 
-      const html = response.data;
+      const html = icecastResponse.data;
       const $ = cheerio.load(html);
 
       let streamName = "";
-      let listenersRaw = 0;
-      let listenersPeakRaw = 0;
+      let listenersRawIcecast = 0;
+      let listenersPeakRawIcecast = 0;
       let bitrate = 0;
       let currentlyPlaying = "";
 
@@ -403,10 +407,10 @@ async function saveStatsSnapshot() {
               bitrate = parseInt(value) || 0;
               break;
             case 'Listeners (current):':
-              listenersRaw = parseInt(value) || 0;
+              listenersRawIcecast = parseInt(value) || 0;
               break;
             case 'Listeners (peak):':
-              listenersPeakRaw = parseInt(value) || 0;
+              listenersPeakRawIcecast = parseInt(value) || 0;
               break;
             case 'Currently playing:':
               currentlyPlaying = value;
@@ -414,6 +418,13 @@ async function saveStatsSnapshot() {
           }
         }
       });
+
+      // Combine listener counts from both servers
+      const listenersRawIndoStream = indoStreamStats?.listenersRaw || 0;
+      const listenersPeakRawIndoStream = indoStreamStats?.listenersPeak || 0;
+      
+      const listenersRaw = listenersRawIcecast + listenersRawIndoStream;
+      const listenersPeakRaw = Math.max(listenersPeakRawIcecast, listenersPeakRawIndoStream);
 
       // Get multiplier from config (default 11 to match program analytics)
       const multiplierConfig = await storage.getConfig('listener_multiplier');
@@ -731,6 +742,34 @@ async function checkStreamHealthIndependently() {
   }
 }
 
+// Helper function to fetch IndoStreamServer backup stats (Shoutcast format)
+async function fetchIndoStreamStats(): Promise<{ listenersRaw: number; listenersPeak: number } | null> {
+  try {
+    const response = await axios.get("https://live1.indostreamserver.com:8012/7.html", {
+      timeout: 5000,
+    });
+    
+    // Parse Shoutcast stats format: <html><body>2,1,6,100,1,128,</body></html>
+    // Format: current_listeners,status,peak_listeners,max_listeners,unique_listeners,bitrate
+    const html = response.data;
+    const match = html.match(/<body>([^<]+)<\/body>/);
+    
+    if (match && match[1]) {
+      const values = match[1].split(',');
+      const listenersRaw = parseInt(values[0]) || 0;
+      const listenersPeak = parseInt(values[2]) || 0;
+      
+      console.log(`[IndoStream] Fetched backup stats: ${listenersRaw} current, ${listenersPeak} peak`);
+      return { listenersRaw, listenersPeak };
+    }
+    
+    return null;
+  } catch (error) {
+    console.error("[IndoStream] Error fetching backup stats:", error instanceof Error ? error.message : "Unknown error");
+    return null;
+  }
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Serve static files from attached_assets directory
   // This must be registered BEFORE Vite's catch-all route to prevent HTML being served for image requests
@@ -741,9 +780,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/radio-stats", async (req, res) => {
     const startTime = Date.now();
     try {
-      const response = await axios.get("https://stream-eu-nc.arenastreaming.com:5450/", {
-        timeout: 10000,
-      });
+      // Fetch from both Icecast and IndoStreamServer in parallel
+      const [icecastResponse, indoStreamStats] = await Promise.all([
+        axios.get("https://stream-eu-nc.arenastreaming.com:5450/", {
+          timeout: 10000,
+        }),
+        fetchIndoStreamStats(),
+      ]);
       
       // Track successful response
       const responseTime = Date.now() - startTime;
@@ -777,7 +820,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         streamHealth.status = 'offline';
       }
 
-      const html = response.data;
+      const html = icecastResponse.data;
       const $ = cheerio.load(html);
 
       let streamName = "";
@@ -785,8 +828,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let contentType = "";
       let streamStarted = "";
       let bitrate = 0;
-      let listenersRaw = 0;
-      let listenersPeakRaw = 0;
+      let listenersRawIcecast = 0;
+      let listenersPeakRawIcecast = 0;
       let genre = "";
       let streamUrl = "";
       let currentlyPlaying = "";
@@ -814,10 +857,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
               bitrate = parseInt(value) || 0;
               break;
             case 'Listeners (current):':
-              listenersRaw = parseInt(value) || 0;
+              listenersRawIcecast = parseInt(value) || 0;
               break;
             case 'Listeners (peak):':
-              listenersPeakRaw = parseInt(value) || 0;
+              listenersPeakRawIcecast = parseInt(value) || 0;
               break;
             case 'Genre:':
               genre = value;
@@ -832,6 +875,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
       });
+
+      // Combine listener counts from both servers
+      const listenersRawIndoStream = indoStreamStats?.listenersRaw || 0;
+      const listenersPeakRawIndoStream = indoStreamStats?.listenersPeak || 0;
+      
+      const listenersRaw = listenersRawIcecast + listenersRawIndoStream;
+      const listenersPeakRaw = Math.max(listenersPeakRawIcecast, listenersPeakRawIndoStream);
+      
+      console.log(`[RadioStats] Combined: Icecast=${listenersRawIcecast} + IndoStream=${listenersRawIndoStream} = Total=${listenersRaw}`);
 
       // Get multiplier from config (default 11 to match program analytics)
       const multiplierConfig = await storage.getConfig('listener_multiplier');
