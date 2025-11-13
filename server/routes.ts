@@ -648,13 +648,20 @@ async function calculateEMAListenerMinutes() {
     const altSessionConfig = await storage.getConfigValue('alt_session');
     const ALT_session = altSessionConfig ? parseInt(altSessionConfig) : 45;
     
-    // Calculate new metrics based on user requirements (Oct 17, 2025):
+    // Calculate new metrics based on user requirements (Nov 11, 2025):
     // 1. "PENDENGAR SAAT INI" for display = raw listeners (N) × 11
     const avgConcurrentListeners = Math.round(N * DEVICE_TO_LISTENER_MULTIPLIER);
     
-    // 2. "TOTAL PENDENGAR" (estimated unique) = PENDENGAR SAAT INI × 12 × percentage progress
-    // Formula: (N × 11) × 12 × progress% = N × 132 × progress%
-    const estimatedUniqueListeners = Math.round(avgConcurrentListeners * 12 * (progress / 100));
+    // 2. "TOTAL PENDENGAR" (estimated unique) = Running Average × 11 × 12 × Progress%
+    // Get all snapshots for this program to calculate running average (more stable, doesn't drop when raw listeners fluctuate)
+    const allSnapshots = await storage.getRecentSnapshots(currentProgram, wibDate, 1000); // Get up to 1000 snapshots (max ~8 hours at 30s intervals)
+    let avgRawListeners = N; // Default to current if no snapshots
+    if (allSnapshots.length > 0) {
+      const totalRaw = allSnapshots.reduce((sum, s) => sum + (s.rawListeners || 0), 0);
+      avgRawListeners = totalRaw / allSnapshots.length;
+    }
+    const avgConcurrentBase = Math.round(avgRawListeners * DEVICE_TO_LISTENER_MULTIPLIER);
+    const estimatedUniqueListeners = Math.round(avgConcurrentBase * 12 * (progress / 100));
     
     // Update program stats in database (all values rounded to integers)
     await storage.updateProgramStats(currentProgram, wibDate, {
@@ -673,7 +680,7 @@ async function calculateEMAListenerMinutes() {
     
     state.lastN = N;
     
-    console.log(`[EMA] ${currentProgram}: N=${N}, Nhat=${state.Nhat.toFixed(1)}, Current=${avgConcurrentListeners} (N×11), Total=${estimatedUniqueListeners} (Current×12×${progress.toFixed(1)}%)`);
+    console.log(`[EMA] ${currentProgram}: N=${N}, Nhat=${state.Nhat.toFixed(1)}, Current=${avgConcurrentListeners} (N×11), Avg=${avgRawListeners.toFixed(1)}, Total=${estimatedUniqueListeners} (Avg×11×12×${progress.toFixed(1)}%)`);
     
   } catch (error) {
     console.error(`[EMA] Error calculating EMA:`, error);

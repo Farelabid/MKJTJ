@@ -49,7 +49,7 @@ The dashboard's design is inspired by Spotify Analytics and SoundCloud Stats, wi
 - **Background Jobs**: Interval-based snapshots for historical data and alert threshold checks.
 - **Metrics Calculation**:
     - "PENDENGAR SAAT INI" = (Icecast listeners + IndoStream listeners) × 11.
-    - "TOTAL PENDENGAR" = (Combined listeners × 11) × 12 × program progress percentage.
+    - "TOTAL PENDENGAR" = (Running Average of all snapshots × 11) × 12 × program progress percentage. Running average provides stability and prevents drops when raw listeners fluctuate temporarily.
     - EMA smoothing (α=0.25) applied for spike detection, resetting at midnight or program change.
 
 ### Feature Specifications
