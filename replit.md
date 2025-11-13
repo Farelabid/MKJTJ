@@ -24,6 +24,7 @@ The dashboard's design is inspired by Spotify Analytics and SoundCloud Stats, wi
     - **Coming Up Next** section: `looplogo_1762589395286.mp4` (24MB loop video) - Always displays for next program
     - **Program Sedang On Air - Afternoon Show**: `afternoonShow_1762590789847.mp4` (17MB loop video) - Shows during Afternoon Show (13:00-16:00 WIB)
     - **Program Sedang On Air - Good Morning Jakarta**: `gmjindyirwan_1763001208942.mp4` (loop video) - Shows during Good Morning Jakarta (06:00-10:00 WIB with INDY & IRWAN)
+    - **Program Sedang On Air - Office Hour**: `oFFICE_HOUR_1763001501486.mp4` (loop video) - Shows during Office Hour (10:00-13:00 WIB)
     - Video settings: autoPlay, loop, muted, playsInline with dark gradient overlay
   - **AI-Generated Images with Host Photo Overlay (Nov 8, 2025)**: Programs without official presenter photos use contextual AI-generated stock images with dark gradient overlay, circular host photos, and program information:
     - **Drive Time Weekend**: Radio broadcasting studio at sunset with circular photos of RISAN & NAYLA + text overlay

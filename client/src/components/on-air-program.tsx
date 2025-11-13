@@ -96,6 +96,7 @@ const needsTextOverlay = (programTitle: string): boolean => {
     'yesterday hit',
     'afternoon show', // Video background program
     'good morning jakarta', // Video background program
+    'office hour', // Video background program
   ];
   return programsWithOverlay.includes(normalizedTitle);
 };
@@ -103,7 +104,7 @@ const needsTextOverlay = (programTitle: string): boolean => {
 // Check if program uses video background
 const usesVideoBackground = (programTitle: string): boolean => {
   const normalizedTitle = programTitle.trim().toLowerCase();
-  return normalizedTitle === 'afternoon show' || normalizedTitle === 'good morning jakarta';
+  return normalizedTitle === 'afternoon show' || normalizedTitle === 'good morning jakarta' || normalizedTitle === 'office hour';
 };
 
 // Get video source for programs with video backgrounds
@@ -114,6 +115,9 @@ const getVideoSource = (programTitle: string): string => {
   }
   if (normalizedTitle === 'good morning jakarta') {
     return '/attached_assets/gmjindyirwan_1763001208942.mp4';
+  }
+  if (normalizedTitle === 'office hour') {
+    return '/attached_assets/oFFICE_HOUR_1763001501486.mp4';
   }
   return '';
 };
