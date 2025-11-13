@@ -648,9 +648,13 @@ async function calculateEMAListenerMinutes() {
     const altSessionConfig = await storage.getConfigValue('alt_session');
     const ALT_session = altSessionConfig ? parseInt(altSessionConfig) : 45;
     
+    // Get listener multiplier from config (default 11, but can be set to 319 via admin)
+    const multiplierConfig = await storage.getConfig('listener_multiplier');
+    const multiplier = multiplierConfig ? parseInt(multiplierConfig.value) : DEVICE_TO_LISTENER_MULTIPLIER;
+    
     // Calculate new metrics based on user requirements (Nov 13, 2025):
-    // 1. "PENDENGAR SAAT INI" for display = raw listeners (N) × 11
-    const avgConcurrentListeners = Math.round(N * DEVICE_TO_LISTENER_MULTIPLIER);
+    // 1. "PENDENGAR SAAT INI" for display = raw listeners (N) × multiplier (from config)
+    const avgConcurrentListeners = Math.round(N * multiplier);
     
     // 2. "TOTAL PENDENGAR" (estimated unique) = PENDENGAR SAAT INI × 12 × Progress%
     // Use the same value displayed in flip counter for consistency
@@ -673,7 +677,7 @@ async function calculateEMAListenerMinutes() {
     
     state.lastN = N;
     
-    console.log(`[EMA] ${currentProgram}: N=${N}, Nhat=${state.Nhat.toFixed(1)}, Current=${avgConcurrentListeners} (N×11), Total=${estimatedUniqueListeners} (Current×12×${progress.toFixed(1)}%)`);
+    console.log(`[EMA] ${currentProgram}: N=${N}, Nhat=${state.Nhat.toFixed(1)}, Current=${avgConcurrentListeners} (N×${multiplier}), Total=${estimatedUniqueListeners} (Current×12×${progress.toFixed(1)}%)`);
     
   } catch (error) {
     console.error(`[EMA] Error calculating EMA:`, error);
