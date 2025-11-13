@@ -636,23 +636,9 @@ export default function Dashboard() {
                     </div>
                     
                     {/* Subtitle */}
-                    <p className="text-[9px] font-medium text-gray-300 tracking-wide mb-1 px-2">
+                    <p className="text-[9px] font-medium text-gray-300 tracking-wide mb-2 px-2">
                       PEOPLE ARE LISTENING<br/>TO US RIGHT NOW
                     </p>
-                    
-                    {/* Formula Display */}
-                    {stats && (
-                      <div className="mb-2 px-2">
-                        <div className="inline-flex items-center gap-1 bg-black/50 px-2 py-1 rounded border border-yellow-500/20">
-                          <span className="text-[10px] font-mono text-gray-400">
-                            {stats.listenersRaw} <span className="text-yellow-500/60">×</span> {Math.round(stats.listenersCurrent / stats.listenersRaw)} <span className="text-yellow-500/60">=</span>
-                          </span>
-                          <span className="text-[11px] font-bold text-yellow-500">
-                            {stats.listenersCurrent.toLocaleString()}
-                          </span>
-                        </div>
-                      </div>
-                    )}
                     
                     {/* Trend Indicator */}
                     {stats && previousListeners !== null && (
