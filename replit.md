@@ -23,6 +23,7 @@ The dashboard's design is inspired by Spotify Analytics and SoundCloud Stats, wi
   - **Video Backgrounds (Nov 8, 2025)**: Specific programs use looping video backgrounds instead of static images:
     - **Coming Up Next** section: `looplogo_1762589395286.mp4` (24MB loop video) - Always displays for next program
     - **Program Sedang On Air - Afternoon Show**: `afternoonShow_1762590789847.mp4` (17MB loop video) - Shows during Afternoon Show (13:00-16:00 WIB)
+    - **Program Sedang On Air - Good Morning Jakarta**: `gmjindyirwan_1763001208942.mp4` (loop video) - Shows during Good Morning Jakarta (06:00-10:00 WIB with INDY & IRWAN)
     - Video settings: autoPlay, loop, muted, playsInline with dark gradient overlay
   - **AI-Generated Images with Host Photo Overlay (Nov 8, 2025)**: Programs without official presenter photos use contextual AI-generated stock images with dark gradient overlay, circular host photos, and program information:
     - **Drive Time Weekend**: Radio broadcasting studio at sunset with circular photos of RISAN & NAYLA + text overlay
@@ -47,10 +48,11 @@ The dashboard's design is inspired by Spotify Analytics and SoundCloud Stats, wi
     - **Program Information**: tjradiojakarta.com/live (current program information via web scraping)
     - **Dual-Server Integration (Nov 11, 2025)**: Listener counts are automatically combined from both Icecast and IndoStreamServer in parallel for redundancy and accuracy. Credentials stored securely in environment variables (INDOSTREAM_USERNAME, INDOSTREAM_PASSWORD).
 - **Background Jobs**: Interval-based snapshots for historical data and alert threshold checks.
-- **Metrics Calculation**:
-    - "PENDENGAR SAAT INI" = (Icecast listeners + IndoStream listeners) × 11.
-    - "TOTAL PENDENGAR" = (PENDENGAR SAAT INI) × 12 × program progress percentage.
-    - EMA smoothing (α=0.25) applied for spike detection, resetting at midnight or program change.
+- **Metrics Calculation** (Updated Nov 13, 2025):
+    - **Listener Multiplier**: Configurable via admin dashboard, stored in database configuration table (default: 11, production: 319)
+    - "PENDENGAR SAAT INI" = (Icecast listeners + IndoStream listeners) × listener_multiplier (from config)
+    - "TOTAL PENDENGAR" = (PENDENGAR SAAT INI) × 12 × program progress percentage
+    - EMA smoothing (α=0.25) applied for spike detection, resetting at midnight or program change
 
 ### Feature Specifications
 - **Real-time Statistics**: Current listeners, peak listeners, and currently playing song. **Auto-refresh interval: 20 seconds** for real-time listener data (radio-stats and stream-health), providing more frequent updates for live monitoring.

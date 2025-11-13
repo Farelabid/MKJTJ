@@ -95,6 +95,7 @@ const needsTextOverlay = (programTitle: string): boolean => {
     'weekend seru',
     'yesterday hit',
     'afternoon show', // Video background program
+    'good morning jakarta', // Video background program
   ];
   return programsWithOverlay.includes(normalizedTitle);
 };
@@ -102,7 +103,19 @@ const needsTextOverlay = (programTitle: string): boolean => {
 // Check if program uses video background
 const usesVideoBackground = (programTitle: string): boolean => {
   const normalizedTitle = programTitle.trim().toLowerCase();
-  return normalizedTitle === 'afternoon show';
+  return normalizedTitle === 'afternoon show' || normalizedTitle === 'good morning jakarta';
+};
+
+// Get video source for programs with video backgrounds
+const getVideoSource = (programTitle: string): string => {
+  const normalizedTitle = programTitle.trim().toLowerCase();
+  if (normalizedTitle === 'afternoon show') {
+    return '/attached_assets/afternoonShow_1762590789847.mp4';
+  }
+  if (normalizedTitle === 'good morning jakarta') {
+    return '/attached_assets/gmjindyirwan_1763001208942.mp4';
+  }
+  return '';
 };
 
 // Get host photos from presenter string
@@ -171,9 +184,9 @@ export function OnAirProgram() {
           {/* Program Image/Video - Always show with program-specific media */}
           <div className="relative aspect-video w-full overflow-hidden rounded-md bg-muted">
             {usesVideoBackground(program.programTitle) ? (
-              /* Video Background for Afternoon Show */
+              /* Video Background for Afternoon Show & Good Morning Jakarta */
               <video 
-                src="/attached_assets/afternoonShow_1762590789847.mp4"
+                src={getVideoSource(program.programTitle)}
                 autoPlay
                 loop
                 muted
