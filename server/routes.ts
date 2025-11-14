@@ -1884,6 +1884,306 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============================================================
+  // ADDITIONAL API ENDPOINTS (Dashboard Statistics Focus)
+  // ============================================================
+
+  // /api/stats/live - Real-time live statistics (alias for /api/radio-stats)
+  app.get("/api/stats/live", async (req, res) => {
+    try {
+      const [icecastResult, indoStreamResult] = await Promise.allSettled([
+        axios.get("https://stream-eu-nc.arenastreaming.com:5450/", {
+          timeout: 10000,
+        }),
+        fetchIndoStreamStats(),
+      ]);
+
+      if (icecastResult.status === 'rejected') {
+        throw new Error(`Icecast unavailable: ${icecastResult.reason}`);
+      }
+      const icecastResponse = icecastResult.value;
+
+      let indoStreamStats = null;
+      if (indoStreamResult.status === 'fulfilled') {
+        indoStreamStats = indoStreamResult.value;
+      }
+
+      const html = icecastResponse.data;
+      const $ = cheerio.load(html);
+
+      let listenersRawIcecast = 0;
+      let listenersPeakRawIcecast = 0;
+
+      $('table tr').each((_, row) => {
+        const cells = $(row).find('td');
+        if (cells.length >= 2) {
+          const label = $(cells[0]).text().trim();
+          const value = $(cells[1]).text().trim();
+
+          if (label === 'Listeners (current):') {
+            listenersRawIcecast = parseInt(value) || 0;
+          } else if (label === 'Listeners (peak):') {
+            listenersPeakRawIcecast = parseInt(value) || 0;
+          }
+        }
+      });
+
+      const listenersRawIndoStream = indoStreamStats?.listenersRaw || 0;
+      const listenersPeakRawIndoStream = indoStreamStats?.listenersPeak || 0;
+
+      const listenersRaw = listenersRawIcecast + listenersRawIndoStream;
+      const listenersPeakRaw = Math.max(listenersPeakRawIcecast, listenersPeakRawIndoStream);
+
+      const multiplierConfig = await storage.getConfig('listener_multiplier');
+      const multiplier = multiplierConfig ? parseInt(multiplierConfig.value) : DEVICE_TO_LISTENER_MULTIPLIER;
+
+      const listenersCurrent = listenersRaw * multiplier;
+      const listenersPeak = listenersPeakRaw * multiplier;
+
+      res.json({
+        timestamp: new Date().toISOString(),
+        listenersRaw,
+        listenersPeakRaw,
+        listenersCurrent,
+        listenersPeak,
+        multiplier,
+        sources: {
+          icecast: {
+            available: true,
+            listeners: listenersRawIcecast,
+            peak: listenersPeakRawIcecast
+          },
+          indoStream: {
+            available: indoStreamStats !== null,
+            listeners: listenersRawIndoStream,
+            peak: listenersPeakRawIndoStream
+          }
+        }
+      });
+    } catch (error) {
+      console.error("Error fetching live stats:", error);
+      res.status(500).json({ error: "Failed to fetch live statistics" });
+    }
+  });
+
+  // /api/ema - EMA data with current program context
+  app.get("/api/ema", async (req, res) => {
+    try {
+      const currentProgram = getCurrentProgramWIB();
+      const wibDate = getWIBDate();
+
+      if (!currentProgram) {
+        return res.json({
+          error: "No active program at this time",
+          currentProgram: null,
+          emaData: null
+        });
+      }
+
+      const state = programEMAStates.get(currentProgram);
+      const programStats = await storage.getProgramStats(currentProgram, wibDate);
+      const recentSnapshots = await storage.getRecentSnapshots(currentProgram, wibDate, 10);
+
+      res.json({
+        currentProgram,
+        date: wibDate,
+        ema: {
+          Nhat: state?.Nhat || null,
+          lastN: state?.lastN || null,
+          baselineN: state?.baselineN || null,
+          spikeWindowCount: state?.spikeWindowCount || 0,
+          spikeWindowSecondsRemaining: (state?.spikeWindowCount || 0) * 30,
+          alpha: ALPHA,
+          multiplier: DEVICE_TO_LISTENER_MULTIPLIER
+        },
+        programStats: programStats || null,
+        recentSnapshots: recentSnapshots.slice(0, 10).map(s => ({
+          timestamp: s.timestamp,
+          rawListeners: s.rawListeners,
+          Nhat: s.Nhat,
+          programName: s.programName
+        }))
+      });
+    } catch (error) {
+      console.error("Error fetching EMA data:", error);
+      res.status(500).json({ error: "Failed to fetch EMA data" });
+    }
+  });
+
+  // /api/program/current - Current active program (alias for /api/on-air-program)
+  app.get("/api/program/current", async (req, res) => {
+    try {
+      const currentProgram = getCurrentProgramWIB();
+
+      if (!currentProgram) {
+        return res.json({
+          isLive: false,
+          program: null,
+          message: "No program currently on air"
+        });
+      }
+
+      const schedules = getProgramSchedules();
+      const programSchedule = schedules.find(p => p.name === currentProgram);
+
+      if (!programSchedule) {
+        return res.json({
+          isLive: false,
+          program: null,
+          message: "Program schedule not found"
+        });
+      }
+
+      const now = new Date();
+      const wibOffset = 7 * 60;
+      const localOffset = now.getTimezoneOffset();
+      const wibTime = new Date(now.getTime() + (wibOffset + localOffset) * 60 * 1000);
+
+      const currentMinutes = wibTime.getHours() * 60 + wibTime.getMinutes();
+      const startMinutes = programSchedule.startHour * 60 + programSchedule.startMin;
+      const elapsedMinutes = currentMinutes - startMinutes;
+      const progress = Math.min(100, Math.max(0, (elapsedMinutes / programSchedule.durationMinutes) * 100));
+
+      const wibDate = getWIBDate();
+      const programStats = await storage.getProgramStats(currentProgram, wibDate);
+
+      res.json({
+        isLive: true,
+        program: {
+          name: currentProgram,
+          displayName: getDisplayProgramName(currentProgram),
+          startTime: `${String(programSchedule.startHour).padStart(2, '0')}:${String(programSchedule.startMin).padStart(2, '0')}`,
+          endTime: `${String(programSchedule.endHour).padStart(2, '0')}:${String(programSchedule.endMin).padStart(2, '0')}`,
+          durationMinutes: programSchedule.durationMinutes,
+          elapsedMinutes,
+          progress: Math.round(progress * 100) / 100,
+          color: getColorForProgram(currentProgram),
+          stats: programStats || null
+        }
+      });
+    } catch (error) {
+      console.error("Error fetching current program:", error);
+      res.status(500).json({ error: "Failed to fetch current program" });
+    }
+  });
+
+  // /api/program/stats - Statistics for all programs (current date by default)
+  app.get("/api/program/stats", async (req, res) => {
+    try {
+      const date = (req.query.date as string) || getWIBDate();
+      const programStats = await storage.getAllProgramStatsForDate(date);
+
+      const enrichedStats = programStats.map(stat => {
+        const schedules = getProgramSchedules();
+        const schedule = schedules.find(s => s.name === stat.programName);
+
+        return {
+          ...stat,
+          displayName: getDisplayProgramName(stat.programName),
+          color: getColorForProgram(stat.programName),
+          schedule: schedule ? {
+            startTime: stat.startTime,
+            endTime: stat.endTime,
+            durationMinutes: schedule.durationMinutes
+          } : null
+        };
+      });
+
+      res.json({
+        date,
+        programs: enrichedStats,
+        total: enrichedStats.length
+      });
+    } catch (error) {
+      console.error("Error fetching program stats:", error);
+      res.status(500).json({ error: "Failed to fetch program statistics" });
+    }
+  });
+
+  // /api/alerts - Combined alert data (thresholds + history)
+  app.get("/api/alerts", async (req, res) => {
+    try {
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
+      const [thresholds, history] = await Promise.all([
+        storage.getAlertThresholds(),
+        storage.getAlertHistory(limit)
+      ]);
+
+      res.json({
+        thresholds: thresholds.map(t => ({
+          id: t.id,
+          type: t.thresholdType,
+          value: t.value,
+          enabled: t.enabled,
+          createdAt: t.createdAt
+        })),
+        history: history.map(h => ({
+          id: h.id,
+          thresholdId: h.thresholdId,
+          listenersCount: h.listenersCount,
+          message: h.message,
+          triggeredAt: h.triggeredAt
+        })),
+        summary: {
+          totalThresholds: thresholds.length,
+          activeThresholds: thresholds.filter(t => t.enabled).length,
+          recentAlerts: history.length
+        }
+      });
+    } catch (error) {
+      console.error("Error fetching alerts:", error);
+      res.status(500).json({ error: "Failed to fetch alerts" });
+    }
+  });
+
+  // /api/history - Stats history with optional date range
+  app.get("/api/history", async (req, res) => {
+    try {
+      const startDateStr = req.query.startDate as string;
+      const endDateStr = req.query.endDate as string;
+      const hoursStr = req.query.hours as string;
+
+      let stats: StatsHistory[];
+
+      if (hoursStr) {
+        const hours = parseFloat(hoursStr);
+        stats = await storage.getRecentStats(hours);
+      } else if (startDateStr && endDateStr) {
+        const startDate = new Date(startDateStr);
+        const endDate = new Date(endDateStr);
+        stats = await storage.getStatsHistory(startDate, endDate);
+      } else if (startDateStr) {
+        const startDate = new Date(startDateStr);
+        stats = await storage.getStatsHistory(startDate);
+      } else {
+        stats = await storage.getRecentStats(24);
+      }
+
+      res.json({
+        stats: stats.map(s => ({
+          id: s.id,
+          timestamp: s.timestamp,
+          streamName: s.streamName,
+          listenersRaw: s.listenersRaw,
+          listenersPeakRaw: s.listenersPeakRaw,
+          listenersCurrent: s.listenersCurrent,
+          listenersPeak: s.listenersPeak,
+          bitrate: s.bitrate,
+          currentlyPlaying: s.currentlyPlaying
+        })),
+        total: stats.length,
+        query: {
+          startDate: startDateStr || null,
+          endDate: endDateStr || null,
+          hours: hoursStr || null
+        }
+      });
+    } catch (error) {
+      console.error("Error fetching history:", error);
+      res.status(500).json({ error: "Failed to fetch stats history" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   // Start background job for saving stats snapshots (every 5 minutes)
